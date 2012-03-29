@@ -7,7 +7,6 @@
     <title>SF - Neighborhood Survey Builder</title>
     <script src='wax/ext/leaflet.js' type='text/javascript'></script>
     <script src='wax/dist/wax.leaf.js' type='text/javascript'></script>
-    <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
     <link href='wax/ext/leaflet.css' rel='stylesheet' type='text/css' />
     
     <style type="text/css" media="screen">
@@ -18,21 +17,24 @@
       html, body, #map {
           height: 100%;
       }
-      
     </style>
     <script type="text/javascript" charset="utf-8">
       var map;
     
-      wax.tilejson('http://api.tiles.mapbox.com/v2/mapbox.geography-class.jsonp',
+      wax.tilejson('http://a.tiles.mapbox.com/v3/matth.map-3lzyi3ep.jsonp',
         function(tilejson) {
           map = new L.Map('map-div');
           map.addLayer(new wax.leaf.connector(tilejson));
+          wax.leaf.interaction()
+            .map(map)
+            .tilejson(tilejson)
+            .on(wax.tooltip().animate(true).parent(map._container).events());
           
       		map.on('locationfound', onLocationFound);
       		map.on('locationerror', onLocationError);
 
       		map.locateAndSetView(18);
-
+      		
       		function onLocationFound(e) {
       			var radius = e.accuracy / 2;
 
@@ -49,6 +51,7 @@
       		}
 
       });
+      
       
       
     </script>
