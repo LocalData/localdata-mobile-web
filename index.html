@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <script src='wax/ext/leaflet.js' type='text/javascript'></script>
+    <script src='wax/dist/wax.leaf.js' type='text/javascript'></script>
+    <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
+    <link href='wax/ext/leaflet.css' rel='stylesheet' type='text/css' />
+    <script type="text/javascript" charset="utf-8">
+      var map;
+    
+      wax.tilejson('http://api.tiles.mapbox.com/v2/mapbox.geography-class.jsonp',
+        function(tilejson) {
+          map = new L.Map('map-div')
+            .addLayer(new wax.leaf.connector(tilejson))
+            .setView(new L.LatLng(51, 0), 1);
+      });
+      
+      function codeAddress() {
+        var address = document.getElementById("address").value;
+        geocoder = new google.maps.Geocoder();
+        geocoder.geocode( { 'address': address}, function(results, status) {
+          if (status == google.maps.GeocoderStatus.OK) {
+            console.log(results);
+            var latlng = new L.LatLng(results[0].geometry.location.Ua, results[0].geometry.location.Va);
+            var marker = new L.Marker(latlng);
+            map.addLayer(marker);
+            map.setView(latlng, 6);
+            marker.bindPopup("HEY THAR").openPopup();
+          } else {
+            alert("Geocode was not successful for the following reason: " + status);
+          }
+        });
+      }
+    </script>
+</head>
+
+<body>
+    <div id="container">
+        
+        <div id='map-div' style="height:350px;"></div>
+        
+        <input type="text" name="address" value="" id="address">
+        <input type="submit" name="Search" value="Search" id="search" onclick="codeAddress();">
+        
+        
+    </div>
+</body>
+</html>
