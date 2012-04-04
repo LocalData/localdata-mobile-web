@@ -53,9 +53,6 @@ dist_setup:
 	mkdir build
 	$(BANNER) package.json > build/header.js
 
-doc:
-	./node_modules/.bin/docco control/mm/*.js
-
 ext:
 	-test ! -d ext && mkdir ext
 	wget --no-check-certificate http://openlayers.org/api/2.10/OpenLayers.js -O ext/OpenLayers.js
@@ -67,4 +64,4 @@ ext:
 lint:
 	./node_modules/.bin/jshint control/lib/*.js control/mm/*.js control/leaf/*.js --config=jshint.json
 
-.PHONY: clean ext doc
+.PHONY: clean ext

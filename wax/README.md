@@ -4,14 +4,22 @@ Tools for improving web maps. The centerpiece of the code is a client implementa
 
 For full documentation of supported mapping APIs and how to use Wax see http://mapbox.github.com/wax.
 
+## Versions
+
+There are three current development branches of Wax:
+
+* `master` is 6.x
+* 5.x supports **Modest Maps 1.0.0-alpha2 and later**, but supports the same API as 4.x
+* 4.x supports **Modest Maps 0.x**, older versions of Modest Maps
+
+To find more detail of what has changed in each version, consult `CHANGELOG.md`.
+
 ## Compatibility
 
 * Google Maps API v3
 * Leaflet 0.x.x
-* Modest Maps 0.x.x
+* Modest Maps 1.x.x
 * OpenLayers 2.11
-
-Versions of OpenLayers besides 2.11 are **not supported**.
 
 ## Building Wax
 

@@ -14,7 +14,7 @@ wax.gi = function(grid_tile, options) {
 
     // Resolve the UTF-8 encoding stored in grids to simple
     // number values.
-    // See the [utfgrid section of the mbtiles spec](https://github.com/mapbox/mbtiles-spec/blob/master/1.1/utfgrid.md)
+    // See the [utfgrid spec](https://github.com/mapbox/utfgrid-spec)
     // for details.
     function resolveCode(key) {
         if (key >= 93) key--;

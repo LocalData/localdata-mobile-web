@@ -1,4 +1,4 @@
-/* wax - 6.0.0-beta1 - 1.0.4-508-g135a5e2 */
+/* wax - 6.0.0-beta1 - 1.0.4-525-g0a62b1e */
 
 
 !function (name, context, definition) {
@@ -2040,7 +2040,7 @@ wax.gi = function(grid_tile, options) {
 
     // Resolve the UTF-8 encoding stored in grids to simple
     // number values.
-    // See the [utfgrid section of the mbtiles spec](https://github.com/mapbox/mbtiles-spec/blob/master/1.1/utfgrid.md)
+    // See the [utfgrid spec](https://github.com/mapbox/utfgrid-spec)
     // for details.
     function resolveCode(key) {
         if (key >= 93) key--;
@@ -2117,7 +2117,8 @@ wax.gm = function() {
         if (typeof template === 'string') template = [template];
         return function templatedGridFinder(url) {
             if (!url) return;
-            var xyz = /(\d+)\/(\d+)\/(\d+)\.[\w\._]+/g.exec(url);
+            var rx = new RegExp('/(\\d+)\\/(\\d+)\\/(\\d+)\\.[\\w\\._]+');
+            var xyz = rx.exec(url);
             if (!xyz) return;
             return template[parseInt(xyz[2], 10) % template.length]
                 .replace('{z}', xyz[1])
@@ -2245,7 +2246,6 @@ wax.interaction = function() {
         _downLock = false,
         _clickTimeout = false,
         // Active feature
-        _af,
         // Down event
         _d,
         // Touch tolerance
@@ -2304,20 +2304,13 @@ wax.interaction = function() {
             if (err || !g) return;
             feature = g.tileFeature(pos.x, pos.y, tile);
             if (feature) {
-                if (feature && _af !== feature) {
-                    _af = feature;
-                    bean.fire(interaction, 'on', {
-                        parent: parent(),
-                        data: feature,
-                        formatter: gm.formatter().format,
-                        e: e
-                    });
-                } else if (!feature) {
-                    _af = null;
-                    bean.fire(interaction, 'off');
-                }
+                bean.fire(interaction, 'on', {
+                    parent: parent(),
+                    data: feature,
+                    formatter: gm.formatter().format,
+                    e: e
+                });
             } else {
-                _af = null;
                 bean.fire(interaction, 'off');
             }
         });
@@ -2524,152 +2517,116 @@ wax.legend = function() {
 var wax = wax || {};
 wax.movetip = {};
 
-wax.movetip = function(options) {
-    options = options || {};
-    var t = {},
-        _currentTooltip = undefined,
-        _context = undefined,
-        _animationOut = options.animationOut,
-        _animationIn = options.animationIn;
+wax.movetip = function() {
+    var popped = false,
+        t = {},
+        _tooltipOffset,
+        _contextOffset,
+        tooltip,
+        parent;
 
-    // Helper function to determine whether a given element is a wax popup.
-    function isPopup (el) {
-        return el && el.className.indexOf('wax-popup') !== -1;
+    function moveTooltip(e) {
+       var eo = wax.u.eventoffset(e);
+       // faux-positioning
+       if ((_tooltipOffset.height + eo.y) >
+           (_contextOffset.top + _contextOffset.height) &&
+           (_contextOffset.height > _tooltipOffset.height)) {
+           eo.y -= _tooltipOffset.height;
+           tooltip.className += ' flip-y';
+       }
+
+       // faux-positioning
+       if ((_tooltipOffset.width + eo.x) >
+           (_contextOffset.left + _contextOffset.width)) {
+           eo.x -= _tooltipOffset.width;
+           tooltip.className += ' flip-x';
+       }
+
+       tooltip.style.left = eo.x + 'px';
+       tooltip.style.top = eo.y + 'px';
     }
 
-    function getTooltip(feature, context) {
+    // Get the active tooltip for a layer or create a new one if no tooltip exists.
+    // Hide any tooltips on layers underneath this one.
+    function getTooltip(feature) {
         var tooltip = document.createElement('div');
-        tooltip.className = 'wax-movetip';
-        tooltip.style.cssText = 'position:absolute;'
+        tooltip.className = 'wax-tooltip wax-tooltip-0';
         tooltip.innerHTML = feature;
-        context.appendChild(tooltip);
-        _context = context;
-        _tooltipOffset = wax.util.offset(tooltip);
-        _contextOffset = wax.util.offset(_context);
         return tooltip;
     }
 
-    function moveTooltip(e) {
-        if (!_currentTooltip) return;
-        var eo = wax.util.eventoffset(e);
-
-        _currentTooltip.className = 'wax-movetip';
-
-        // faux-positioning
-        if ((_tooltipOffset.height + eo.y) >
-            (_contextOffset.top + _contextOffset.height) &&
-            (_contextOffset.height > _tooltipOffset.height)) {
-            eo.y -= _tooltipOffset.height;
-            _currentTooltip.className += ' flip-y';
-        }
-
-        // faux-positioning
-        if ((_tooltipOffset.width + eo.x) >
-            (_contextOffset.left + _contextOffset.width)) {
-            eo.x -= _tooltipOffset.width;
-            _currentTooltip.className += ' flip-x';
-        }
-
-        _currentTooltip.style.left = eo.x + 'px';
-        _currentTooltip.style.top = eo.y + 'px';
-    }
-
     // Hide a given tooltip.
-    function hideTooltip(el) {
-        if (!el) return;
-        var event,
-            remove = function() {
-            if (this.parentNode) this.parentNode.removeChild(this);
-        };
-
-        if (el.style['-webkit-transition'] !== undefined && _animationOut) {
-            event = 'webkitTransitionEnd';
-        } else if (el.style.MozTransition !== undefined && _animationOut) {
-            event = 'transitionend';
-        }
-
-        if (event) {
-            // This code assumes that transform-supporting browsers
-            // also support proper events. IE9 does both.
-            el.addEventListener(event, remove, false);
-            el.addEventListener('transitionend', remove, false);
-            el.className += ' ' + _animationOut;
-        } else {
-            if (el.parentNode) el.parentNode.removeChild(el);
+    function hide() {
+        if (tooltip) {
+          tooltip.parentNode.removeChild(tooltip);
+          tooltip = null;
         }
     }
 
-    // Expand a tooltip to be a "popup". Suspends all other tooltips from being
-    // shown until this popup is closed or another popup is opened.
-    function click(feature, context) {
-        // Hide any current tooltips.
-        if (_currentTooltip) {
-            hideTooltip(_currentTooltip);
-            _currentTooltip = undefined;
+    function on(o) {
+        var content;
+        if (popped) return;
+        if ((o.e.type === 'mousemove' || !o.e.type)) {
+            content = o.formatter({ format: 'teaser' }, o.data);
+            if (!content) return;
+            hide();
+            parent.style.cursor = 'pointer';
+            tooltip = document.body.appendChild(getTooltip(content));
+        } else {
+            content = o.formatter({ format: 'teaser' }, o.data);
+            if (!content) return;
+            hide();
+            var tt = document.body.appendChild(getTooltip(content));
+            tt.className += ' wax-popup';
+
+            var close = tt.appendChild(document.createElement('a'));
+            close.href = '#close';
+            close.className = 'close';
+            close.innerHTML = 'Close';
+
+            popped = true;
+
+            tooltip = tt;
+
+            _tooltipOffset = wax.u.offset(tooltip);
+            _contextOffset = wax.u.offset(parent);
+            moveTooltip(o.e);
+
+            bean.add(close, 'click touchend', function closeClick(e) {
+                e.stop();
+                hide();
+                popped = false;
+            });
+        }
+        if (tooltip) {
+          _tooltipOffset = wax.u.offset(tooltip);
+          _contextOffset = wax.u.offset(parent);
+          moveTooltip(o.e);
         }
 
-        var tooltip = getTooltip(feature, context);
-        tooltip.className += ' wax-popup';
-        tooltip.innerHTML = feature;
-
-        var close = document.createElement('a');
-        close.href = '#close';
-        close.className = 'close';
-        close.innerHTML = 'Close';
-        tooltip.appendChild(close);
-
-        var closeClick = function(ev) {
-            hideTooltip(tooltip);
-            _currentTooltip = undefined;
-            ev.returnValue = false; // Prevents hash change.
-            if (ev.stopPropagation) ev.stopPropagation();
-            if (ev.preventDefault) ev.preventDefault();
-            return false;
-        };
-
-        // IE compatibility.
-        if (close.addEventListener) {
-            close.addEventListener('click', closeClick, false);
-        } else if (close.attachEvent) {
-            close.attachEvent('onclick', closeClick);
-        }
-
-        _currentTooltip = tooltip;
     }
 
-    t.over = function(feature, context, e) {
-        if (!feature) return;
-        context.style.cursor = 'pointer';
+    function off() {
+        parent.style.cursor = 'default';
+        if (!popped) hide();
+    }
 
-        if (isPopup(_currentTooltip)) {
-            return;
-        } else {
-            _currentTooltip = getTooltip(feature, context);
-            moveTooltip(e);
-            if (context.addEventListener) {
-                context.addEventListener('mousemove', moveTooltip);
-            }
-        }
+    t.parent = function(x) {
+        if (!arguments.length) return parent;
+        parent = x;
+        return t;
     };
 
-    // Hide all tooltips on this layer and show the first hidden tooltip on the
-    // highest layer underneath if found.
-    t.out = function(context) {
-        context.style.cursor = 'default';
-
-        if (isPopup(_currentTooltip)) {
-            return;
-        } else if (_currentTooltip) {
-            hideTooltip(_currentTooltip);
-            if (context.removeEventListener) {
-                context.removeEventListener('mousemove', moveTooltip);
-            }
-            _currentTooltip = undefined;
-        }
+    t.events = function() {
+        return {
+            on: on,
+            off: off
+        };
     };
 
     return t;
 };
+
 // Wax GridUtil
 // ------------
 
@@ -2773,7 +2730,15 @@ wax.tooltip = function() {
         animate = false,
         t = {},
         tooltips = [],
+        _currentContent,
+        transitionEvent,
         parent;
+
+    if (document.body.style['-webkit-transition'] !== undefined) {
+        transitionEvent = 'webkitTransitionEnd';
+    } else if (document.body.style.MozTransition !== undefined) {
+        transitionEvent = 'transitionend';
+    }
 
     // Get the active tooltip for a layer or create a new one if no tooltip exists.
     // Hide any tooltips on layers underneath this one.
@@ -2784,26 +2749,19 @@ wax.tooltip = function() {
         return tooltip;
     }
 
+    
+    function remove() {
+        if (this.parentNode) this.parentNode.removeChild(this);
+    }
+
     // Hide a given tooltip.
     function hide() {
-        var event;
-
-        function remove() {
-            if (this.parentNode) this.parentNode.removeChild(this);
-        }
-
-        if (document.body.style['-webkit-transition'] !== undefined) {
-            event = 'webkitTransitionEnd';
-        } else if (document.body.style.MozTransition !== undefined) {
-            event = 'transitionend';
-        }
-
         var _ct;
         while (_ct = tooltips.pop()) {
-            if (animate && event) {
+            if (animate && transitionEvent) {
                 // This code assumes that transform-supporting browsers
                 // also support proper events. IE9 does both.
-                  bean.add(_ct, event, remove);
+                  bean.add(_ct, transitionEvent, remove);
                   _ct.className += ' wax-fade';
             } else {
                 if (_ct.parentNode) _ct.parentNode.removeChild(_ct);
@@ -2813,15 +2771,18 @@ wax.tooltip = function() {
 
     function on(o) {
         var content;
-        hide();
         if ((o.e.type === 'mousemove' || !o.e.type) && !popped) {
             content = o.formatter({ format: 'teaser' }, o.data);
-            if (!content) return;
+            if (!content || content == _currentContent) return;
+            hide();
             parent.style.cursor = 'pointer';
             tooltips.push(parent.appendChild(getTooltip(content)));
+            _currentContent = content;
         } else {
             content = o.formatter({ format: 'full' }, o.data);
             if (!content) return;
+            hide();
+            parent.style.cursor = 'pointer';
             var tt = parent.appendChild(getTooltip(content));
             tt.className += ' wax-popup';
 
@@ -2843,6 +2804,7 @@ wax.tooltip = function() {
 
     function off() {
         parent.style.cursor = 'default';
+        _currentContent = null;
         if (!popped) hide();
     }
 
@@ -3743,7 +3705,7 @@ wax.mm = wax.mm || {};
 
 // A layer connector for Modest Maps conformant to TileJSON
 // https://github.com/mapbox/tilejson
-wax.mm.connector = function(options) {
+wax.mm._provider = function(options) {
     this.options = {
         tiles: options.tiles,
         scheme: options.scheme || 'xyz',
@@ -3753,7 +3715,7 @@ wax.mm.connector = function(options) {
     };
 };
 
-wax.mm.connector.prototype = {
+wax.mm._provider.prototype = {
     outerLimits: function() {
         return [
             this.locationCoordinate(
@@ -3768,21 +3730,32 @@ wax.mm.connector.prototype = {
     },
     getTile: function(c) {
         if (!(coord = this.sourceCoordinate(c))) return null;
+        if (coord.zoom < this.options.minzoom || coord.zoom > this.options.maxzoom) return null;
 
         coord.row = (this.options.scheme === 'tms') ?
             Math.pow(2, coord.zoom) - coord.row - 1 :
             coord.row;
 
-        return this.options.tiles[parseInt(Math.pow(2, coord.zoom) * coord.row + coord.column, 10) %
+        var u = this.options.tiles[parseInt(Math.pow(2, coord.zoom) * coord.row + coord.column, 10) %
             this.options.tiles.length]
             .replace('{z}', coord.zoom.toFixed(0))
             .replace('{x}', coord.column.toFixed(0))
             .replace('{y}', coord.row.toFixed(0));
+
+        if (wax._ && wax._.bw) {
+            u = u.replace('.png', wax._.bw_png)
+                .replace('.jpg', wax._.bw_jpg);
+        }
+
+        return u;
     }
 };
 
-// Wax shouldn't throw any exceptions if the external it relies on isn't
-// present, so check for modestmaps.
 if (MM) {
-    MM.extend(wax.mm.connector, MM.MapProvider);
+    MM.extend(wax.mm._provider, MM.MapProvider);
 }
+
+wax.mm.connector = function(options) {
+    var x = new wax.mm._provider(options);
+    return new MM.Layer(x);
+};

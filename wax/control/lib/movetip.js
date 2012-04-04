@@ -1,149 +1,113 @@
 var wax = wax || {};
 wax.movetip = {};
 
-wax.movetip = function(options) {
-    options = options || {};
-    var t = {},
-        _currentTooltip = undefined,
-        _context = undefined,
-        _animationOut = options.animationOut,
-        _animationIn = options.animationIn;
+wax.movetip = function() {
+    var popped = false,
+        t = {},
+        _tooltipOffset,
+        _contextOffset,
+        tooltip,
+        parent;
 
-    // Helper function to determine whether a given element is a wax popup.
-    function isPopup (el) {
-        return el && el.className.indexOf('wax-popup') !== -1;
+    function moveTooltip(e) {
+       var eo = wax.u.eventoffset(e);
+       // faux-positioning
+       if ((_tooltipOffset.height + eo.y) >
+           (_contextOffset.top + _contextOffset.height) &&
+           (_contextOffset.height > _tooltipOffset.height)) {
+           eo.y -= _tooltipOffset.height;
+           tooltip.className += ' flip-y';
+       }
+
+       // faux-positioning
+       if ((_tooltipOffset.width + eo.x) >
+           (_contextOffset.left + _contextOffset.width)) {
+           eo.x -= _tooltipOffset.width;
+           tooltip.className += ' flip-x';
+       }
+
+       tooltip.style.left = eo.x + 'px';
+       tooltip.style.top = eo.y + 'px';
     }
 
-    function getTooltip(feature, context) {
+    // Get the active tooltip for a layer or create a new one if no tooltip exists.
+    // Hide any tooltips on layers underneath this one.
+    function getTooltip(feature) {
         var tooltip = document.createElement('div');
-        tooltip.className = 'wax-movetip';
-        tooltip.style.cssText = 'position:absolute;'
+        tooltip.className = 'wax-tooltip wax-tooltip-0';
         tooltip.innerHTML = feature;
-        context.appendChild(tooltip);
-        _context = context;
-        _tooltipOffset = wax.util.offset(tooltip);
-        _contextOffset = wax.util.offset(_context);
         return tooltip;
     }
 
-    function moveTooltip(e) {
-        if (!_currentTooltip) return;
-        var eo = wax.util.eventoffset(e);
-
-        _currentTooltip.className = 'wax-movetip';
-
-        // faux-positioning
-        if ((_tooltipOffset.height + eo.y) >
-            (_contextOffset.top + _contextOffset.height) &&
-            (_contextOffset.height > _tooltipOffset.height)) {
-            eo.y -= _tooltipOffset.height;
-            _currentTooltip.className += ' flip-y';
-        }
-
-        // faux-positioning
-        if ((_tooltipOffset.width + eo.x) >
-            (_contextOffset.left + _contextOffset.width)) {
-            eo.x -= _tooltipOffset.width;
-            _currentTooltip.className += ' flip-x';
-        }
-
-        _currentTooltip.style.left = eo.x + 'px';
-        _currentTooltip.style.top = eo.y + 'px';
-    }
-
     // Hide a given tooltip.
-    function hideTooltip(el) {
-        if (!el) return;
-        var event,
-            remove = function() {
-            if (this.parentNode) this.parentNode.removeChild(this);
-        };
-
-        if (el.style['-webkit-transition'] !== undefined && _animationOut) {
-            event = 'webkitTransitionEnd';
-        } else if (el.style.MozTransition !== undefined && _animationOut) {
-            event = 'transitionend';
-        }
-
-        if (event) {
-            // This code assumes that transform-supporting browsers
-            // also support proper events. IE9 does both.
-            el.addEventListener(event, remove, false);
-            el.addEventListener('transitionend', remove, false);
-            el.className += ' ' + _animationOut;
-        } else {
-            if (el.parentNode) el.parentNode.removeChild(el);
+    function hide() {
+        if (tooltip) {
+          tooltip.parentNode.removeChild(tooltip);
+          tooltip = null;
         }
     }
 
-    // Expand a tooltip to be a "popup". Suspends all other tooltips from being
-    // shown until this popup is closed or another popup is opened.
-    function click(feature, context) {
-        // Hide any current tooltips.
-        if (_currentTooltip) {
-            hideTooltip(_currentTooltip);
-            _currentTooltip = undefined;
+    function on(o) {
+        var content;
+        if (popped) return;
+        if ((o.e.type === 'mousemove' || !o.e.type)) {
+            content = o.formatter({ format: 'teaser' }, o.data);
+            if (!content) return;
+            hide();
+            parent.style.cursor = 'pointer';
+            tooltip = document.body.appendChild(getTooltip(content));
+        } else {
+            content = o.formatter({ format: 'teaser' }, o.data);
+            if (!content) return;
+            hide();
+            var tt = document.body.appendChild(getTooltip(content));
+            tt.className += ' wax-popup';
+
+            var close = tt.appendChild(document.createElement('a'));
+            close.href = '#close';
+            close.className = 'close';
+            close.innerHTML = 'Close';
+
+            popped = true;
+
+            tooltip = tt;
+
+            _tooltipOffset = wax.u.offset(tooltip);
+            _contextOffset = wax.u.offset(parent);
+            moveTooltip(o.e);
+
+            bean.add(close, 'click touchend', function closeClick(e) {
+                e.stop();
+                hide();
+                popped = false;
+            });
+        }
+        if (tooltip) {
+          _tooltipOffset = wax.u.offset(tooltip);
+          _contextOffset = wax.u.offset(parent);
+          moveTooltip(o.e);
         }
 
-        var tooltip = getTooltip(feature, context);
-        tooltip.className += ' wax-popup';
-        tooltip.innerHTML = feature;
-
-        var close = document.createElement('a');
-        close.href = '#close';
-        close.className = 'close';
-        close.innerHTML = 'Close';
-        tooltip.appendChild(close);
-
-        var closeClick = function(ev) {
-            hideTooltip(tooltip);
-            _currentTooltip = undefined;
-            ev.returnValue = false; // Prevents hash change.
-            if (ev.stopPropagation) ev.stopPropagation();
-            if (ev.preventDefault) ev.preventDefault();
-            return false;
-        };
-
-        // IE compatibility.
-        if (close.addEventListener) {
-            close.addEventListener('click', closeClick, false);
-        } else if (close.attachEvent) {
-            close.attachEvent('onclick', closeClick);
-        }
-
-        _currentTooltip = tooltip;
     }
 
-    t.over = function(feature, context, e) {
-        if (!feature) return;
-        context.style.cursor = 'pointer';
+    function off() {
+        parent.style.cursor = 'default';
+        if (!popped) hide();
+    }
 
-        if (isPopup(_currentTooltip)) {
-            return;
-        } else {
-            _currentTooltip = getTooltip(feature, context);
-            moveTooltip(e);
-            if (context.addEventListener) {
-                context.addEventListener('mousemove', moveTooltip);
-            }
-        }
+    t.parent = function(x) {
+        if (!arguments.length) return parent;
+        parent = x;
+        return t;
     };
 
-    // Hide all tooltips on this layer and show the first hidden tooltip on the
-    // highest layer underneath if found.
-    t.out = function(context) {
-        context.style.cursor = 'default';
-
-        if (isPopup(_currentTooltip)) {
-            return;
-        } else if (_currentTooltip) {
-            hideTooltip(_currentTooltip);
-            if (context.removeEventListener) {
-                context.removeEventListener('mousemove', moveTooltip);
-            }
-            _currentTooltip = undefined;
-        }
+    t.events = function() {
+        return {
+            on: on,
+            off: off
+        };
     };
 
     return t;
 };
+

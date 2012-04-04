@@ -15,7 +15,7 @@ wax.ol.Legend = OpenLayers.Class(OpenLayers.Control, {
     },
 
     activate: function() {
-        this.legend = new wax.Legend(this.map.viewPortDiv, this.options.container);
+        this.legend = new wax.legend(this.map.viewPortDiv, this.options.container);
         return OpenLayers.Control.prototype.activate.apply(this, arguments);
     },
 

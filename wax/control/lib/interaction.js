@@ -6,7 +6,6 @@ wax.interaction = function() {
         _downLock = false,
         _clickTimeout = false,
         // Active feature
-        _af,
         // Down event
         _d,
         // Touch tolerance
@@ -65,20 +64,13 @@ wax.interaction = function() {
             if (err || !g) return;
             feature = g.tileFeature(pos.x, pos.y, tile);
             if (feature) {
-                if (feature && _af !== feature) {
-                    _af = feature;
-                    bean.fire(interaction, 'on', {
-                        parent: parent(),
-                        data: feature,
-                        formatter: gm.formatter().format,
-                        e: e
-                    });
-                } else if (!feature) {
-                    _af = null;
-                    bean.fire(interaction, 'off');
-                }
+                bean.fire(interaction, 'on', {
+                    parent: parent(),
+                    data: feature,
+                    formatter: gm.formatter().format,
+                    e: e
+                });
             } else {
-                _af = null;
                 bean.fire(interaction, 'off');
             }
         });
