@@ -1,0 +1,15 @@
+h1. Neighborhood Survey Mobile
+
+We want to make it very easy for neighborhood organizations to collect good
+information about the things they care about, like property condition, 
+vacancy, points of interest, and more.  
+
+This project is part of a toolkit we're building:
+* A survey builder tool 
+* A mobile data collection app 
+* A paper-based survey that can 
+
+Very much in prototype stage. Interested in helping out? Contact 
+detroit@codeforamerica.org for more details. 
+
+MIT.
