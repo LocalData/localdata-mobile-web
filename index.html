@@ -81,30 +81,35 @@
       		function onLocationError(e) {
       			alert(e.message);
       		}
-
       });
       
-      
-      /* attach a submit handler to the form */
-      $("#parcelform").submit(function(event) {
-          
-        /* stop form from submitting normally */
-        event.preventDefault(); 
+      $(document).ready(function(){
+          /* attach a submit handler to the form */
+          $("#parcelform").submit(function(event) {
+            /* stop form from submitting normally */
+            event.preventDefault(); 
 
-        /* get some values from elements on the page: */
-        var $form = $( this ),
-            parcel_id = $form.find( 'input[name="parcel_id"]' ).val(),
-            points = $form.find( 'input[name="points"]' ).val(),
-            url = $form.attr( 'action' );
+            /* get some values from elements on the page: */
+            var $form = $( this ),
+                parcel_id = $form.find( 'input[name="parcel_id"]' ).val(),
+                points = $form.find( 'input[name="points"]' ).val(),
+                url = $form.attr( 'action' );
 
-        /* Send the data using post and put the results in a div */
-        $.post( url, { parcel_id: parcel_id, points: points },
-          function( data ) {
-              var content = $( data ).find( '#content' );
-              $( "#results" ).empty().append( content );
-          }
-        );
-      });      
+            /* Send the data using post and put the results in a div */
+            $.post( url, 
+                { responses: [{ parcels: [{
+                    parcel_id: parcel_id, 
+                    responses: {
+                        points: points,
+                    }
+                }]}]},
+                function( data ) {
+                  var content = $( data ).find( '#content' );
+                  $( "#results" ).empty().append( content );
+            });
+    
+        });      
+    });
       
     </script>
 </head>
@@ -123,7 +128,7 @@
           <span class="parcel_id">&nbsp;</span>
       </h2>
       
-      <form action="http://127.0.0.1:5000/add" method="post" accept-charset="utf-8" id="parcelform">
+      <form action="http://127.0.0.1:3000/surveys/1/responses" method="post" accept-charset="utf-8" id="parcelform">
         <input type="hidden" name="parcel_id" value="" id="parcel_id">
         <input type="range" name="points" min="1" max="10" />
         <input type="submit" value="Send it in &rarr;">
