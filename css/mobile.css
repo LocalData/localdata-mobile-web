@@ -3,17 +3,26 @@ body {
   margin: 0;
   background:#eee url(../img/hexellence.png) repeat left top;
   font-family:Lucida Grande, sans-serif;
-  font-size:14px;  
+  font-size:14px; 
+}
+
+.ui-body-c  {
+  background:#eee url(../img/hexellence.png) repeat left top;
+  font-family:Lucida Grande, sans-serif;
+  
 }
 
 html, body, #map {
   height: 100%;
 }
 
-#form {
+#startpoint, #form {
   padding:1em;
+}
+#form {
   background:#fff;
   border-bottom:2px solid #ddd;
+  display:none;
 }
 
 #head {
