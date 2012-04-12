@@ -6,19 +6,27 @@ body {
   font-size:14px; 
 }
 
-.ui-body-c  {
-  background:#eee url(../img/hexellence.png) repeat left top;
-  font-family:Lucida Grande, sans-serif;
-  
+html, body {
+  height: 100%;
 }
 
-html, body, #map {
-  height: 100%;
+.ui-page  {
+  /* This is a jquery mobile container */
+  background:#eee url(../img/hexellence.png) repeat left top;
+  font-family:Lucida Grande, sans-serif;
+}
+body#home .ui-page {
+  background:#360 url(../img/nbhd-blur.jpg) no-repeat center -100px;
+}
+
+.ui-content {
+  padding:0;
 }
 
 #startpoint, #form {
   padding:1em;
 }
+
 #form {
   background:#fff;
   border-bottom:2px solid #ddd;
@@ -31,11 +39,27 @@ html, body, #map {
   border-bottom:2px solid #fff;
   background:#eee;
 }
-#map {border-bottom: 2px solid #eee; }
+
+#map {
+  border-bottom: 2px solid #eee; 
+}
+
 h1 {
 font-size:.9em;
 font-weight:normal;
 }
+
+#home h1 {
+  font-size:3em;
+  color:#fff;
+  text-shadow: 0pt 1px 1pt rgba(0,0,0, 0.75);
+  margin-bottom:1em;
+}
+
+#home .container {
+  padding:3em;
+}
+
 h2 {
   font-size:1.4em;
   line-height:1.1;

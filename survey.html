@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+    <title>SF - Neighborhood Survey Builder</title>
+    
+    <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js' type="text/javascript"></script>
+    <script src="http://code.jquery.com/mobile/1.1.0-rc.2/jquery.mobile-1.1.0-rc.2.min.js"></script>
+    <script src='wax/ext/leaflet.js' type='text/javascript'></script>
+    <script src='wax/dist/wax.leaf.js' type='text/javascript'></script>
+    <script src='js/app.js' type='text/javascript'></script>
+    
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0-rc.2/jquery.mobile-1.1.0-rc.2.min.css">
+    <style type="text/css" media="screen">
+      @import url(css/reset.css);
+      @import url(css/mobile.css);      
+    </style>
+    <link href='wax/ext/leaflet.css' rel='stylesheet' type='text/css' />
+</head>
+
+<body id="survey">
+  <div id="container">
+
+    <div id="head">
+      <h1>Survey App</h1>
+    </div>
+
+    <div id='map-div' style="height:250px;"></div>
+    <div id="startpoint">
+        <h2>Select a parcel to begin</h2>
+    </div> 
+    <div id="form">
+      <h2>
+          <span class="parcel_id">&nbsp;</span>
+      </h2>
+      
+      <form action="http://127.0.0.1:3000/surveys/1/responses" method="post" accept-charset="utf-8" id="parcelform">
+        <input type="hidden" name="parcel_id" value="" id="parcel_id">
+        
+        <div data-role="fieldcontain">
+            <fieldset data-role="controlgroup">
+            	<legend>1. What's on the site?</legend>
+             	<input type="radio" name="num-buildings" id="radio-choice-1" value="choice-1" checked="checked" />
+             	<label for="num-buildings">One building</label>
+
+             	<input type="radio" name="num-buildings" id="radio-choice-2" value="choice-2"  />
+             	<label for="radio-choice-2">2+ buildings</label>
+
+             	<input type="radio" name="num-buildings" id="radio-choice-3" value="choice-3"  />
+             	<label for="radio-choice-3">A paved parking lot</label>
+
+             	<input type="radio" name="num-buildings" id="radio-choice-4" value="choice-4"  />
+             	<label for="radio-choice-4">An empty lot</label>
+             	
+            </fieldset>
+        </div>
+        
+        <div data-role="fieldcontain">
+            <fieldset data-role="controlgroup">
+                <legend>2. What is the property used for?</legend>
+                <select name="property-use" id="property-use">
+                   <option value="apartment">Apartment</option>
+                   <option value="residential">Residential (a house, duplex)</option>
+                   <option value="industrial">Industrial</option>
+                   <option value="institutional">Institutional (university, hospital)</option>
+                   <option value="office">Office</option>
+                   <option value="retail">Retail</option>
+                   <option value="religious">Religious</option>
+                   <option value="restaurant">Restaurant</option>
+                   <option value="service">Service</option>
+                   <option value="utilities">Utilities</option>
+                   <option value="hard-to-tell">Hard to tell</option>
+                </select>
+            </fieldset>
+        </div>
+        
+        <div data-role="fieldcontain">
+            <fieldset data-role="controlgroup">
+            	<legend>3. Is the site occupied?</legend>
+             	<input type="radio" name="vacancy-1" id="vacancy-1" value="occupied" checked="checked" />
+             	<label for="vacancy-1">Occupied</label>
+
+             	<input type="radio" name="vacancy-1" id="vacancy-2" value="probably-occupied"  />
+             	<label for="vacancy-2">Probably occupied</label>
+
+             	<input type="radio" name="vacancy-1" id="vacancy-3" value="probably-vacant"  />
+             	<label for="vacancy-3">Probably vacant</label>
+
+             	<input type="radio" name="vacancy-1" id="vacancy-4" value="vacancy"  />
+             	<label for="vacancy-4">Vacant</label>
+            </fieldset>
+        </div>
+                                                                                                                
+        <div data-role="fieldcontain">
+            <fieldset data-role="controlgroup">
+            	<legend>4. What condition is it in?</legend>
+             	<input type="radio" name="condition-1" id="condition-1" value="good" checked="checked" />
+             	<label for="condition-1">Good</label>
+                       
+             	<input type="radio" name="condition-1" id="condition-2" value="fair"  />
+             	<label for="condition-2">Fair</label>
+                       
+             	<input type="radio" name="condition-1" id="condition-3" value="poor"  />
+             	<label for="condition-3">Poor</label>
+                       
+             	<input type="radio" name="condition-1" id="condition-4" value="demolish"  />
+             	<label for="condition-4">Demolish!</label>
+            </fieldset>
+        </div>
+        
+        
+        <input type="submit" value="Send it in &rarr;">
+      </form>
+    </div>
+  </div>
+  
+</body>
+</html>

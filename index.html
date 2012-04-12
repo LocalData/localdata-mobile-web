@@ -10,237 +10,121 @@
     <script src="http://code.jquery.com/mobile/1.1.0-rc.2/jquery.mobile-1.1.0-rc.2.min.js"></script>
     <script src='wax/ext/leaflet.js' type='text/javascript'></script>
     <script src='wax/dist/wax.leaf.js' type='text/javascript'></script>
+    <script src='js/app.js' type='text/javascript'></script>
+    
     <link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0-rc.2/jquery.mobile-1.1.0-rc.2.min.css">
     <style type="text/css" media="screen">
       @import url(css/reset.css);
       @import url(css/mobile.css);      
     </style>
     <link href='wax/ext/leaflet.css' rel='stylesheet' type='text/css' />
-    
-    <script type="text/javascript" charset="utf-8">
-    
-      $.fn.clearForm = function() {
-        return this.each(function() {
-          var type = this.type, tag = this.tagName.toLowerCase();
-          if (tag == 'form')
-            return $(':input',this).clearForm();
-          if (type == 'text' || type == 'password' || tag == 'textarea')
-            this.value = '';
-          else if (type == 'checkbox' || type == 'radio')
-            this.checked = false;
-          else if (tag == 'select')
-            this.selectedIndex = -1;
-        });
-      };
-
-    
-      // We want to share the map around. 
-      var map, marker, circle;
-      
-      // Update the hidden parcel_id field to matcht the parcel the user
-      // has selected
-      function setFormParcel(id) {
-        // Get the block+lot from the interaction data. 
-        // Later on, this will need to be a variable / paramaterized; or 
-        // standardized per base layer dataset.
-        var blocklot = id.data.BLKLOT;
-        var human_readable_location = id.data.FROM_ST;
-        if (id.data.FROM_ST != id.data.TO_ST) {
-          human_readable_location += "-" + id.data.TO_ST;
-        };
-        human_readable_location += " " + id.data.STREET + " " + id.data.ST_TYPE;
-        
-        $('#parcel_id').val(blocklot);
-        $('h2 .parcel_id').text(human_readable_location);
-        
-        console.log(id.data);
-      }
-      
-      wax.tilejson('http://a.tiles.mapbox.com/v3/matth.map-g0f7yd6r.jsonp',
-        function(tilejson) {
-          map = new L.Map('map-div');
-          map.addLayer(new wax.leaf.connector(tilejson));
-          wax.leaf.interaction()
-            .map(map)
-            .tilejson(tilejson)
-            .on('on', function(o) {
-                console.log(o.e.type);
-                if (o.e.type == 'mouseup') { // was mousemove
-                    console.log(o.formatter({format:'full'}, o.data));
-                    setFormParcel(o);
-                    marker.setLatLng(map.mouseEventToLatLng(o.e));
-                    map.removeLayer(circle)
-                    if(!$('#form').is(":visible")) {
-                        $('#startpoint').slideToggle();
-                        $('#form').slideToggle();
-                    }
-                   // // create a marker in the given location and add it to the map
-                   // var marker = new L.Marker(map.mouseEventToLatLng(o.e));
-                   // map.addLayer(marker);
-                   //
-                   // // attach a given HTML content to the marker and immediately open it
-                   // marker.bindPopup(o.formatter({ format: 'teaser' }, o.data)).openPopup();
-                }
-            });
-          
-      		map.on('locationfound', onLocationFound);
-      		map.on('locationerror', onLocationError);
-
-      		map.locateAndSetView(18);
-      		
-      		function onLocationFound(e) {
-      			var radius = e.accuracy / 2;
-
-      		    marker = new L.Marker(e.latlng);
-      			map.addLayer(marker);
-      		//	marker.bindPopup("You are within " + radius + " meters of this point").openPopup();
-
-      			circle = new L.Circle(e.latlng, radius);
-      			map.addLayer(circle);
-      		}
-
-      		function onLocationError(e) {
-      			alert(e.message);
-      		}
-      });
-      
-      $(document).ready(function(){
-          /* attach a submit handler to the form */
-          $("#parcelform").submit(function(event) {
-            /* stop form from submitting normally */
-            event.preventDefault(); 
-
-            $('#parcelform').clearForm();
-            /* get some values from elements on the page: */
-            var $form = $( this ),
-                parcel_id = $form.find( 'input[name="parcel_id"]' ).val(),
-                points = $form.find( 'input[name="points"]' ).val(),
-                url = $form.attr( 'action' );
-
-            /* Send the data using post and put the results in a div */
-            $.post( url, 
-                { responses: [{ parcels: [{
-                    parcel_id: parcel_id, 
-                    responses: {
-                        points: points,
-                    }
-                }]}]}, //wtf 
-                function( data ) {
-                
-                  var content = $( data ).find( '#content' );
-                  $( "#results" ).empty().append( content );
-                }
-            );
-            
-            
-        });      
-    });
-      
-    </script>
 </head>
 
 <body>
-  <div id="container">
-
-    <div id="head">
-      <h1>Survey App</h1>
+  <div class="container" data-role="page" id="home">
+    <div data-role="content">
+      <h1>
+        Neighborhood
+        Survey
+      </h1>
+    
+      <input type="text" name="name" id="basic" value="" data-mini="true" placeholder="Your name" />
+      <a href="#survey" data-role="button" data-icon="arrow-r" data-iconpos="right" data-inline="true" data-theme="e">Get started</a>
     </div>
-
-    <div id='map-div' style="height:250px;"></div>
-    <div id="startpoint">
-        <h2>Select a parcel to begin</h2>
-    </div> 
-    <div id="form">
-      <h2>
-          <span class="parcel_id">&nbsp;</span>
-      </h2>
-      
-      <form action="http://127.0.0.1:3000/surveys/1/responses" method="post" accept-charset="utf-8" id="parcelform">
-        <input type="hidden" name="parcel_id" value="" id="parcel_id">
-        
-        <div data-role="fieldcontain">
-            <fieldset data-role="controlgroup">
-            	<legend>1. What's on the site?</legend>
-             	<input type="radio" name="radio-choice-1" id="radio-choice-1" value="choice-1" checked="checked" />
-             	<label for="radio-choice-1">One building</label>
-
-             	<input type="radio" name="radio-choice-1" id="radio-choice-2" value="choice-2"  />
-             	<label for="radio-choice-2">2+ buildings</label>
-
-             	<input type="radio" name="radio-choice-1" id="radio-choice-3" value="choice-3"  />
-             	<label for="radio-choice-3">A paved parking lot</label>
-
-             	<input type="radio" name="radio-choice-1" id="radio-choice-4" value="choice-4"  />
-             	<label for="radio-choice-4">An empty lot</label>
-             	
-            </fieldset>
-        </div>
-        
-        <div data-role="fieldcontain">
-            <fieldset data-role="controlgroup">
-                <legend>2. What is the property used for?</legend>
-                <select name="select-choice-0" id="select-choice-1">
-                   <option value="apartment">Apartment</option>
-                   <option value="residential">Residential (a house, duplex)</option>
-                   <option value="industrial">Industrial</option>
-                   <option value="institutional">Institutional (university, hospital)</option>
-                   <option value="office">Office</option>
-                   <option value="retail">Retail</option>
-                   <option value="religious">Religious</option>
-                   <option value="restaurant">Restaurant</option>
-                   <option value="service">Service</option>
-                   <option value="utilities">Utilities</option>
-                   <option value="hard-to-tell">Hard to tell</option>
-                </select>
-            </fieldset>
-        </div>
-        
-        <div data-role="fieldcontain">
-            <fieldset data-role="controlgroup">
-            	<legend>3. Is the site occupied?</legend>
-             	<input type="radio" name="vacancy-1" id="vacancy-1" value="occupied" checked="checked" />
-             	<label for="vacancy-1">Occupied</label>
-
-             	<input type="radio" name="vacancy-1" id="vacancy-2" value="probably-occupied"  />
-             	<label for="vacancy-2">Probably occupied</label>
-
-             	<input type="radio" name="vacancy-1" id="vacancy-3" value="probably-vacant"  />
-             	<label for="vacancy-3">Probably vacant</label>
-
-             	<input type="radio" name="vacancy-1" id="vacancy-4" value="vacancy"  />
-             	<label for="vacancy-4">Vacant</label>
-            </fieldset>
-        </div>
-                                                                                                                
-        <div data-role="fieldcontain">
-            <fieldset data-role="controlgroup">
-            	<legend>3. What condition is it in?</legend>
-             	<input type="radio" name="condition-1" id="condition-1" value="good" checked="checked" />
-             	<label for="condition-1">Good</label>
-                       
-             	<input type="radio" name="condition-1" id="condition-2" value="fair"  />
-             	<label for="condition-2">Fair</label>
-                       
-             	<input type="radio" name="condition-1" id="condition-3" value="poor"  />
-             	<label for="condition-3">Poor</label>
-                       
-             	<input type="radio" name="condition-1" id="condition-4" value="demolish"  />
-             	<label for="condition-4">Demolish!</label>
-            </fieldset>
-        </div>
-        
-        
-        <input type="submit" value="Send it in &rarr;">
-      </form>
-    </div>
-  </div>
+  </div><!-- end home -->
   
-  <script type="text/template" id="item-template">
-    <div class="result">
-        <input class="check" type="checkbox" <%= done ? 'checked="checked"' : '' %> />
-        <p><%= content %></p>
+  <div class="container" data-role="page" id="survey">
+    <div data-role="content">
+      <div id='map-div' style="height:250px;"></div>
+      <div id="startpoint">
+          <h2>Select a parcel to begin</h2>
+      </div> 
+      <div id="form">
+        <h2>
+            <span class="parcel_id">&nbsp;</span>
+        </h2>
+      
+        <form action="http://127.0.0.1:3000/surveys/1/responses" method="post" accept-charset="utf-8" id="parcelform">
+          <input type="hidden" name="parcel_id" value="" id="parcel_id">
+        
+          <div data-role="fieldcontain">
+              <fieldset data-role="controlgroup">
+              	<legend>1. What's on the site?</legend>
+               	<input type="radio" name="radio-choice-1" id="radio-choice-1" value="choice-1" checked="checked" />
+               	<label for="radio-choice-1">One building</label>
+
+               	<input type="radio" name="radio-choice-1" id="radio-choice-2" value="choice-2"  />
+               	<label for="radio-choice-2">2+ buildings</label>
+
+               	<input type="radio" name="radio-choice-1" id="radio-choice-3" value="choice-3"  />
+               	<label for="radio-choice-3">A paved parking lot</label>
+
+               	<input type="radio" name="radio-choice-1" id="radio-choice-4" value="choice-4"  />
+               	<label for="radio-choice-4">An empty lot</label>
+             	
+              </fieldset>
+          </div>
+        
+          <div data-role="fieldcontain">
+              <fieldset data-role="controlgroup">
+                  <legend>2. What is the property used for?</legend>
+                  <select name="select-choice-0" id="select-choice-1">
+                     <option value="apartment">Apartment</option>
+                     <option value="residential">Residential (a house, duplex)</option>
+                     <option value="industrial">Industrial</option>
+                     <option value="institutional">Institutional (university, hospital)</option>
+                     <option value="office">Office</option>
+                     <option value="retail">Retail</option>
+                     <option value="religious">Religious</option>
+                     <option value="restaurant">Restaurant</option>
+                     <option value="service">Service</option>
+                     <option value="utilities">Utilities</option>
+                     <option value="hard-to-tell">Hard to tell</option>
+                  </select>
+              </fieldset>
+          </div>
+        
+          <div data-role="fieldcontain">
+              <fieldset data-role="controlgroup">
+              	<legend>3. Is the site occupied?</legend>
+               	<input type="radio" name="vacancy-1" id="vacancy-1" value="occupied" checked="checked" />
+               	<label for="vacancy-1">Occupied</label>
+
+               	<input type="radio" name="vacancy-1" id="vacancy-2" value="probably-occupied"  />
+               	<label for="vacancy-2">Probably occupied</label>
+
+               	<input type="radio" name="vacancy-1" id="vacancy-3" value="probably-vacant"  />
+               	<label for="vacancy-3">Probably vacant</label>
+
+               	<input type="radio" name="vacancy-1" id="vacancy-4" value="vacancy"  />
+               	<label for="vacancy-4">Vacant</label>
+              </fieldset>
+          </div>
+                                                                                                                
+          <div data-role="fieldcontain">
+              <fieldset data-role="controlgroup">
+              	<legend>3. What condition is it in?</legend>
+               	<input type="radio" name="condition-1" id="condition-1" value="good" checked="checked" />
+               	<label for="condition-1">Good</label>
+                       
+               	<input type="radio" name="condition-1" id="condition-2" value="fair"  />
+               	<label for="condition-2">Fair</label>
+                       
+               	<input type="radio" name="condition-1" id="condition-3" value="poor"  />
+               	<label for="condition-3">Poor</label>
+                       
+               	<input type="radio" name="condition-1" id="condition-4" value="demolish"  />
+               	<label for="condition-4">Demolish!</label>
+              </fieldset>
+          </div>
+        
+        
+          <input type="submit" value="Send it in &rarr;">
+        </form>
+      </div>
     </div>
-  </script>
+  </div><!-- end survey -->
+  
   
 </body>
 </html>
