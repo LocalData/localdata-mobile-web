@@ -7,9 +7,27 @@ vacancy, points of interest, and more.
 This project is part of a toolkit we're building:
 * A survey builder tool 
 * A mobile data collection app 
-* A paper-based survey that can 
+* A paper-based survey that's easy to 
+* A "small server":https://github.com/codeforamerica/survey-api to store and retrieve the results 
 
 Very much in prototype stage. Interested in helping out? Contact 
 detroit@codeforamerica.org for more details. 
 
 MIT.
+
+h2. The maps
+
+The maps used in this app are rendered with TileMill. They use street data 
+from OpenStreetMap and parcel data from local municipalities (right now,
+Detroit and San Francisco).
+
+Here are the basic steps we followed -- please feel free to contact us with 
+questions about the details:
+# Download street data from the "Metrio city extracts":http://metro.teczno.com/. 
+You'll want the "9.2 MB osm2pgsql shapefiles." 
+# Get a shapefile with parcel data from your local municipality. 
+# Use TileMill to create and style map that combines those two data sources.
+You can get started with the "TileMill tutorial":http://mapbox.com/tilemill/docs/crashcourse/introduction/ 
+# Export the map as MBTiles
+# Upload the map to the "MapBox hosted service":http://mapbox.com/plans/
+# Use the TileJSON URL in this app. 
