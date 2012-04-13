@@ -40,10 +40,9 @@
   Gets the data for a given parcel and displays it.
   */
   function loadDataForParcel(parcel_id) {
-    $.get(getParcelDataURL(parcel_id), function(data) {
+    $.getJSON(getParcelDataURL(parcel_id), function(data) {
       console.log(data);
-    }, "json"
-    );
+    });
   }
   
   
