@@ -1,5 +1,8 @@
   // TODO: set this up correctly
   var map, marker, circle;
+  var BASEURL = 'http://localhost:3000';
+  var SURVEYID = '1';
+  
   var locale = "san francisco"; // our current parcel set
   var maps = {
     'san francisco': {
@@ -26,8 +29,28 @@
     });
   };
   
-  // Update the hidden parcel_id field to matcht the parcel the user
-  // has selected
+  /*
+  Generates the URL to retrieve results for a given parcel
+  */
+  function getParcelDataURL(parcel_id) {
+    return BASEURL + '/surveys/' + SURVEYID + '/parcels/' + parcel_id + '/responses';
+  }
+  
+  /*
+  Gets the data for a given parcel and displays it.
+  */
+  function loadDataForParcel(parcel_id) {
+    $.get(getParcelDataURL(parcel_id), function(data) {
+      console.log(data);
+    }, "json"
+    );
+  }
+  
+  
+  /*
+  Update the hidden parcel_id field to match the parcel the user
+  has selected
+  */
   function setFormParcelSF(id) {
     // Get the block+lot from the interaction data. 
     // Later on, this will need to be a variable / paramaterized; or 
@@ -43,8 +66,24 @@
     $('h2 .parcel_id').text(human_readable_location);
     
     console.log(id.data);
+    loadDataForParcel(blocklot);
   }
   
+  /*
+  Moves the marker to indicate the selectedparcel.
+  */
+  function selectParcel(m, latlng) {
+    m.setLatLng(latlng);
+    if(!$('#form').is(":visible")) {
+        $('#startpoint').slideToggle();
+        $('#form').slideToggle();
+    }
+    map.removeLayer(circle);
+  }
+
+  /* 
+  Set up the map
+  */
   wax.tilejson('http://a.tiles.mapbox.com/v3/matth.sf-parcels.jsonp',
     function(tilejson) {
       map = new L.Map('map-div');
@@ -53,22 +92,11 @@
         .map(map)
         .tilejson(tilejson)
         .on('on', function(o) {
-            // console.log(o.e.type);
+            // Interaction: Handles clicks/taps
             if (o.e.type == 'mouseup') { // was mousemove
                 console.log(o.formatter({format:'full'}, o.data));
                 setFormParcelSF(o);
-                marker.setLatLng(map.mouseEventToLatLng(o.e));
-                map.removeLayer(circle)
-                if(!$('#form').is(":visible")) {
-                    $('#startpoint').slideToggle();
-                    $('#form').slideToggle();
-                }
-               // // create a marker in the given location and add it to the map
-                var marker = new L.Marker(map.mouseEventToLatLng(o.e));
-                map.addLayer(marker);
-               //
-               // // attach a given HTML content to the marker and immediately open it
-               // marker.bindPopup(o.formatter({ format: 'teaser' }, o.data)).openPopup();
+                selectParcel(marker, map.mouseEventToLatLng(o.e));
             }
         });
       
@@ -82,7 +110,7 @@
       
   		function onLocationFound(e) {
 		    marker = new L.Marker(e.latlng);
-			  map.addLayer(marker);
+			  map.addLayer(marker);  		  
 
   			var radius = e.accuracy / 2;
   			circle = new L.Circle(e.latlng, radius);
@@ -104,7 +132,7 @@
         /* get some values from elements on the page: */
         var $form = $( this ),
             parcel_id = $form.find( 'input[name="parcel_id"]' ).val(),
-            num_buildings = $form.find( 'input[name="num-buildings"]' ).val(),
+            site = $form.find( 'input[name="site"]' ).val(),
             property_use = $form.find( 'input[name="property-use"]' ).val(),
             vacancy = $form.find( 'input[name="vacancy-1"]' ).val(),
             condition = $form.find( 'input[name="condition-1"]' ).val(),
@@ -112,19 +140,21 @@
 
         /* Send the data using post and put the results in a div */
         $.post( url, 
-            { responses: [{ parcels: [{
+            { responses: [
+              {
                 parcel_id: parcel_id, 
                 responses: {
-                    num_buildings: num_buildings,
+                    site: site,
                     property_use: property_use,
                     vacancy: vacancy,
                     condition: condition,
                 }
-            }]}]}, //wtf 
+              },
+            ]},  
             function( data ) {
-            
-              var content = $( data ).find( '#content' );
-              $( "#results" ).empty().append( content );
+
+              // var content = $( data ).find( '#content' );
+              // $( "#results" ).empty().append( content );
             }
         );
         
