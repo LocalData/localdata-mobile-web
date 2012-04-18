@@ -15,7 +15,7 @@ html, body {
   background:#eee url(../img/hexellence.png) repeat left top;
   font-family:Lucida Grande, sans-serif;
 }
-body#home .ui-page {
+.ui-page {
   background:#360 url(../img/nbhd-blur.jpg) no-repeat center -100px;
 }
 
@@ -56,8 +56,7 @@ font-weight:normal;
   margin-bottom:1em;
 }
 
-#home .container {
-  padding:3em;
+.container {
 }
 
 h2 {

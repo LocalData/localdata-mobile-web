@@ -2,13 +2,15 @@ h1. Neighborhood Survey Mobile
 
 We want to make it very easy for neighborhood organizations to collect good
 information about the things they care about, like property condition, 
-vacancy, points of interest, and more.  
+vacancy, points of interest, and more. You can check out the app on
+ "Github Pages":http://codeforamerica.github.com/nsb-mobile/ 
 
 This project is part of a toolkit we're building:
 * A survey builder tool 
 * A mobile data collection app 
-* A paper-based survey that's easy to 
-* A "small server":https://github.com/codeforamerica/survey-api to store and retrieve the results 
+* A paper-based survey that's easy to scan & automatically process
+* A "small server":https://github.com/codeforamerica/survey-api to store and 
+retrieve the results 
 
 Very much in prototype stage. Interested in helping out? Contact 
 detroit@codeforamerica.org for more details. 
