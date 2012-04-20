@@ -10,7 +10,7 @@ var SURVEYID = '1';
 var locale = "san francisco"; // our current set of parcels. 
 var maps = {
   'san francisco': {
-    'json': 'http://a.tiles.mapbox.com/v3/matth.sf-parcels.jsonp',
+    'json': 'http://a.tiles.mapbox.com/v3/matth.sfparcels.jsonp',
     'interaction': 'setFormParcelSF' // Name of the function that gets parcel info
   },
   'detroit': {
@@ -60,12 +60,12 @@ function setFormParcelSF(id) {
   // Get the block+lot from the interaction data. 
   // Later on, this will need to be a variable / paramaterized; or 
   // standardized per base layer dataset.
-  var blocklot = id.data.BLKLOT;
-  var human_readable_location = id.data.FROM_ST;
-  if (id.data.FROM_ST != id.data.TO_ST) {
-    human_readable_location += "-" + id.data.TO_ST;
+  var blocklot = id.data.blklot;
+  var human_readable_location = id.data.from_st;
+  if (id.data.from_st != id.data.to_st) {
+    human_readable_location += "-" + id.data.to_st;
   };
-  human_readable_location += " " + id.data.STREET + " " + id.data.ST_TYPE;
+  human_readable_location += " " + id.data.street + " " + id.data.st_type;
   
   $('#parcel_id').val(blocklot);
   $('h2 .parcel_id').text(human_readable_location);
@@ -84,6 +84,39 @@ function selectParcel(m, latlng) {
       $('#form').slideToggle();
   }
   map.removeLayer(circle);
+}
+
+
+function GeoJSONify(o) {
+  var text = o.data.polygon;
+  text = text.replace('\\','');
+  console.log(text);
+  var json = jQuery.parseJSON(text);
+  console.log(json);
+  
+  // L.Polygon( <LatLng[]> latlngs, <Polyline options> options? )
+  // 
+  // var p1 = new L.LatLng(51.509, -0.08),
+  //     p2 = new L.LatLng(51.503, -0.06),
+  //     p3 = new L.LatLng(51.51, -0.047),
+  //     polygonPoints = [p1, p2, p3];
+  // 
+  // var polygon = new L.Polygon(polygonPoints);
+  
+  var polypoints = new Array();  
+  for (var i = json.coordinates[0].length - 1; i >= 0; i--){
+    point = new L.LatLng(json.coordinates[0][i][1], json.coordinates[0][i][0]);
+    polypoints.push(point);
+  };
+  options = {
+      color: 'red',
+      fillColor: '#f03',
+      fillOpacity: 0.5
+  };
+  var polygon = new L.Polygon(polypoints, options);
+
+  map.addLayer(polygon);
+  
 }
 
 /*
@@ -109,7 +142,7 @@ $.fn.serializeObject = function() {
 /* 
 Set up the map
 */
-wax.tilejson('http://a.tiles.mapbox.com/v3/matth.sf-parcels.jsonp',
+wax.tilejson(maps['san francisco']['json'],
   function(tilejson) {
     map = new L.Map('map-div');
     map.addLayer(new wax.leaf.connector(tilejson));
@@ -121,6 +154,7 @@ wax.tilejson('http://a.tiles.mapbox.com/v3/matth.sf-parcels.jsonp',
           if (o.e.type == 'mouseup') { // was mousemove
               //  console.log(o.formatter({format:'full'}, o.data));
               setFormParcelSF(o);
+              GeoJSONify(o);
               selectParcel(marker, map.mouseEventToLatLng(o.e));
           }
       });
