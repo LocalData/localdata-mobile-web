@@ -4,8 +4,7 @@
 
 // TODO: set this up correctly in a config file.
 var map, marker, circle;
-var BASEURL = 'http://blazing-spring-4479.herokuapp.com'; // no trailing slash
-BASEURL = 'http://127.0.0.1:3000'; // no trailing slash
+var BASEURL = 'http://surveydet.herokuapp.com'; // no trailing slash
 
 var SURVEYID = '1';
 var locale = "san francisco"; // our current set of parcels. 
@@ -91,8 +90,7 @@ function selectParcel(m, latlng) {
 Serialize a form for submission
 usage: $('#myform').serializeObject();
 */ 
-$.fn.serializeObject = function()
-{
+$.fn.serializeObject = function() {
     var o = {};
     var a = this.serializeArray();
     $.each(a, function() {
@@ -133,7 +131,7 @@ wax.tilejson('http://a.tiles.mapbox.com/v3/matth.sf-parcels.jsonp',
 		
 		// For Detroit testing: 
 		// var detroit = new L.LatLng(42.342781, -83.084793);
-		// map.setView(detroit, 18);
+		// mapsetView(detroit, 18);
     
 		function onLocationFound(e) {
 	    marker = new L.Marker(e.latlng);
@@ -150,18 +148,28 @@ wax.tilejson('http://a.tiles.mapbox.com/v3/matth.sf-parcels.jsonp',
 		}
 });
   
-  
 
 $(document).ready(function(){
     $("#parcelform").submit(function(event) {
       event.preventDefault(); // stop form from submitting normally
       url = $(this).attr('action'); // get the URL from the form action
+          
+      // serialize the form
+      serialized = $('#parcelform').serializeObject();
+      console.log("POST url: " + url);
+      console.log(serialized);
       
-      $.post(url, {responses: [sform]}, 
+      // post the form
+      $.post(url, {responses: [serialized]}, 
         function() {
-          alert("HEY");
-        }
-      );
+          console.log("Form successfully posted");
+        },
+        "text"
+      ).error(function(){ 
+        console.log("error");
+      }).success(function(){
+        
+      });
       
   });      
 });
