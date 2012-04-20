@@ -19,6 +19,16 @@ var maps = {
   }
 }
 
+var StarIcon = L.Icon.extend({
+    iconUrl: 'img/icons/star-solid-18.png',
+    shadowUrl: 'img/icons/star-solid-18.png',
+		iconSize: new L.Point(18, 18),
+		shadowSize: new L.Point(18, 18),
+		iconAnchor: new L.Point(9, 9),
+		popupAnchor: new L.Point(9, 9),
+});                       
+
+
 $.fn.clearForm = function() {
   return this.each(function() {
     var type = this.type, tag = this.tagName.toLowerCase();
@@ -88,11 +98,19 @@ function selectParcel(m, latlng) {
 
 
 function GeoJSONify(o) {
-  var text = o.data.polygon;
-  text = text.replace('\\','');
-  console.log(text);
-  var json = jQuery.parseJSON(text);
-  console.log(json);
+  var polygon_text = o.data.polygon;
+  polygon_text = polygon_text.replace('\\','');
+  //console.log(polygon_text);
+  var json = jQuery.parseJSON(polygon_text);
+  //console.log(json);
+  
+  console.log("POINT:");
+  var centroid_text = o.data.centroid;
+  centroid_text = centroid_text.replace('\\','');
+  console.log(centroid_text);
+  var centroid_json = jQuery.parseJSON(centroid_text);
+  console.log(centroid_json);
+   
   
   // L.Polygon( <LatLng[]> latlngs, <Polyline options> options? )
   // 
@@ -114,8 +132,13 @@ function GeoJSONify(o) {
       fillOpacity: 0.5
   };
   var polygon = new L.Polygon(polypoints, options);
-
   map.addLayer(polygon);
+  
+  var doneIcon = new StarIcon();
+  var donePos = new L.LatLng(centroid_json.coordinates[1],centroid_json.coordinates[0]);
+  console.log(donePos);
+  icon = new L.Marker(donePos, {icon: doneIcon});
+  map.addLayer(icon);
   
 }
 
