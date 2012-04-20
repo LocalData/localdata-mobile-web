@@ -19,7 +19,7 @@ html, body {
 
 #home {
   padding:20px;
-  background:#360 url(../img/nbhd-blur.jpg) no-repeat center -100px;
+  background:#360 url(../img/streetscape_blur-01.jpg) no-repeat center -100px;
 }
 
 .ui-content {
@@ -58,7 +58,7 @@ h1 {
   color:#fff;
   text-shadow: 0pt 1px 1pt rgba(0,0,0, 0.75);
   margin-bottom:3em;
-  line-height:1.5;
+  line-height:1.3;
 }
 
 
