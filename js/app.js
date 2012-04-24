@@ -333,13 +333,17 @@ $(document).ready(function(){
     console.log(serialized);
     
     // post the form
-    $.post(url, {responses: [serialized]}, 
+    var jqxhr = $.post(url, {responses: [serialized]}, 
       function() {
         console.log("Form successfully posted");
       },
       "text"
     ).error(function(){ 
-      console.log("error");
+      var result = "";
+      for (var key in jqxhr) {
+        result += key + ": " + jqxhr[key] + "\n";
+      }
+      console.log("error: " + result);
     }).success(function(){
       successfulSubmit(serialized.parcel_id);
     });
