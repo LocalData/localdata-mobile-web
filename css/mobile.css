@@ -19,7 +19,7 @@ html, body {
 
 #home {
   padding:20px;
-  background:#360 url(../img/streetscape_blur-01.jpg) no-repeat center -100px;
+  background:#fff url(../img/streetscape_blur-01.jpg) no-repeat center -100px;
 }
 
 .ui-content {

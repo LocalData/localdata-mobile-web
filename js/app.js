@@ -10,7 +10,7 @@ var SURVEYID = '1';
 var locale = "san francisco"; // our current set of parcels. 
 var maps = {
   'san francisco': {
-    'json': 'http://a.tiles.mapbox.com/v3/matth.sfparcels.jsonp',
+    'json': 'http://a.tiles.mapbox.com/v3/matthdev.sf-parcels.jsonp',
     'interaction': 'setFormParcelSF' // Name of the function that gets parcel info
   },
   'detroit': {
@@ -97,33 +97,39 @@ function selectParcel(m, latlng) {
 }
 
 
+function addDoneMaker(map, latlng) {
+
+
+  // return the marker
+}
+
+function hilightParcel(map, polygon) {
+  
+  
+  // return the object
+}
+
+/* 
+Take a string as stored in the interaction layer and transform it into geojson.
+*/
+
 function GeoJSONify(o) {
+  // Get the polygon
   var polygon_text = o.data.polygon;
   polygon_text = polygon_text.replace('\\','');
-  //console.log(polygon_text);
-  var json = jQuery.parseJSON(polygon_text);
-  //console.log(json);
-  
-  console.log("POINT:");
+  var polygon_json = jQuery.parseJSON(polygon_text);
+    
+  // Get the 
   var centroid_text = o.data.centroid;
   centroid_text = centroid_text.replace('\\','');
-  console.log(centroid_text);
   var centroid_json = jQuery.parseJSON(centroid_text);
-  console.log(centroid_json);
-   
   
-  // L.Polygon( <LatLng[]> latlngs, <Polyline options> options? )
-  // 
-  // var p1 = new L.LatLng(51.509, -0.08),
-  //     p2 = new L.LatLng(51.503, -0.06),
-  //     p3 = new L.LatLng(51.51, -0.047),
-  //     polygonPoints = [p1, p2, p3];
-  // 
-  // var polygon = new L.Polygon(polygonPoints);
   
+  // To do: break this out into a testable function 
+  // Add the polygon to the map.
   var polypoints = new Array();  
-  for (var i = json.coordinates[0].length - 1; i >= 0; i--){
-    point = new L.LatLng(json.coordinates[0][i][1], json.coordinates[0][i][0]);
+  for (var i = polygon_json.coordinates[0].length - 1; i >= 0; i--){
+    point = new L.LatLng(polygon_json.coordinates[0][i][1], polygon_json.coordinates[0][i][0]);
     polypoints.push(point);
   };
   options = {
@@ -134,6 +140,7 @@ function GeoJSONify(o) {
   var polygon = new L.Polygon(polypoints, options);
   map.addLayer(polygon);
   
+  // Add the point to the map
   var doneIcon = new StarIcon();
   var donePos = new L.LatLng(centroid_json.coordinates[1],centroid_json.coordinates[0]);
   console.log(donePos);
