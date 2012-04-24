@@ -2,15 +2,19 @@
   Basic app functionality for the mobile survey. 
 */
 
-// TODO: set this up correctly in a config file.
+// TODO: Abstract these into an object that can be passed around
 var map, marker, circle;
-var BASEURL = 'http://surveydet.herokuapp.com'; // no trailing slash
+var selected_polygon = false;
 
+// TODO: set this up correctly in a config file.
+var BASEURL = 'http://surveydet.herokuapp.com'; // no trailing slash
 var SURVEYID = '1';
+var CARTO_ACCOUNT = 'matth';
+
 var locale = "san francisco"; // our current set of parcels. 
 var maps = {
   'san francisco': {
-    'json': 'http://a.tiles.mapbox.com/v3/matthdev.sf-parcels.jsonp',
+    'json': 'http://a.tiles.mapbox.com/v3/matthdev.soma.jsonp',
     'interaction': 'setFormParcelSF' // Name of the function that gets parcel info
   },
   'detroit': {
@@ -81,55 +85,99 @@ function setFormParcelSF(id) {
   $('h2 .parcel_id').text(human_readable_location);
   
   console.log(id.data);
-  loadDataForParcel(blocklot);
+  // loadDataForParcel(blocklot);   // TODO
 }
+
+
+function setFormParcelCarto(data) {
+  console.log(data);
+  var blocklot = data.blklot;
+  var human_readable_location = data.from_st;
+  if (data.from_st != data.to_st) {
+    human_readable_location += "-" + data.to_st;
+  };
+  human_readable_location += " " + data.street + " " + data.st_type;
+  
+  $('#parcel_id').val(blocklot);
+  $('h2 .parcel_id').text(human_readable_location);
+  
+  // loadDataForParcel(blocklot);   // TODO
+}
+
 
 /*
 Moves the marker to indicate the selected parcel.
 */
 function selectParcel(m, latlng) {
-  m.setLatLng(latlng);
+  // m.setLatLng(latlng);
   if(!$('#form').is(":visible")) {
-      $('#startpoint').slideToggle();
       $('#form').slideToggle();
+  }
+  if($('#startpoint').is(":visible")) {
+    $('#startpoint').slideToggle();
+  }
+  if($('#thanks').is(":visible")) {
+    $('#thanks').slideToggle();
+  
   }
   map.removeLayer(circle);
 }
 
-
-function addDoneMaker(map, latlng) {
-
-
-  // return the marker
+/* 
+Clear the form and thank the user after a successful submission
+*/
+function successfulSubmit(parcel_id) {
+  getCartoCentroid(parcel_id, function(data){
+    console.log(data);
+    var json = jQuery.parseJSON(data.st_asgeojson);
+    console.log("HERE");
+    console.log(json);
+    
+    var done = new L.LatLng(json.coordinates[1], json.coordinates[0]);
+    addDoneMaker(done);
+  });
+  
+  $('#form').slideToggle();
+  $('#thanks').slideToggle();
 }
 
-function hilightParcel(map, polygon) {
+
+function markDoneParcels(map) {
+  // Get all parcels by survey_id
   
-  
-  // return the object
 }
+
+/*
+Adds a checkbox marker to the given point
+*/
+function addDoneMaker(latlng) {
+  var doneIcon = new StarIcon();
+  console.log(latlng);
+  icon = new L.Marker(latlng, {icon: doneIcon});
+  map.addLayer(icon);
+  return icon;
+}
+
 
 /* 
-Take a string as stored in the interaction layer and transform it into geojson.
+Outline the given polygon
 */
+function highlightPolygon(map, polygon_json) {
+  // expects format: 
+  // {coordinates: [[x,y], [x,y], ...] }
+  
+  // Remove existing highlighting 
+  if(selected_polygon) {
+    map.removeLayer(selected_polygon);
+  }
 
-function GeoJSONify(o) {
-  // Get the polygon
-  var polygon_text = o.data.polygon;
-  polygon_text = polygon_text.replace('\\','');
-  var polygon_json = jQuery.parseJSON(polygon_text);
-    
-  // Get the 
-  var centroid_text = o.data.centroid;
-  centroid_text = centroid_text.replace('\\','');
-  var centroid_json = jQuery.parseJSON(centroid_text);
+  console.log(polygon_json);
   
-  
-  // To do: break this out into a testable function 
-  // Add the polygon to the map.
+  // Add the new polygon
   var polypoints = new Array();  
-  for (var i = polygon_json.coordinates[0].length - 1; i >= 0; i--){
-    point = new L.LatLng(polygon_json.coordinates[0][i][1], polygon_json.coordinates[0][i][0]);
+  for (var i = polygon_json.coordinates[0][0].length - 1; i >= 0; i--){
+    console.log(polygon_json.coordinates[0][0][i]);
+    point = new L.LatLng(polygon_json.coordinates[0][0][i][1], polygon_json.coordinates[0][0][i][0]);
     polypoints.push(point);
   };
   options = {
@@ -137,16 +185,68 @@ function GeoJSONify(o) {
       fillColor: '#f03',
       fillOpacity: 0.5
   };
-  var polygon = new L.Polygon(polypoints, options);
-  map.addLayer(polygon);
+  selected_polygon = new L.Polygon(polypoints, options);
+  map.addLayer(selected_polygon);
+  
+  return selected_polygon;  
+}
+
+
+function getCartoCentroid(parcel_id, callback) {
+  query = "SELECT ST_AsGeoJSON(ST_Centroid(the_geom)) FROM clipped_sf_parcels WHERE blklot ='" + parcel_id + "'";
+  console.log(query);
+  $.getJSON('http://'+ CARTO_ACCOUNT +'.cartodb.com/api/v2/sql/?format=GeoJSON&q='+query, function(data){
+     $.each(data.rows, function(key, val) {
+       // Only need one.
+       callback(val);
+     });
+  });
+}
+
+/* 
+Given a point, get data about the parcel at that point from Carto.
+*/
+function getCartoData(latlng, callback) {
+  var lat = latlng.lat;
+  var lng = latlng.lng;
+
+  query = "SELECT blklot, from_st, to_st, street, st_type, ST_AsGeoJSON(the_geom) FROM clipped_sf_parcels where ST_Contains(ST_SetSRID(the_geom, 4326), ST_SetSRID(st_geomfromtext('POINT(" + lng + " " + lat + ")'), 4326)) = 't'"; 
+  console.log(query);
+  
+  $.getJSON('http://'+ CARTO_ACCOUNT +'.cartodb.com/api/v2/sql/?q='+query, function(data){
+     $.each(data.rows, function(key, val) {
+       console.log("Result: ");
+       console.log(val);
+       callback(val);
+     });
+  });
+}
+
+function getPolygonFromInteraction(o) {
+  var polygon_text = o.data.polygon;
+  polygon_text = polygon_text.replace('\\','');
+  var polygon_json = jQuery.parseJSON(polygon_text);
+  return polygon_json;
+}
+
+function getCentroidFromInteraction(o) {
+  var centroid_text = o.data.centroid;
+  centroid_text = centroid_text.replace('\\','');
+  var centroid_json = jQuery.parseJSON(centroid_text);
+  return centroid_json;
+}
+
+
+function GeoJSONify(o) {
+  polygon_json = getPolygonFromInteraction(o);
+  centroid_json = getCentroidFromInteraction(o);
+  
+  // Add the polygon to the map.
+  selected = highlightPolygon(map, polygon_json); 
   
   // Add the point to the map
-  var doneIcon = new StarIcon();
-  var donePos = new L.LatLng(centroid_json.coordinates[1],centroid_json.coordinates[0]);
-  console.log(donePos);
-  icon = new L.Marker(donePos, {icon: doneIcon});
-  map.addLayer(icon);
-  
+  //var donePos = new L.LatLng(centroid_json.coordinates[1],centroid_json.coordinates[0]);
+  // addDoneMaker(donePos);
 }
 
 /*
@@ -183,9 +283,17 @@ wax.tilejson(maps['san francisco']['json'],
           // Interaction: Handles clicks/taps
           if (o.e.type == 'mouseup') { // was mousemove
               //  console.log(o.formatter({format:'full'}, o.data));
-              setFormParcelSF(o);
-              GeoJSONify(o);
-              selectParcel(marker, map.mouseEventToLatLng(o.e));
+              getCartoData(map.mouseEventToLatLng(o.e), function(data){
+                setFormParcelCarto(data);
+                var poly = jQuery.parseJSON(data.st_asgeojson);
+                highlightPolygon(map, poly);
+                selectParcel();
+              });              
+              // selectParcel(marker, map.mouseEventToLatLng(o.e));
+              // setFormParcelSF(o);
+              
+              // GeoJSONify(o);
+              
           }
       });
     
@@ -214,27 +322,27 @@ wax.tilejson(maps['san francisco']['json'],
   
 
 $(document).ready(function(){
-    $("#parcelform").submit(function(event) {
-      event.preventDefault(); // stop form from submitting normally
-      url = $(this).attr('action'); // get the URL from the form action
-          
-      // serialize the form
-      serialized = $('#parcelform').serializeObject();
-      console.log("POST url: " + url);
-      console.log(serialized);
-      
-      // post the form
-      $.post(url, {responses: [serialized]}, 
-        function() {
-          console.log("Form successfully posted");
-        },
-        "text"
-      ).error(function(){ 
-        console.log("error");
-      }).success(function(){
+  console.log("Ready!");
+  $("#parcelform").submit(function(event) {
+    event.preventDefault(); // stop form from submitting normally
+    url = $(this).attr('action'); // get the URL from the form action
         
-      });
-      
+    // serialize the form
+    serialized = $('#parcelform').serializeObject();
+    console.log("POST url: " + url);
+    console.log(serialized);
+    
+    // post the form
+    $.post(url, {responses: [serialized]}, 
+      function() {
+        console.log("Form successfully posted");
+      },
+      "text"
+    ).error(function(){ 
+      console.log("error");
+    }).success(function(){
+      successfulSubmit(serialized.parcel_id);
+    });
   });      
 });
   

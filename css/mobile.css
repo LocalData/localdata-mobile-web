@@ -19,14 +19,14 @@ html, body {
 
 #home {
   padding:20px;
-  background:#fff url(../img/streetscape_blur-01.jpg) no-repeat center -100px;
+  background:#ddd url(../img/streetscape_blur-01.jpg) no-repeat center -100px;
 }
 
 .ui-content {
   padding:0;
 }
 
-#startpoint, #form {
+#startpoint, #form, #thanks {
   padding:1em;
 }
 
@@ -34,6 +34,13 @@ html, body {
   background:#fff;
   border-bottom:2px solid #ddd;
   display:none;
+}
+
+#thanks {
+  display:none;
+  background:#ffe;
+  border-top:1px solid #fff;
+  border-bottom:1px solid #ddd;
 }
 
 #head {
