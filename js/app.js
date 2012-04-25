@@ -299,11 +299,17 @@ wax.tilejson(maps['san francisco']['json'],
     
 		map.on('locationfound', onLocationFound);
 		map.on('locationerror', onLocationError);
-		map.locateAndSetView(18);
-		
+		//map.locateAndSetView(18);
+	  var sf = new L.LatLng(37.77555050754543, -122.41365958293713);
+	  marker = new L.Marker(sf);
+	  map.addLayer(marker);  		  
+    
+	  map.setView(sf, 18);
+	  
 		// For Detroit testing: 
 		// var detroit = new L.LatLng(42.342781, -83.084793);
 		// mapsetView(detroit, 18);
+    
     
 		function onLocationFound(e) {
 	    marker = new L.Marker(e.latlng);
@@ -322,7 +328,6 @@ wax.tilejson(maps['san francisco']['json'],
   
 
 $(document).ready(function(){
-  console.log("Ready!");
   $("#parcelform").submit(function(event) {
     event.preventDefault(); // stop form from submitting normally
     url = $(this).attr('action'); // get the URL from the form action
