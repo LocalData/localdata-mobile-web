@@ -43,8 +43,12 @@
       </h2>
       
       <div id="results"></div>
-      <!-- http://surveydet.herokuapp.com/surveys/e458a930-8e27-11e1-b08f-37bd5a7df741/responses -->
-      <form action="http://127.0.0.1:3000/surveys/1/responses" method="post" accept-charset="utf-8" id="parcelform">
+      <!-- 
+      For local testing:
+      [Should be parameterized in JS]
+      http://127.0.0.1:3000/surveys/1/responses 
+      -->
+      <form action="http://surveydet.herokuapp.com/surveys/e458a930-8e27-11e1-b08f-37bd5a7df741/responses" method="post" accept-charset="utf-8" id="parcelform">
         <input type="hidden" name="parcel_id" value="" id="parcel_id">
             
         <div data-role="fieldcontain">
