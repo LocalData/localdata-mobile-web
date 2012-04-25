@@ -15,7 +15,19 @@ retrieve the results
 Very much in prototype stage. Interested in helping out? Contact 
 detroit@codeforamerica.org for more details. 
 
-MIT.
+h2. Running the app 
+
+The app is static HTML pages + javscript. You can run the app off any web 
+server, including github pages. 
+
+You will need to configure some parts:
+* In survey.html, change the action of the form to match the endpoint of your
+API server
+* In app.js:
+** update the BASEURL to point to the endpoint of your API server 
+** set the SURVEYID to match the survey ID from the API server
+** Set the locale, and set the map tilejson URL to match
+
 
 h2. The maps
 

@@ -43,8 +43,8 @@
       </h2>
       
       <div id="results"></div>
-      <!-- live: http://surveydet.herokuapp.com -->
-      <form action="http://surveydet.herokuapp.com/surveys/e458a930-8e27-11e1-b08f-37bd5a7df741/responses" method="post" accept-charset="utf-8" id="parcelform">
+      <!-- http://surveydet.herokuapp.com/surveys/e458a930-8e27-11e1-b08f-37bd5a7df741/responses -->
+      <form action="http://127.0.0.1:3000/surveys/1/responses" method="post" accept-charset="utf-8" id="parcelform">
         <input type="hidden" name="parcel_id" value="" id="parcel_id">
             
         <div data-role="fieldcontain">
@@ -64,10 +64,10 @@
             <fieldset data-role="controlgroup">
                 <legend>2. If there is a business, what kind is it?</legend>
                 <select name="business-use" id="select-choice-2">
-                   <option value="residential">Food</option>
-                   <option value="mixed">Offices</option>
-                   <option value="commercial">Gas Station</option>
-                   <option value="parking">Retail</option>
+                   <option value="food">Food</option>
+                   <option value="offices">Offices</option>
+                   <option value="gas station">Gas Station</option>
+                   <option value="retail">Retail</option>
                    <option value="other">Other</option>
                 </select>
             </fieldset>

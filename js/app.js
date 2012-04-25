@@ -269,65 +269,68 @@ $.fn.serializeObject = function() {
     return o;
 };
 
-/* 
-Set up the map
-*/
-wax.tilejson(maps['san francisco']['json'],
-  function(tilejson) {
-    map = new L.Map('map-div');
-    map.addLayer(new wax.leaf.connector(tilejson));
-    wax.leaf.interaction()
-      .map(map)
-      .tilejson(tilejson)
-      .on('on', function(o) {
-          // Interaction: Handles clicks/taps
-          if (o.e.type == 'mouseup') { // was mousemove
-              //  console.log(o.formatter({format:'full'}, o.data));
-              getCartoData(map.mouseEventToLatLng(o.e), function(data){
-                setFormParcelCarto(data);
-                var poly = jQuery.parseJSON(data.st_asgeojson);
-                highlightPolygon(map, poly);
-                selectParcel();
-              });              
-              // selectParcel(marker, map.mouseEventToLatLng(o.e));
-              // setFormParcelSF(o);
-              
-              // GeoJSONify(o);
-              
-          }
-      });
-    
-		map.on('locationfound', onLocationFound);
-		map.on('locationerror', onLocationError);
-		//map.locateAndSetView(18);
-	  var sf = new L.LatLng(37.77555050754543, -122.41365958293713);
-	  marker = new L.Marker(sf);
-	  map.addLayer(marker);  		  
-    
-	  map.setView(sf, 18);
-	  
-		// For Detroit testing: 
-		// var detroit = new L.LatLng(42.342781, -83.084793);
-		// mapsetView(detroit, 18);
-    
-    
-		function onLocationFound(e) {
-	    marker = new L.Marker(e.latlng);
-		  map.addLayer(marker);  		  
-
-      // Add the accuracy circle to the map
-			var radius = e.accuracy / 2;
-			circle = new L.Circle(e.latlng, radius);
-			map.addLayer(circle);
-		}
-
-		function onLocationError(e) {
-			alert(e.message);
-		}
-});
-  
 
 $(document).ready(function(){
+  /* 
+  Set up the map
+  */
+  wax.tilejson(maps['san francisco']['json'],
+    function(tilejson) {
+      map = new L.Map('map-div');
+      map.addLayer(new wax.leaf.connector(tilejson));
+      wax.leaf.interaction()
+        .map(map)
+        .tilejson(tilejson)
+        .on('on', function(o) {
+            // Interaction: Handles clicks/taps
+            if (o.e.type == 'mouseup') { // was mousemove
+                //  console.log(o.formatter({format:'full'}, o.data));
+                getCartoData(map.mouseEventToLatLng(o.e), function(data){
+                  setFormParcelCarto(data);
+                  var poly = jQuery.parseJSON(data.st_asgeojson);
+                  highlightPolygon(map, poly);
+                  selectParcel();
+                });              
+                // selectParcel(marker, map.mouseEventToLatLng(o.e));
+                // setFormParcelSF(o);
+
+                // GeoJSONify(o);
+
+            }
+        });
+
+  		map.on('locationfound', onLocationFound);
+  		map.on('locationerror', onLocationError);
+  		//map.locateAndSetView(18);
+  	  var sf = new L.LatLng(37.77555050754543, -122.41365958293713);
+  	  marker = new L.Marker(sf);
+  	  map.addLayer(marker);  		  
+
+  	  map.setView(sf, 18);
+
+  		// For Detroit testing: 
+  		// var detroit = new L.LatLng(42.342781, -83.084793);
+  		// mapsetView(detroit, 18);
+
+
+  		function onLocationFound(e) {
+  	    marker = new L.Marker(e.latlng);
+  		  map.addLayer(marker);  		  
+
+        // Add the accuracy circle to the map
+  			var radius = e.accuracy / 2;
+  			circle = new L.Circle(e.latlng, radius);
+  			map.addLayer(circle);
+  		}
+
+  		function onLocationError(e) {
+  			alert(e.message);
+  		}
+  });
+
+  
+  
+  
   $("#parcelform").submit(function(event) {
     event.preventDefault(); // stop form from submitting normally
     url = $(this).attr('action'); // get the URL from the form action
@@ -338,7 +341,7 @@ $(document).ready(function(){
     console.log(serialized);
     
     // post the form
-    var jqxhr = $.post(url, {responses: [serialized]}, 
+    var jqxhr = $.post(url, {responses: [{parcel_id:serialized.parcel_id, responses: serialized}]}, 
       function() {
         console.log("Form successfully posted");
       },
