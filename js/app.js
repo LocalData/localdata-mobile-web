@@ -259,7 +259,7 @@ function getPostgresWindow(bounds, callback) {
 function getPostgresData(latlng, callback) {
   var lat = latlng.lat;
   var lng = latlng.lng; //http://stormy-mountain-3909.herokuapp.com
-  var url = 'http://0.0.0.0:5000/detroit/parcel?lat=' + lat + '&lng=' + lng;
+  var url = 'http://stormy-mountain-3909.herokuapp.com/detroit/parcel?lat=' + lat + '&lng=' + lng;
   console.log(url);
   $.getJSON(url, function(data){
     // Process the results. Strip whitespace. Convert the polygon to geoJSON
