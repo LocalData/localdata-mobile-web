@@ -8,17 +8,19 @@ var selected_polygon = false;
 
 // TODO: set this up correctly in a config file.
 var BASEURL = 'http://surveydet.herokuapp.com'; // no trailing slash
+var GEOAPI = 'http://stormy-mountain-3909.herokuapp.com';
 var SURVEYID = '1';
 var CARTO_ACCOUNT = 'matth';
 
 var locale = "san francisco"; // our current set of parcels. 
+locale = "detroit";
 var maps = {
   'san francisco': {
     'json': 'http://a.tiles.mapbox.com/v3/matthdev.soma.jsonp',
     'interaction': 'setFormParcelSF' // Name of the function that gets parcel info
   },
   'detroit': {
-    'json': 'http://a.tiles.mapbox.com/v3/matth.det-parcels2.jsonp',
+    'json': 'http://a.tiles.mapbox.com/v3/matthdet.detroit.jsonp',
     'interaction': 'setFormParcelDET'
   }
 }
@@ -105,6 +107,17 @@ function setFormParcelCarto(data) {
 }
 
 
+function setFormParcelPostGIS(data) {
+  console.log(data);
+  var parcel_id = data.parcel_id;
+  var human_readable_location = data.address;
+  
+  $('#parcel_id').val(parcel_id);
+  $('h2 .parcel_id').text(human_readable_location);
+  
+}
+
+
 /*
 Moves the marker to indicate the selected parcel.
 */
@@ -171,13 +184,14 @@ function highlightPolygon(map, polygon_json) {
     map.removeLayer(selected_polygon);
   }
 
+  console.log("Polygon JSON");
   console.log(polygon_json);
   
   // Add the new polygon
   var polypoints = new Array();  
-  for (var i = polygon_json.coordinates[0][0].length - 1; i >= 0; i--){
-    console.log(polygon_json.coordinates[0][0][i]);
-    point = new L.LatLng(polygon_json.coordinates[0][0][i][1], polygon_json.coordinates[0][0][i][0]);
+  for (var i = polygon_json.coordinates[0].length - 1; i >= 0; i--){
+    console.log(polygon_json.coordinates[0][i]);
+    point = new L.LatLng(polygon_json.coordinates[0][i][1], polygon_json.coordinates[0][i][0]);
     polypoints.push(point);
   };
   options = {
@@ -192,6 +206,7 @@ function highlightPolygon(map, polygon_json) {
 }
 
 
+// Get the centroid of a parcel given its ID.
 function getCartoCentroid(parcel_id, callback) {
   query = "SELECT ST_AsGeoJSON(ST_Centroid(the_geom)) FROM clipped_sf_parcels WHERE blklot ='" + parcel_id + "'";
   console.log(query);
@@ -222,6 +237,42 @@ function getCartoData(latlng, callback) {
   });
 }
 
+
+// Trim function: strips whitespace from a string. 
+// Use: " dog".trim() === "dog" //true
+if(typeof(String.prototype.trim) === "undefined")
+{
+    String.prototype.trim = function() 
+    {
+        return String(this).replace(/^\s+|\s+$/g, '');
+    };
+}
+
+
+function getPostgresWindow(bounds, callback) {
+  
+}
+
+// Given a Leaflet latlng object, return a JSON object that describes the 
+// parcel.
+// Attributes: parcel_id (string), address (string), polygon (GeoJSON)
+function getPostgresData(latlng, callback) {
+  var lat = latlng.lat;
+  var lng = latlng.lng; //http://stormy-mountain-3909.herokuapp.com
+  var url = 'http://0.0.0.0:5000/detroit/parcel?lat=' + lat + '&lng=' + lng;
+  console.log(url);
+  $.getJSON(url, function(data){
+    // Process the results. Strip whitespace. Convert the polygon to geoJSON
+    var result = {
+      parcel_id: data[0].trim(), 
+      address: data[3].trim(),
+      polygon: jQuery.parseJSON(data[4]),
+      centroid: jQuery.parseJSON(data[5])
+    };
+    callback(result);
+  });
+}
+
 function getPolygonFromInteraction(o) {
   var polygon_text = o.data.polygon;
   polygon_text = polygon_text.replace('\\','');
@@ -236,7 +287,8 @@ function getCentroidFromInteraction(o) {
   return centroid_json;
 }
 
-
+// Given the interaction data, gets the polygon and centroid and adds it to
+// the map
 function GeoJSONify(o) {
   polygon_json = getPolygonFromInteraction(o);
   centroid_json = getCentroidFromInteraction(o);
@@ -274,7 +326,7 @@ $(document).ready(function(){
   /* 
   Set up the map
   */
-  wax.tilejson(maps['san francisco']['json'],
+  wax.tilejson(maps[locale]['json'],
     function(tilejson) {
       map = new L.Map('map-div');
       map.addLayer(new wax.leaf.connector(tilejson));
@@ -285,12 +337,23 @@ $(document).ready(function(){
             // Interaction: Handles clicks/taps
             if (o.e.type == 'mouseup') { // was mousemove
                 //  console.log(o.formatter({format:'full'}, o.data));
-                getCartoData(map.mouseEventToLatLng(o.e), function(data){
-                  setFormParcelCarto(data);
-                  var poly = jQuery.parseJSON(data.st_asgeojson);
-                  highlightPolygon(map, poly);
+                getPostgresData(map.mouseEventToLatLng(o.e), function(data){
+                  console.log("YAY!");
+                  console.log(data);
+                  //var poly = jQuery.parseJSON(data.st_asgeojson);
+                  setFormParcelPostGIS(data);
+                  highlightPolygon(map, data.polygon);
                   selectParcel();
-                });              
+                  //console.log(poly);
+                });
+                
+                
+                // getCartoData(map.mouseEventToLatLng(o.e), function(data){
+                //   setFormParcelCarto(data);
+                //   var poly = jQuery.parseJSON(data.st_asgeojson);
+                //   highlightPolygon(map, poly);
+                //   selectParcel();
+                // });              
                 // selectParcel(marker, map.mouseEventToLatLng(o.e));
                 // setFormParcelSF(o);
 
@@ -302,15 +365,15 @@ $(document).ready(function(){
   		map.on('locationfound', onLocationFound);
   		map.on('locationerror', onLocationError);
   		//map.locateAndSetView(18);
-  	  var sf = new L.LatLng(37.77555050754543, -122.41365958293713);
-  	  marker = new L.Marker(sf);
-  	  map.addLayer(marker);  		  
+  	  //var sf = new L.LatLng(37.77555050754543, -122.41365958293713);
+  	 // marker = new L.Marker(sf);
+  	  // For Detroit testing: 
+ 	    var detroit = new L.LatLng(42.305213, -83.126260);
+ 		  map.setView(detroit, 18);
+  	  // map.addLayer(detroit);  		  
 
-  	  map.setView(sf, 18);
+  	  //map.setView(sf, 18);
 
-  		// For Detroit testing: 
-  		// var detroit = new L.LatLng(42.342781, -83.084793);
-  		// mapsetView(detroit, 18);
 
 
   		function onLocationFound(e) {
@@ -341,9 +404,13 @@ $(document).ready(function(){
     console.log(serialized);
     
     // post the form
+    
+    // show the spinner. 
+    
     var jqxhr = $.post(url, {responses: [{parcel_id:serialized.parcel_id, responses: serialized}]}, 
       function() {
         console.log("Form successfully posted");
+        // hide the spinner
       },
       "text"
     ).error(function(){ 
