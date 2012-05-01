@@ -396,17 +396,16 @@ $(document).ready(function(){
   
   $("#parcelform").submit(function(event) {
     event.preventDefault(); // stop form from submitting normally
-    url = $(this).attr('action'); // get the URL from the form action
+    url = $(this).attr('action'); 
         
     // serialize the form
     serialized = $('#parcelform').serializeObject();
     console.log("POST url: " + url);
     console.log(serialized);
     
-    // post the form
+    // TODO: show the spinner. 
     
-    // show the spinner. 
-    
+    // Post the form
     var jqxhr = $.post(url, {responses: [{parcel_id:serialized.parcel_id, responses: serialized}]}, 
       function() {
         console.log("Form successfully posted");
