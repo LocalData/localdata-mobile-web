@@ -5,6 +5,7 @@
 // TODO: Abstract these into an object that can be passed around
 var map, marker, circle;
 var selected_polygon = false;
+var selected_parcel_json = false;
 
 // TODO: set this up correctly in a config file.
 var BASEURL = 'http://surveydet.herokuapp.com'; // no trailing slash
@@ -138,18 +139,15 @@ function selectParcel(m, latlng) {
 
 /* 
 Clear the form and thank the user after a successful submission
+TODO: pass in selected_parcel_json
 */
-function successfulSubmit(parcel_id) {
-  getCartoCentroid(parcel_id, function(data){
-    console.log(data);
-    var json = jQuery.parseJSON(data.st_asgeojson);
-    console.log("HERE");
-    console.log(json);
-    
-    var done = new L.LatLng(json.coordinates[1], json.coordinates[0]);
-    addDoneMaker(done);
-  });
+function successfulSubmit() {
+  console.log("Successful submit");
+  console.log(selected_parcel_json);
   
+  var done = new L.LatLng(selected_parcel_json.centroid.coordinates[1], selected_parcel_json.centroid.coordinates[0]);
+  addDoneMaker(done);
+    
   $('#form').slideToggle();
   $('#thanks').slideToggle();
 }
@@ -175,9 +173,11 @@ function addDoneMaker(latlng) {
 /* 
 Outline the given polygon
 */
-function highlightPolygon(map, polygon_json) {
+function highlightPolygon(map, selected_parcel_json) {
   // expects format: 
   // {coordinates: [[x,y], [x,y], ...] }
+  
+  polygon_json = selected_parcel_json.polygon;
   
   // Remove existing highlighting 
   if(selected_polygon) {
@@ -340,9 +340,10 @@ $(document).ready(function(){
                 getPostgresData(map.mouseEventToLatLng(o.e), function(data){
                   console.log("YAY!");
                   console.log(data);
+                  selected_parcel_json = data;
                   //var poly = jQuery.parseJSON(data.st_asgeojson);
                   setFormParcelPostGIS(data);
-                  highlightPolygon(map, data.polygon);
+                  highlightPolygon(map, data);
                   selectParcel();
                   //console.log(poly);
                 });
@@ -374,9 +375,8 @@ $(document).ready(function(){
 
   	  //map.setView(sf, 18);
 
-
-
   		function onLocationFound(e) {
+  		  // When we find the 
   	    marker = new L.Marker(e.latlng);
   		  map.addLayer(marker);  		  
 
@@ -419,7 +419,7 @@ $(document).ready(function(){
       }
       console.log("error: " + result);
     }).success(function(){
-      successfulSubmit(serialized.parcel_id);
+      successfulSubmit();
     });
   });      
 });
