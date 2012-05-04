@@ -312,8 +312,8 @@ $(document).ready(function(){
   wax.tilejson(maps[locale]['json'],
     function(tilejson) {
       map = new L.Map('map-div');
-      bing = new L.TileLayer.Bing(settings.bing_key, 'AerialWithLabels', {});
-      map.addLayer(bing);
+     // bing = new L.TileLayer.Bing(settings.bing_key, 'AerialWithLabels', {});
+     // map.addLayer(bing);
       map.addLayer(new wax.leaf.connector(tilejson));
       wax.leaf.interaction()
         .map(map)
