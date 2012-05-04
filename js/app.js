@@ -7,24 +7,7 @@ var map, marker, circle;
 var selected_polygon = false;
 var selected_parcel_json = false;
 
-// TODO: set this up correctly in a config file.
-var BASEURL = 'http://surveydet.herokuapp.com'; // no trailing slash
-var GEOAPI = 'http://stormy-mountain-3909.herokuapp.com';
-var SURVEYID = '1';
-var CARTO_ACCOUNT = 'matth';
 
-var locale = "san francisco"; // our current set of parcels. 
-locale = "detroit";
-var maps = {
-  'san francisco': {
-    'json': 'http://a.tiles.mapbox.com/v3/matthdev.soma.jsonp',
-    'interaction': 'setFormParcelSF' // Name of the function that gets parcel info
-  },
-  'detroit': {
-    'json': 'http://a.tiles.mapbox.com/v3/matthdet.detroit.jsonp',
-    'interaction': 'setFormParcelDET'
-  }
-}
 
 var StarIcon = L.Icon.extend({
     iconUrl: 'img/icons/star-solid-18.png',
