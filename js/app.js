@@ -40,40 +40,6 @@ function getParcelDataURL(parcel_id) {
   return BASEURL + '/surveys/' + SURVEYID + '/parcels/' + parcel_id + '/responses';
 }
 
-/*
-Gets the data for a given parcel and displays it.
-*/
-function loadDataForParcel(parcel_id) {
-  console.log("Getting data for parcel");
-  $.getJSON(getParcelDataURL(parcel_id), function(data) {
-    console.log("Hey thar");
-    console.log(data);
-  });
-}
-
-
-/*
-Update the hidden parcel_id field to set the parcel the user
-has selected. Will need to be different for every city. 
-*/
-function setFormParcelSF(id) {
-  // Get the block+lot from the interaction data. 
-  // Later on, this will need to be a variable / paramaterized; or 
-  // standardized per base layer dataset.
-  var blocklot = id.data.blklot;
-  var human_readable_location = id.data.from_st;
-  if (id.data.from_st != id.data.to_st) {
-    human_readable_location += "-" + id.data.to_st;
-  };
-  human_readable_location += " " + id.data.street + " " + id.data.st_type;
-  
-  $('.parcel_id').val(blocklot);
-  $('h2 .parcel_id').text(human_readable_location);
-  
-  console.log(id.data);
-  // loadDataForParcel(blocklot);   // TODO
-}
-
 
 function setFormParcelCarto(data) {
   console.log(data);
@@ -137,8 +103,9 @@ function successfulSubmit() {
 
 
 function markDoneParcels(map) {
-  // Get all parcels by survey_id
+  // Get all parcels in the window by survey_id
   
+  // For eacn that has results, add a check mark.??
 }
 
 /*
