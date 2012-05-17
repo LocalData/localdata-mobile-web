@@ -15,7 +15,7 @@ var StarIcon = L.Icon.extend({
 		iconSize: new L.Point(18, 18),
 		shadowSize: new L.Point(18, 18),
 		iconAnchor: new L.Point(9, 9),
-		popupAnchor: new L.Point(9, 9),
+		popupAnchor: new L.Point(9, 9)
 });                       
 
 
@@ -63,7 +63,7 @@ function setFormParcelPostGIS(data) {
   var parcel_id = data.parcel_id;
   var human_readable_location = data.address;
   
-  $('#parcel_id').val(parcel_id);
+  $('.parcel_id').val(parcel_id);
   $('h2 .parcel_id').text(human_readable_location);
   
 }
@@ -291,7 +291,7 @@ function drawMap() {
        selectParcel();
      });
     });
-
+    
     // Used for centering the map when we're using geolocation.
     map.on('locationfound', onLocationFound);
     map.on('locationerror', onLocationError);
@@ -318,10 +318,58 @@ function drawMap() {
     	alert(e.message);
     }
   });
-
 };
 
 
+/* 
+ * Given a map object, return the bounds as a string
+ */
+function getMapBounds(m) {
+  bounds = "";
+  bounds += m.getBounds().getNorthWest().toString();
+  bounds += " " + m.getBounds().getSouthEast().toString();  
+  return bounds;
+};
+
+
+/*
+ * Overrides the default behavior of a form.
+ * Data will be submitted to the action URL in the form.
+ * The user will not leave the current page
+ * successCallback will be called if the submission is successfull
+ */
+function ajaxFormSubmit(event, form, successCallback) {
+  event.preventDefault(); // stop form from submitting normally
+  url = form.attr('action'); 
+  
+  // TODO: make submit button inactive. 
+
+  // serialize the form
+  serialized = form.serializeObject();
+  console.log("POST url: " + url);
+  console.log(serialized);
+
+  // Post the form
+  var jqxhr = $.post(url, {responses: [{parcel_id:serialized, responses: serialized}]}, 
+   function() {
+     console.log("Form posted");
+   },
+   "text"
+  ).error(function(){ 
+    var result = "";
+    for (var key in jqxhr) {
+      result += key + ": " + jqxhr[key] + "\n";
+    }
+    console.log("error: " + result);
+  }).success(
+    successCallback()
+  );
+};
+
+
+/* 
+ * Main set of event listeners
+ */
 $(document).ready(function(){
   
   /*
@@ -354,17 +402,31 @@ $(document).ready(function(){
   $("#feedback-show").click(function(event) {
     $('#feedback-show').slideToggle();
     $('#feedback-in').slideToggle();
-    
   });
   
   
+  /*
+   * Submit the feedback form 
+   */
+  $("#feedback-form").submit(function(event){ 
+    // set the bounds for debugging.
+    event.preventDefault();
+    $('.bounds').val(getMapBounds(map));
+    ajaxFormSubmit(event, $("#feedback-form"), function() { 
+      console.log("Feedback form submitted successfully");
+      $('#feedback-show').slideToggle();
+      $('#feedback-in').slideToggle();
+    });
+  });
+ 
+ 
   /* 
    * Handle the parcel survey form being submitted
    */
   $("#parcelform").submit(function(event) {
     event.preventDefault(); // stop form from submitting normally
     url = $(this).attr('action'); 
-      
+          
     // serialize the form
     serialized = $('#parcelform').serializeObject();
     console.log("POST url: " + url);

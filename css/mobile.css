@@ -27,7 +27,8 @@ html, body {
 }
 
 #survey-container,
-#feedback-in {
+#feedback-in,
+#feedback-send {
   display:none;
 }
 

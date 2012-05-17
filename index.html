@@ -147,7 +147,7 @@
       
       <div id="feedback-in">  
         <h2>Send in problems, ideas, and other feedback</h2>
-        <form action="index_submit" method="get" accept-charset="utf-8">
+        <form id="feedback-form" action="http://127.0.0.1:3000/surveys/3dbbc420-9ad6-11e1-b4b6-f184112d9089/feedback" method="get" accept-charset="utf-8">
           <input type="hidden" name="parcel_id" value="" class="parcel_id">
           <input type="hidden" name="centroid" value="" class="centroid">
           <input type="hidden" name="collector" value="" class="collector" >
@@ -160,7 +160,11 @@
       
           <p>Urgent problem? Call Matt Hampel: (734) 846-5010</p>
         </form>
-      </div>      
+      </div>
+      
+      <div id="feedback-send">
+        <h2>Thanks -- your feedback has been recorded.</h2>
+      </div>
     </div>
   </div><!-- end survey -->
   
