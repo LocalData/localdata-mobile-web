@@ -5,8 +5,8 @@
 // TODO: Abstract these into an object that can be passed around
 var map, marker, circle;
 var selected_polygon = false;
+var selected_centroid = false;
 var selected_parcel_json = false;
-
 
 
 var StarIcon = L.Icon.extend({
@@ -32,6 +32,7 @@ $.fn.clearForm = function() {
       this.selectedIndex = -1;
   });
 };
+
 
 /*
 Generates the URL to retrieve results for a given parcel
@@ -346,7 +347,20 @@ $(document).ready(function(){
     $("body").attr("id","survey");
   });
   
-
+  
+  /*
+   * Show the feedback bar
+   */
+  $("#feedback-show").click(function(event) {
+    $('#feedback-show').slideToggle();
+    $('#feedback-in').slideToggle();
+    
+  });
+  
+  
+  /* 
+   * Handle the parcel survey form being submitted
+   */
   $("#parcelform").submit(function(event) {
     event.preventDefault(); // stop form from submitting normally
     url = $(this).attr('action'); 

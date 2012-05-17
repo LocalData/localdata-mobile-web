@@ -1,7 +1,7 @@
 body {
   padding: 0;
   margin: 0;
-  background:#eee url(../img/hexellence.png) repeat left top;
+  background:#eee;
   font-family:Lucida Grande, sans-serif;
   font-size:14px; 
   font-family: 'Crete Round', serif
@@ -13,7 +13,7 @@ html, body {
 
 .ui-page  {
   /* This is a jquery mobile container */
-  background:#eee url(../img/hexellence.png) repeat left top;
+  background:#eee;
   font-family: 'Crete Round', serif;
 }
 
@@ -26,11 +26,15 @@ html, body {
   padding:0;
 }
 
-#survey-container {
+#survey-container,
+#feedback-in {
   display:none;
 }
 
-#startpoint, #form, #thanks {
+#startpoint, 
+#form, 
+#thanks, 
+#feedback {
   padding:1em;
 }
 
