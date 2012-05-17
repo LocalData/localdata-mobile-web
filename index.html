@@ -60,9 +60,9 @@
       <form action="http://127.0.0.1:3000/surveys/3dbbc420-9ad6-11e1-b4b6-f184112d9089/responses" method="post" accept-charset="utf-8" id="parcelform">
 
 
-        <input type="hidden" name="parcel_id" value="" id="parcel_id">
-        <input type="hidden" name="centroid" value="" id="centroid">
-        <input type="hidden" name="collector" value="" id="collector">
+        <input type="hidden" name="parcel_id" value="" id="parcel_id" class="parcel_id">
+        <input type="hidden" name="centroid" value="" id="centroid" class="centroid">
+        <input type="hidden" name="collector" value="" id="collector" class="collector">
         
 
         <div data-role="fieldcontain">
@@ -140,6 +140,21 @@
 
         <input type="submit" value="Submit answers &rarr;">
       </form>
+    </div>
+    
+    <div id="feedback">
+      No internet? Please jot down these details:
+      
+      <form action="index_submit" method="get" accept-charset="utf-8">
+        <input type="hidden" name="parcel_id" value="" class="parcel_id">
+        <input type="hidden" name="centroid" value="" class="centroid">
+        <input type="hidden" name="collector" value="" class="collector" >
+        <input type="hidden" name="bounds" value="" class="bounds" >
+        
+
+        <p><input type="submit" value="Continue &rarr;"></p>
+      </form>
+      
     </div>
   </div><!-- end survey -->
   

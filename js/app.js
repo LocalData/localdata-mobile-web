@@ -67,7 +67,7 @@ function setFormParcelSF(id) {
   };
   human_readable_location += " " + id.data.street + " " + id.data.st_type;
   
-  $('#parcel_id').val(blocklot);
+  $('.parcel_id').val(blocklot);
   $('h2 .parcel_id').text(human_readable_location);
   
   console.log(id.data);
@@ -84,7 +84,7 @@ function setFormParcelCarto(data) {
   };
   human_readable_location += " " + data.street + " " + data.st_type;
   
-  $('#parcel_id').val(blocklot);
+  $('.parcel_id').val(blocklot);
   $('h2 .parcel_id').text(human_readable_location);
   
   // loadDataForParcel(blocklot);   // TODO
@@ -301,44 +301,6 @@ function drawMap() {
   /*
     Draw the parcel map on the survey page
   */
-<<<<<<< HEAD
-  wax.tilejson(maps[locale]['json'],
-    function(tilejson) {
-      map = new L.Map('map-div');
-     // bing = new L.TileLayer.Bing(settings.bing_key, 'AerialWithLabels', {});
-     // map.addLayer(bing);
-      map.addLayer(new wax.leaf.connector(tilejson));
-      wax.leaf.interaction()
-        .map(map)
-        .tilejson(tilejson)
-        .on('on', function(o) {
-            // Interaction: Handles clicks/taps
-            if (o.e.type == 'mouseup') { // was mousemove
-                //  console.log(o.formatter({format:'full'}, o.data));
-                getPostgresData(map.mouseEventToLatLng(o.e), function(data){
-                  console.log("YAY!");
-                  console.log(data);
-                  selected_parcel_json = data;
-                  //var poly = jQuery.parseJSON(data.st_asgeojson);
-                  setFormParcelPostGIS(data);
-                  highlightPolygon(map, data);
-                  selectParcel();
-                  //console.log(poly);
-                });
-                
-                
-                // getCartoData(map.mouseEventToLatLng(o.e), function(data){
-                //   setFormParcelCarto(data);
-                //   var poly = jQuery.parseJSON(data.st_asgeojson);
-                //   highlightPolygon(map, poly);
-                //   selectParcel();
-                // });              
-                // selectParcel(marker, map.mouseEventToLatLng(o.e));
-                // setFormParcelSF(o);
-
-                // GeoJSONify(o);
-=======
-  
   map = new L.Map('map-div');
   
   // Add a bing layer to the map
@@ -361,7 +323,6 @@ function drawMap() {
        selectParcel();
      });
     });
->>>>>>> aerial
 
     // Used for centering the map when we're using geolocation.
     map.on('locationfound', onLocationFound);
@@ -407,7 +368,7 @@ $(document).ready(function(){
     console.log(collector_name);
     $.cookie("collector-name", collector_name, { path: '/' });
     $("#startpoint h2").html("Welcome, " + collector_name + "<br>Select a parcel to begin");
-    $("#collector").val(collector_name);
+    $(".collector").val(collector_name);
     
     // Hide the homepage, show the survey, draw the map
     $('#home-container').slideToggle();
@@ -431,7 +392,7 @@ $(document).ready(function(){
     // TODO: show the spinner. 
   
     // Post the form
-    var jqxhr = $.post(url, {responses: [{parcel_id:serialized.parcel_id, responses: serialized}]}, 
+    var jqxhr = $.post(url, {responses: [{parcel_id:serialized, responses: serialized}]}, 
       function() {
         console.log("Form successfully posted");
       },
