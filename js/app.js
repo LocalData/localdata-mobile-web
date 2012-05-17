@@ -179,7 +179,7 @@ function highlightPolygon(map, selected_parcel_json) {
   };
   options = {
       color: 'red',
-      fillColor: '#f03',
+      fillColor: 'transparent',
       fillOpacity: 0.5
   };
   selected_polygon = new L.Polygon(polypoints, options);
@@ -201,28 +201,11 @@ function getCartoCentroid(parcel_id, callback) {
   });
 }
 
-/* 
-Given a point, get data about the parcel at that point from Carto.
+
+/*
+  Trim function: strips whitespace from a string. 
+  Use: " dog".trim() === "dog" //true
 */
-function getCartoData(latlng, callback) {
-  var lat = latlng.lat;
-  var lng = latlng.lng;
-
-  query = "SELECT blklot, from_st, to_st, street, st_type, ST_AsGeoJSON(the_geom) FROM clipped_sf_parcels where ST_Contains(ST_SetSRID(the_geom, 4326), ST_SetSRID(st_geomfromtext('POINT(" + lng + " " + lat + ")'), 4326)) = 't'"; 
-  console.log(query);
-  
-  $.getJSON('http://'+ CARTO_ACCOUNT +'.cartodb.com/api/v2/sql/?q='+query, function(data){
-     $.each(data.rows, function(key, val) {
-       console.log("Result: ");
-       console.log(val);
-       callback(val);
-     });
-  });
-}
-
-
-// Trim function: strips whitespace from a string. 
-// Use: " dog".trim() === "dog" //true
 if(typeof(String.prototype.trim) === "undefined")
 {
     String.prototype.trim = function() 
@@ -231,10 +214,6 @@ if(typeof(String.prototype.trim) === "undefined")
     };
 }
 
-
-function getPostgresWindow(bounds, callback) {
-  
-}
 
 // Given a Leaflet latlng object, return a JSON object that describes the 
 // parcel.
@@ -256,6 +235,11 @@ function getPostgresData(latlng, callback) {
   });
 }
 
+
+/* 
+ Get the polygon from the UTF Grid 
+ Only works if there actually is the info embedded in the grid data.
+*/  
 function getPolygonFromInteraction(o) {
   var polygon_text = o.data.polygon;
   polygon_text = polygon_text.replace('\\','');
@@ -263,6 +247,11 @@ function getPolygonFromInteraction(o) {
   return polygon_json;
 }
 
+
+/* 
+ Get the centroid from the UTF Grid 
+ Only works if there actually is the info embedded in the grid data.
+*/  
 function getCentroidFromInteraction(o) {
   var centroid_text = o.data.centroid;
   centroid_text = centroid_text.replace('\\','');
@@ -270,8 +259,11 @@ function getCentroidFromInteraction(o) {
   return centroid_json;
 }
 
-// Given the interaction data, gets the polygon and centroid and adds it to
-// the map
+
+/*
+  Given the interaction data, gets the polygon and centroid and adds it to
+  the map
+*/
 function GeoJSONify(o) {
   polygon_json = getPolygonFromInteraction(o);
   centroid_json = getCentroidFromInteraction(o);
@@ -285,7 +277,7 @@ function GeoJSONify(o) {
 }
 
 /*
-Serialize a form for submission
+Serialize an HTML form for submission to the API
 usage: $('#myform').serializeObject();
 */ 
 $.fn.serializeObject = function() {
@@ -305,10 +297,11 @@ $.fn.serializeObject = function() {
 };
 
 
-$(document).ready(function(){
-  /* 
-  Set up the map
+function drawMap() {
+  /*
+    Draw the parcel map on the survey page
   */
+<<<<<<< HEAD
   wax.tilejson(maps[locale]['json'],
     function(tilejson) {
       map = new L.Map('map-div');
@@ -344,57 +337,103 @@ $(document).ready(function(){
                 // setFormParcelSF(o);
 
                 // GeoJSONify(o);
+=======
+  
+  map = new L.Map('map-div');
+  
+  // Add a bing layer to the map
+  bing = new L.BingLayer(settings.bing_key, 'Aerial', {maxZoom:20});
+  map.addLayer(bing);
+   
+  // Add the TileMill maps. 
+  // Get the JSON url from the settings.
+  wax.tilejson(maps[locale]['json'], function(tilejson) {
+    map.addLayer(new wax.leaf.connector(tilejson));
 
-            }
-        });
+    // Highlight parcels when clicked
+    map.on('click', function(e) {
+      // e contains information about the interaction. 
+     console.log(e);
+     getPostgresData(e.latlng, function(data){
+       selected_parcel_json = data;
+       setFormParcelPostGIS(data);
+       highlightPolygon(map, data);
+       selectParcel();
+     });
+    });
+>>>>>>> aerial
 
-  		map.on('locationfound', onLocationFound);
-  		map.on('locationerror', onLocationError);
-  		//map.locateAndSetView(18);
-  	  //var sf = new L.LatLng(37.77555050754543, -122.41365958293713);
-  	 // marker = new L.Marker(sf);
-  	  // For Detroit testing: 
- 	    var detroit = new L.LatLng(42.305213, -83.126260);
- 		  map.setView(detroit, 18);
-  	  // map.addLayer(detroit);  		  
+    // Used for centering the map when we're using geolocation.
+    map.on('locationfound', onLocationFound);
+    map.on('locationerror', onLocationError);
 
-  	  //map.setView(sf, 18);
+    // Center the map 
+    // var sf = new L.LatLng(37.77555050754543, -122.41365958293713);
+    // For Detroit testing: 
+    var detroit = new L.LatLng(42.305213, -83.126260);
+    map.setView(detroit, 18);
 
-  		function onLocationFound(e) {
-  		  // When we find the 
-  	    marker = new L.Marker(e.latlng);
-  		  map.addLayer(marker);  		  
+    // Mark a location on the map. 
+    // Primarily used with browser-based geolocation (aka "where am I?")
+    function onLocationFound(e) {
+      marker = new L.Marker(e.latlng);
+      map.addLayer(marker);  		  
 
-        // Add the accuracy circle to the map
-  			var radius = e.accuracy / 2;
-  			circle = new L.Circle(e.latlng, radius);
-  			map.addLayer(circle);
-  		}
+     // Add the accuracy circle to the map
+    	var radius = e.accuracy / 2;
+    	circle = new L.Circle(e.latlng, radius);
+    	map.addLayer(circle);
+    }
 
-  		function onLocationError(e) {
-  			alert(e.message);
-  		}
+    function onLocationError(e) {
+    	alert(e.message);
+    }
   });
 
+};
+
+
+$(document).ready(function(){
   
+  /*
+   * Show the survey & hide the front page after the sign-in form has been 
+   * submitted
+   */
+  $("#collector-name-submit").click(function(event) {
+    console.log("Button clicked");
+    // Get the value of the collector name
+    // Set a cookie with the name
+    var collector_name = $("#collector_name").val();
+    console.log(collector_name);
+    $.cookie("collector-name", collector_name, { path: '/' });
+    $("#startpoint h2").html("Welcome, " + collector_name + "<br>Select a parcel to begin");
+    $("#collector").val(collector_name);
+    
+    // Hide the homepage, show the survey, draw the map
+    $('#home-container').slideToggle();
+    $('#survey-container').slideToggle();
+    drawMap();
+    
+    // Change the body ID
+    $("body").attr("id","survey");
+  });
   
-  
+
   $("#parcelform").submit(function(event) {
     event.preventDefault(); // stop form from submitting normally
     url = $(this).attr('action'); 
-        
+      
     // serialize the form
     serialized = $('#parcelform').serializeObject();
     console.log("POST url: " + url);
     console.log(serialized);
-    
+  
     // TODO: show the spinner. 
-    
+  
     // Post the form
     var jqxhr = $.post(url, {responses: [{parcel_id:serialized.parcel_id, responses: serialized}]}, 
       function() {
         console.log("Form successfully posted");
-        // hide the spinner
       },
       "text"
     ).error(function(){ 
@@ -406,6 +445,7 @@ $(document).ready(function(){
     }).success(function(){
       successfulSubmit();
     });
-  });      
-});
+  });
+  
+}); // end onready
   

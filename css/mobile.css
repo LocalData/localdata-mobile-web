@@ -17,13 +17,17 @@ html, body {
   font-family: 'Crete Round', serif;
 }
 
-#home {
+#home .ui-page {
   padding:20px;
   background:#ddd url(../img/streetscape_blur-01.jpg) no-repeat center -100px;
 }
 
 .ui-content {
   padding:0;
+}
+
+#survey-container {
+  display:none;
 }
 
 #startpoint, #form, #thanks {
