@@ -5,14 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
     <title>Detroit - Neighborhood Survey Builder</title>
+<!--
+    <script src="http://localhost:8080/target/target-script-min.js#anonymous"></script>
+-->
     <script src='js/settings.js' type='text/javascript'></script>
     <script src='js/jquery.js' type='text/javascript'></script>
     <script src="http://code.jquery.com/mobile/1.1.0-rc.2/jquery.mobile-1.1.0-rc.2.min.js"></script>
     <script src='wax/ext/leaflet.js' type='text/javascript'></script>
     <script src='wax/dist/wax.leaf.js' type='text/javascript'></script>
-    <script src='js/tilelayer.bing.js' type='text/javascript'></script>
+    <script src='js/tilelayer.bing.pull.js' type='text/javascript'></script>
     
     <script src='js/app.js' type='text/javascript'></script>
+    
+    <script type="text/javascript" charset="utf-8">    
+      $('#map-div').live('pageshow', function (event) {
+        console.log("Drawing the map");
+        drawMap();
+      });
+    </script>
     
     <link href='http://fonts.googleapis.com/css?family=Crete+Round' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0-rc.2/jquery.mobile-1.1.0-rc.2.min.css">
@@ -25,12 +35,6 @@
 
 <body id="survey">
   <div id="container">
-
-<!--
-    <div id="head">
-      <h1>Survey App</h1>
-    </div>
--->
 
     <div id='map-div' style="height:250px;"></div>
     <div id="startpoint">
@@ -48,10 +52,14 @@
       <!-- 
       For local testing:
       [Should be parameterized in JS]
-      http://127.0.0.1:3000/surveys/1/responses 
+       
+      http://surveydet.herokuapp.com/surveys/e458a930-8e27-11e1-b08f-37bd5a7df741/responses
       -->
-      <form action="http://surveydet.herokuapp.com/surveys/e458a930-8e27-11e1-b08f-37bd5a7df741/responses" method="post" accept-charset="utf-8" id="parcelform">
+      <form action="http://127.0.0.1:3000/surveys/3dbbc420-9ad6-11e1-b4b6-f184112d9089/responses" method="post" accept-charset="utf-8" id="parcelform">
+        
+        
         <input type="hidden" name="parcel_id" value="" id="parcel_id">
+        <input type="hidden" name="centroid" value="" id="centroid">
             
         <div data-role="fieldcontain">
             <fieldset data-role="controlgroup">
