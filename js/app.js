@@ -2,8 +2,6 @@
   Basic app functionality for the mobile survey. 
 */
 
-var BASE_URL = "http://127.0.0.1:3000/surveys/3dbbc420-9ad6-11e1-b4b6-f184112d9089";
-
 // TODO: Abstract these into an object that can be passed around
 var map, marker, circle;
 var selected_polygon = false;
@@ -379,7 +377,7 @@ $(document).ready(function(){
    * Set the URLs on all forms
    */
   $("form").each(function(index, form) {
-    url = BASE_URL +  $(this).attr('action'); 
+    url = settings.BASEURL +  $(this).attr('action'); 
     $(this).attr('action', url);
   });
   
