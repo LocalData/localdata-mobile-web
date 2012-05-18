@@ -516,7 +516,7 @@ $(document).ready(function(){
     // TODO: show the spinner. 
     
     // Post the form
-    var jqxhr = $.post(url, {responses: [{parcel_id:serialized.parcel_id, responses: serialized}]}, 
+    var jqxhr = $.post(url, {responses: [{"source": {"type":"mobile"}, parcel_id:serialized.parcel_id, responses: serialized}]}, 
       function() {
         console.log("Form successfully posted");
       },
