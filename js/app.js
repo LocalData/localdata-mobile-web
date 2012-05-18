@@ -272,7 +272,7 @@ function drawMap() {
   /*
     Draw the parcel map on the survey page
   */
-  map = new L.Map('map-div');
+  map = new L.Map('map-div', {minZoom:13, maxZoom:20});
   
   // Add a bing layer to the map
   bing = new L.BingLayer(settings.bing_key, 'Aerial', {maxZoom:20});
