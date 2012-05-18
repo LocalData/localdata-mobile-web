@@ -2,6 +2,8 @@
   Basic app functionality for the mobile survey. 
 */
 
+var BASE_URL = "http://127.0.0.1:3000/surveys/3dbbc420-9ad6-11e1-b4b6-f184112d9089";
+
 // TODO: Abstract these into an object that can be passed around
 var map, marker, circle;
 var selected_polygon = false;
@@ -340,8 +342,7 @@ function getMapBounds(m) {
  */
 function ajaxFormSubmit(event, form, successCallback) {
   event.preventDefault(); // stop form from submitting normally
-  url = form.attr('action'); 
-  
+  url = form.attr('action');
   // TODO: make submit button inactive. 
 
   // serialize the form
@@ -364,6 +365,8 @@ function ajaxFormSubmit(event, form, successCallback) {
   }).success(
     successCallback()
   );
+  
+  return this;
 };
 
 
@@ -371,6 +374,78 @@ function ajaxFormSubmit(event, form, successCallback) {
  * Main set of event listeners
  */
 $(document).ready(function(){
+  
+  /*
+   * Set the URLs on all forms
+   */
+  $("form").each(function(index, form) {
+    url = BASE_URL +  $(this).attr('action'); 
+    $(this).attr('action', url);
+  });
+  
+  /* 
+   * Show additional questions based on selected options.
+   */
+   $(".show-details").change(function(){
+     var group_to_show = "#options-" + $(this).attr('id');
+     $(group_to_show).slideToggle();
+     console.log("Showing options group " + group_to_show);
+   });
+  
+  /*
+   * When the add-another button is clicked, clone the group
+   */
+   $(".add-another").click(function(){
+     
+     return; 
+     
+     // Get the parent & make a copy
+     var container = $(this).parent();
+     var clone = container.clone(true); 
+     
+     // Set the number of times clicked
+     var count = parseInt(container.attr('count'), 10);
+     console.log("count: " + count);
+     
+     if(!count) {
+       clone.attr('count',"2");
+       count = 2;
+     } else {
+       clone.attr('count', count++);
+     };
+     
+     console.log("count: " + count);
+     // Set IDs and name on form elements to match the count
+     clone.find('input').each(function(index) {
+       // First, remove old counts
+       $(this).attr('id', $(this).attr('id').split("-")[0]);
+       $(this).attr('name', $(this).attr('name').split("-")[0]);
+       
+       // Set counts
+       $(this).attr('id', $(this).attr('id') + "-" + count);
+       $(this).attr('name', $(this).attr('name') + "-" + count);
+     });
+     
+     clone.find('fieldset').each(function(index) {
+       console.log($(this));
+       console.log($(this).attr('id'));
+       $(this).attr('id', $(this).attr('id').split("-")[0]);
+       $(this).attr('id', $(this).attr('id') + "-" + count);
+     });
+     
+     clone.find('label').each(function(index) {
+       $(this).attr('for', $(this).attr('for').split("-")[0]);
+       $(this).attr('for', $(this).attr('for') + "-" + count);
+     });
+     
+     console.log(clone);
+     
+     // clone.appendTo(container);
+     
+     container.append('<input type="checkbox" name="religious-or-institutional" value="religious-or-institutional" id="religious-or-institutional">\
+     <label for="religious-or-institutional">Religious or institutional</label>').trigger("create");
+     
+   });
   
   /*
    * Show the survey & hide the front page after the sign-in form has been 
@@ -424,6 +499,12 @@ $(document).ready(function(){
    * Handle the parcel survey form being submitted
    */
   $("#parcelform").submit(function(event) {
+  //  event.preventDefault();
+  //  ajaxFormSubmit(event, $("#parcelform"), function(){
+  //  console.log("Parcel form posted");
+  //});
+    
+    
     event.preventDefault(); // stop form from submitting normally
     url = $(this).attr('action'); 
           
@@ -431,11 +512,11 @@ $(document).ready(function(){
     serialized = $('#parcelform').serializeObject();
     console.log("POST url: " + url);
     console.log(serialized);
-  
+    
     // TODO: show the spinner. 
-  
+    
     // Post the form
-    var jqxhr = $.post(url, {responses: [{parcel_id:serialized, responses: serialized}]}, 
+    var jqxhr = $.post(url, {responses: [{parcel_id:serialized.parcel_id, responses: serialized}]}, 
       function() {
         console.log("Form successfully posted");
       },
