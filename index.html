@@ -183,11 +183,18 @@
             </fieldset>
             
         </div>
-        <div data-role="fieldcontain">
+        <div data-role="fieldcontain">        
+          <fieldset data-role="controlgroup">
+          <legend>Design</legend>
+          <input type="radio" name="design" id="auto" value="auto" />
+          <label for="auto">Auto-oriented</label>
+
+          <input type="radio" name="design" id="pedestrian" value="pedestrian" />
+          <label for="pedestrian">Pedestrian-oriented</label>
+          </fieldset>
           
           <input type="checkbox" name="residential-above" id="residential-above" />
           <label for="residential-above">Residential above</label>
-        
         </div>
         
         <div data-role="fieldcontain">
@@ -228,8 +235,7 @@
 
             <input type="checkbox" name="fire-damage" id="fire-damage" />
             <label for="fire-damage">Fire damage</label>
-            
-        </div>
+        </div>        
 
         <input type="submit" data-theme="b" data-icon="check" value="Submit answers">
       </form>
