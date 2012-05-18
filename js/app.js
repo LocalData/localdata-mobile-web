@@ -7,7 +7,7 @@ var map, marker, circle;
 var selected_polygon = false;
 var selected_centroid = false;
 var selected_parcel_json = false;
-
+var collector_name = "";
 
 var StarIcon = L.Icon.extend({
     iconUrl: 'img/icons/star-solid-18.png',
@@ -39,8 +39,11 @@ Generates the URL to retrieve results for a given parcel
 */
 function getParcelDataURL(parcel_id) {
   return BASEURL + '/surveys/' + SURVEYID + '/parcels/' + parcel_id + '/responses';
-}
+};
 
+function getSurveyURL() {
+  return BASEURL + "/surveys/" + SURVEYID;
+};
 
 function setFormParcelCarto(data) {
   console.log(data);
@@ -377,7 +380,7 @@ $(document).ready(function(){
    * Set the URLs on all forms
    */
   $("form").each(function(index, form) {
-    url = settings.BASEURL +  $(this).attr('action'); 
+    url = getSurveyURL() + $(this).attr('action'); 
     $(this).attr('action', url);
   });
   
@@ -453,7 +456,7 @@ $(document).ready(function(){
     console.log("Button clicked");
     // Get the value of the collector name
     // Set a cookie with the name
-    var collector_name = $("#collector_name").val();
+    collector_name = $("#collector_name").val();
     console.log(collector_name);
     $.cookie("collector-name", collector_name, { path: '/' });
     $("#startpoint h2").html("Welcome, " + collector_name + "<br>Select a parcel to begin");
@@ -514,7 +517,7 @@ $(document).ready(function(){
     // TODO: show the spinner. 
     
     // Post the form
-    var jqxhr = $.post(url, {responses: [{"source": {"type":"mobile"}, parcel_id:serialized.parcel_id, responses: serialized}]}, 
+    var jqxhr = $.post(url, {responses: [{"source": {"type":"mobile", "collector":collector_name}, parcel_id:serialized.parcel_id, responses: serialized}]}, 
       function() {
         console.log("Form successfully posted");
       },
