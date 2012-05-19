@@ -33,17 +33,16 @@ $.fn.clearForm = function() {
   });
 };
 
-
 /*
 Generates the URL to retrieve results for a given parcel
 */
 function getParcelDataURL(parcel_id) {
   return BASEURL + '/surveys/' + SURVEYID + '/parcels/' + parcel_id + '/responses';
-};
+}
 
 function getSurveyURL() {
   return BASEURL + "/surveys/" + SURVEYID;
-};
+}
 
 function setFormParcelCarto(data) {
   console.log(data);
@@ -58,7 +57,7 @@ function setFormParcelCarto(data) {
   $('h2 .parcel_id').text(human_readable_location);
   
   // loadDataForParcel(blocklot);   // TODO
-}
+};
 
 
 function setFormParcelPostGIS(data) {
@@ -68,8 +67,7 @@ function setFormParcelPostGIS(data) {
   
   $('.parcel_id').val(parcel_id);
   $('h2 .parcel_id').text(human_readable_location);
-  
-}
+};
 
 
 /*
@@ -98,23 +96,16 @@ function successfulSubmit() {
   console.log("Successful submit");
   console.log(selected_parcel_json);
   
-  var done = new L.LatLng(selected_parcel_json.centroid.coordinates[1], selected_parcel_json.centroid.coordinates[0]);
-  addDoneMaker(done);
+  addDoneMaker(selected_centroid);
     
   $('#form').slideToggle();
   $('#thanks').slideToggle();
 }
 
 
-function markDoneParcels(map) {
-  // Get all parcels in the window by survey_id
-  
-  // For eacn that has results, add a check mark.??
-}
-
 /*
-Adds a checkbox marker to the given point
-*/
+ * Adds a checkbox marker to the given point
+ */
 function addDoneMaker(latlng) {
   var doneIcon = new StarIcon();
   console.log(latlng);
@@ -125,8 +116,8 @@ function addDoneMaker(latlng) {
 
 
 /* 
-Outline the given polygon
-*/
+ * Outline the given polygon
+ */
 function highlightPolygon(map, selected_parcel_json) {
   // expects format: 
   // {coordinates: [[x,y], [x,y], ...] }
@@ -144,7 +135,6 @@ function highlightPolygon(map, selected_parcel_json) {
   // Add the new polygon
   var polypoints = new Array();  
   for (var i = polygon_json.coordinates[0].length - 1; i >= 0; i--){
-    console.log(polygon_json.coordinates[0][i]);
     point = new L.LatLng(polygon_json.coordinates[0][i][1], polygon_json.coordinates[0][i][0]);
     polypoints.push(point);
   };
@@ -159,24 +149,10 @@ function highlightPolygon(map, selected_parcel_json) {
   return selected_polygon;  
 }
 
-
-// Get the centroid of a parcel given its ID.
-function getCartoCentroid(parcel_id, callback) {
-  query = "SELECT ST_AsGeoJSON(ST_Centroid(the_geom)) FROM clipped_sf_parcels WHERE blklot ='" + parcel_id + "'";
-  console.log(query);
-  $.getJSON('http://'+ CARTO_ACCOUNT +'.cartodb.com/api/v2/sql/?format=GeoJSON&q='+query, function(data){
-     $.each(data.rows, function(key, val) {
-       // Only need one.
-       callback(val);
-     });
-  });
-}
-
-
 /*
-  Trim function: strips whitespace from a string. 
-  Use: " dog".trim() === "dog" //true
-*/
+ * Trim function: strips whitespace from a string. 
+ * Use: " dog".trim() === "dog" //true
+ */
 if(typeof(String.prototype.trim) === "undefined")
 {
     String.prototype.trim = function() 
@@ -228,8 +204,26 @@ function getCentroidFromInteraction(o) {
   centroid_text = centroid_text.replace('\\','');
   var centroid_json = jQuery.parseJSON(centroid_text);
   return centroid_json;
-}
+};
 
+
+function getResponsesInMap(){
+  console.log("Getting responses in the map");
+  console.log(map.getBounds());
+  bounds = map.getBounds();
+  southwest = bounds.getSouthWest();
+  northeast = bounds.getNorthEast();
+  
+  serialized_bounds = southwest.lat + "," + southwest.lng + "," + northeast.lat + "," + northeast.lng;
+  var url = this.getSurveyURL() + "/responses/in/" + serialized_bounds;
+  console.log(url);
+  
+  $.getJSON(url, function(data){
+     $.each(data.rows, function(key, val) {
+       console.log(val);
+     });
+  });
+};
 
 /*
   Given the interaction data, gets the polygon and centroid and adds it to
@@ -289,6 +283,7 @@ function drawMap() {
      console.log(e);
      getPostgresData(e.latlng, function(data){
        selected_parcel_json = data;
+       selected_centroid = new L.LatLng(selected_parcel_json.centroid.coordinates[1], selected_parcel_json.centroid.coordinates[0]);
        setFormParcelPostGIS(data);
        highlightPolygon(map, data);
        selectParcel();
@@ -304,6 +299,9 @@ function drawMap() {
     // For Detroit testing: 
     var detroit = new L.LatLng(42.305213, -83.126260);
     map.setView(detroit, 18);
+    
+
+    getResponsesInMap();
 
     // Mark a location on the map. 
     // Primarily used with browser-based geolocation (aka "where am I?")
@@ -516,8 +514,18 @@ $(document).ready(function(){
     
     // TODO: show the spinner. 
     
+    var centroid_lat = parseFloat(selected_centroid.lat);
+    var centroid_lng = parseFloat(selected_centroid.lng);
+    console.log(centroid_lat, centroid_lng);
+    
     // Post the form
-    var jqxhr = $.post(url, {responses: [{"source": {"type":"mobile", "collector":collector_name}, parcel_id:serialized.parcel_id, responses: serialized}]}, 
+    var jqxhr = $.post(url, {responses: [{
+        "source": {"type":"mobile", "collector":collector_name}, 
+        "geo_info": {"centroid":[centroid_lat, centroid_lng], parcel_id:serialized.parcel_id}, 
+        "parcel_id":serialized.parcel_id, 
+        "responses": serialized
+      }]}, 
+      
       function() {
         console.log("Form successfully posted");
       },
