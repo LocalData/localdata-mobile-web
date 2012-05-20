@@ -18,6 +18,16 @@ var StarIcon = L.Icon.extend({
 		popupAnchor: new L.Point(9, 9)
 });                       
 
+var CheckIcon = L.Icon.extend({
+    iconUrl: 'img/icons/check-16.png',
+    shadowUrl: 'img/icons/check-16.png',
+		iconSize: new L.Point(16, 16),
+		shadowSize: new L.Point(16, 16),
+		iconAnchor: new L.Point(8, 8),
+		popupAnchor: new L.Point(8, 8)
+});                       
+
+
 
 $.fn.clearForm = function() {
   return this.each(function() {
@@ -85,7 +95,6 @@ function selectParcel(m, latlng) {
     $('#thanks').slideToggle();
   
   }
-  map.removeLayer(circle);
 }
 
 /* 
@@ -107,7 +116,7 @@ function successfulSubmit() {
  * Adds a checkbox marker to the given point
  */
 function addDoneMaker(latlng) {
-  var doneIcon = new StarIcon();
+  var doneIcon = new CheckIcon();
   console.log(latlng);
   icon = new L.Marker(latlng, {icon: doneIcon});
   map.addLayer(icon);
@@ -219,9 +228,14 @@ function getResponsesInMap(){
   console.log(url);
   
   $.getJSON(url, function(data){
-     $.each(data.rows, function(key, val) {
-       console.log(val);
-     });
+    console.log(data);
+    if(data.responses) {
+      $.each(data.responses, function(key, val) {
+        p = new L.LatLng(val.geo_info.centroid[0],val.geo_info.centroid[1]);
+        addDoneMaker(p)
+        console.log(p);
+      });
+    };
   });
 };
 
@@ -372,8 +386,7 @@ function ajaxFormSubmit(event, form, successCallback) {
 /* 
  * Main set of event listeners
  */
-$(document).ready(function(){
-  
+$(document).ready(function(){  
   /*
    * Set the URLs on all forms
    */
@@ -498,11 +511,6 @@ $(document).ready(function(){
    * Handle the parcel survey form being submitted
    */
   $("#parcelform").submit(function(event) {
-  //  event.preventDefault();
-  //  ajaxFormSubmit(event, $("#parcelform"), function(){
-  //  console.log("Parcel form posted");
-  //});
-    
     
     event.preventDefault(); // stop form from submitting normally
     url = $(this).attr('action'); 
