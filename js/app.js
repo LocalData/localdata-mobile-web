@@ -192,30 +192,6 @@ function getPostgresData(latlng, callback) {
 }
 
 
-/* 
- Get the polygon from the UTF Grid 
- Only works if there actually is the info embedded in the grid data.
-*/  
-function getPolygonFromInteraction(o) {
-  var polygon_text = o.data.polygon;
-  polygon_text = polygon_text.replace('\\','');
-  var polygon_json = jQuery.parseJSON(polygon_text);
-  return polygon_json;
-}
-
-
-/* 
- Get the centroid from the UTF Grid 
- Only works if there actually is the info embedded in the grid data.
-*/  
-function getCentroidFromInteraction(o) {
-  var centroid_text = o.data.centroid;
-  centroid_text = centroid_text.replace('\\','');
-  var centroid_json = jQuery.parseJSON(centroid_text);
-  return centroid_json;
-};
-
-
 function getResponsesInMap(){
   console.log("Getting responses in the map");
   console.log(map.getBounds());
@@ -232,28 +208,13 @@ function getResponsesInMap(){
     if(data.responses) {
       $.each(data.responses, function(key, val) {
         p = new L.LatLng(val.geo_info.centroid[0],val.geo_info.centroid[1]);
-        addDoneMaker(p)
+        addDoneMaker(p);
         console.log(p);
       });
     };
   });
 };
 
-/*
-  Given the interaction data, gets the polygon and centroid and adds it to
-  the map
-*/
-function GeoJSONify(o) {
-  polygon_json = getPolygonFromInteraction(o);
-  centroid_json = getCentroidFromInteraction(o);
-  
-  // Add the polygon to the map.
-  selected = highlightPolygon(map, polygon_json); 
-  
-  // Add the point to the map
-  //var donePos = new L.LatLng(centroid_json.coordinates[1],centroid_json.coordinates[0]);
-  // addDoneMaker(donePos);
-}
 
 /*
 Serialize an HTML form for submission to the API
