@@ -10,21 +10,25 @@ var selected_parcel_json = false;
 var collector_name = "";
 
 var StarIcon = L.Icon.extend({
-    iconUrl: 'img/icons/star-solid-18.png',
-    shadowUrl: 'img/icons/star-solid-18.png',
-		iconSize: new L.Point(18, 18),
-		shadowSize: new L.Point(18, 18),
-		iconAnchor: new L.Point(9, 9),
-		popupAnchor: new L.Point(9, 9)
+  iconUrl: 'img/icons/star-solid-18.png',
+  shadowUrl: 'img/icons/star-solid-18.png',
+	iconSize: new L.Point(18, 18),
+	shadowSize: new L.Point(18, 18),
+	iconAnchor: new L.Point(9, 9),
+	popupAnchor: new L.Point(9, 9),
 });                       
 
+
 var CheckIcon = L.Icon.extend({
+  options: {
+    className: 'CheckIcon',
     iconUrl: 'img/icons/check-16.png',
     shadowUrl: 'img/icons/check-16.png',
-		iconSize: new L.Point(16, 16),
-		shadowSize: new L.Point(16, 16),
-		iconAnchor: new L.Point(8, 8),
-		popupAnchor: new L.Point(8, 8)
+  	iconSize: new L.Point(16, 16),
+  	shadowSize: new L.Point(16, 16),
+  	iconAnchor: new L.Point(8, 8),
+  	popupAnchor: new L.Point(8, 8)
+  }
 });                       
 
 
@@ -117,7 +121,6 @@ function successfulSubmit() {
  */
 function addDoneMaker(latlng) {
   var doneIcon = new CheckIcon();
-  console.log(latlng);
   icon = new L.Marker(latlng, {icon: doneIcon});
   map.addLayer(icon);
   return icon;
