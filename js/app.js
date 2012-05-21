@@ -9,16 +9,6 @@ var selected_centroid = false;
 var selected_parcel_json = false;
 var collector_name = "";
 
-var StarIcon = L.Icon.extend({
-  iconUrl: 'img/icons/star-solid-18.png',
-  shadowUrl: 'img/icons/star-solid-18.png',
-	iconSize: new L.Point(18, 18),
-	shadowSize: new L.Point(18, 18),
-	iconAnchor: new L.Point(9, 9),
-	popupAnchor: new L.Point(9, 9),
-});                       
-
-
 var CheckIcon = L.Icon.extend({
   options: {
     className: 'CheckIcon',
@@ -30,8 +20,6 @@ var CheckIcon = L.Icon.extend({
   	popupAnchor: new L.Point(8, 8)
   }
 });                       
-
-
 
 $.fn.clearForm = function() {
   return this.each(function() {
@@ -247,7 +235,7 @@ function drawMap() {
   map = new L.Map('map-div', {minZoom:13, maxZoom:20});
   
   // Add a bing layer to the map
-  bing = new L.BingLayer(settings.bing_key, 'Aerial', {maxZoom:20});
+  bing = new L.BingLayer(settings.bing_key, 'Road', {maxZoom:20});
   map.addLayer(bing);
    
   // Add the TileMill maps. 

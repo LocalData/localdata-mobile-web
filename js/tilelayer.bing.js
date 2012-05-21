@@ -35,7 +35,6 @@ L.TileLayer.Bing = L.TileLayer.extend({
     
     this._apiKey = apiKey;
     this._mapType = mapType;
-    
     this._loadMetadata();
     
     L.Util.setOptions(this, options);
