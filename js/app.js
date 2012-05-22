@@ -75,8 +75,8 @@ function setFormParcelPostGIS(data) {
 /*
 Moves the marker to indicate the selected parcel.
 */
+// TODO -- better name
 function selectParcel(m, latlng) {
-  // m.setLatLng(latlng);
   if(!$('#form').is(":visible")) {
       $('#form').slideToggle();
   }
@@ -85,7 +85,6 @@ function selectParcel(m, latlng) {
   }
   if($('#thanks').is(":visible")) {
     $('#thanks').slideToggle();
-  
   }
 }
 
@@ -97,8 +96,8 @@ function successfulSubmit() {
   console.log("Successful submit");
   console.log(selected_parcel_json);
   
-  addDoneMaker(selected_centroid);
-    
+  getResponsesInMap();
+     
   $('#form').slideToggle();
   $('#thanks').slideToggle();
 }
@@ -232,10 +231,10 @@ function drawMap() {
   /*
     Draw the parcel map on the survey page
   */
-  map = new L.Map('map-div', {minZoom:13, maxZoom:20});
+  map = new L.Map('map-div', {minZoom:13, maxZoom:18});
   
   // Add a bing layer to the map
-  bing = new L.BingLayer(settings.bing_key, 'Road', {maxZoom:20});
+  bing = new L.BingLayer(settings.bing_key, 'AerialWithLabels', {maxZoom:21});
   map.addLayer(bing);
    
   // Add the TileMill maps. 
@@ -246,7 +245,7 @@ function drawMap() {
     // Highlight parcels when clicked
     map.on('click', function(e) {
       // e contains information about the interaction. 
-     console.log(e);
+     // console.log(e);
      getPostgresData(e.latlng, function(data){
        selected_parcel_json = data;
        selected_centroid = new L.LatLng(selected_parcel_json.centroid.coordinates[1], selected_parcel_json.centroid.coordinates[0]);
@@ -256,29 +255,33 @@ function drawMap() {
      });
     });
     
+    map.on('moveend', function(e) {
+      try {
+        getResponsesInMap();
+      } catch(e){}
+    });
+    
     // Used for centering the map when we're using geolocation.
     map.on('locationfound', onLocationFound);
     map.on('locationerror', onLocationError);
 
     // Center the map 
+    map.locate({setView: true, maxZoom: 18});
     // var sf = new L.LatLng(37.77555050754543, -122.41365958293713);
     // For Detroit testing: 
-    var detroit = new L.LatLng(42.305213, -83.126260);
-    map.setView(detroit, 18);
+    //var detroit = new L.LatLng(42.305213, -83.126260);
+    //map.setView(detroit, 18);
     
-
-    getResponsesInMap();
 
     // Mark a location on the map. 
     // Primarily used with browser-based geolocation (aka "where am I?")
     function onLocationFound(e) {
-      marker = new L.Marker(e.latlng);
-      map.addLayer(marker);  		  
-
      // Add the accuracy circle to the map
     	var radius = e.accuracy / 2;
     	circle = new L.Circle(e.latlng, radius);
     	map.addLayer(circle);
+    	
+    	getResponsesInMap();
     }
 
     function onLocationError(e) {
@@ -360,7 +363,6 @@ $(document).ready(function(){
    * When the add-another button is clicked, clone the group
    */
    $(".add-another").click(function(){
-     
      return; 
      
      // Get the parent & make a copy
@@ -480,20 +482,17 @@ $(document).ready(function(){
     responses = {responses: [{
         "source": {"type":"mobile", "collector":collector_name}, 
         "geo_info": {"centroid":[centroid_lat, centroid_lng], parcel_id:serialized.parcel_id}, 
-        "parcel_id":serialized.parcel_id, 
+        "parcel_id": serialized.parcel_id, 
         "responses": serialized
-      }]}
+    }]};
       
     console.log(responses);
     
     // Post the form
-    var jqxhr = $.post(url, responses, 
-      
-      function() {
+    var jqxhr = $.post(url, responses, function() {
         console.log("Form successfully posted");
       },
-      "text"
-    ).error(function(){ 
+      "text").error(function(){ 
       var result = "";
       for (var key in jqxhr) {
         result += key + ": " + jqxhr[key] + "\n";
