@@ -469,22 +469,25 @@ $(document).ready(function(){
           
     // serialize the form
     serialized = $('#parcelform').serializeObject();
+    console.log("Submitting survey results ==============");
     console.log("POST url: " + url);
     console.log(serialized);
-    
-    // TODO: show the spinner. 
-    
+
     var centroid_lat = parseFloat(selected_centroid.lat);
     var centroid_lng = parseFloat(selected_centroid.lng);
     console.log(centroid_lat, centroid_lng);
     
-    // Post the form
-    var jqxhr = $.post(url, {responses: [{
+    responses = {responses: [{
         "source": {"type":"mobile", "collector":collector_name}, 
         "geo_info": {"centroid":[centroid_lat, centroid_lng], parcel_id:serialized.parcel_id}, 
         "parcel_id":serialized.parcel_id, 
         "responses": serialized
-      }]}, 
+      }]}
+      
+    console.log(responses);
+    
+    // Post the form
+    var jqxhr = $.post(url, responses, 
       
       function() {
         console.log("Form successfully posted");
