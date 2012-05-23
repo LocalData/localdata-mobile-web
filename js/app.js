@@ -386,7 +386,7 @@ $(document).ready(function(){
    $(".add-another").click(function(){  
      
      // Get the parent & make a copy of the template
-     var parent = $(this).parent().parent()-;
+     var parent = $(this).parent().parent();
      var append_after = parent.find('.opt-group').last();
      var container = $("#template-use .opt-group");
      var clone = container.clone(true); 
