@@ -342,6 +342,7 @@ function ajaxFormSubmit(event, form, successCallback) {
  * Main set of event listeners
  */
 $(document).ready(function(){  
+    
   /*
    * Set the URLs on all forms
    */
@@ -353,34 +354,50 @@ $(document).ready(function(){
   /* 
    * Show additional questions based on selected options.
    */
-   $(".show-details").change(function(){
+   $('[id^="options-use"] input').change(function(){    
+     console.log("Hiding options");
+     console.log(this);    
+     
+     // First, find the options groups in the field, and hide + clear them.
+     var opt_group = $(this).closest('.opt-group');
+     opt_group.find('.options').each(function(index){
+       // Hide every options group
+       $(this).hide();
+       
+       // Clear out selected options so we don't accidentally submit them
+       $(this).find('input').each(function(index){
+         $(this).attr('checked', false).checkboxradio('refresh',true);
+       });
+     });
+          
+     // $(".options input").attr('checked', true).checkboxradio('refresh',true);
+     
+     // show selected option group
      var group_to_show = "#options-" + $(this).attr('id');
+     var parent = $(this).attr('id');
      $(group_to_show).slideToggle();
      console.log("Showing options group " + group_to_show);
    });
+   
   
   /*
    * When the add-another button is clicked, clone the group
    */
-   $(".add-another").click(function(){
-     return; 
+   $(".add-another").click(function(){  
      
-     // Get the parent & make a copy
-     var container = $(this).parent();
+     // Get the parent & make a copy of the template
+     var parent = $(this).parent().parent()-;
+     var append_after = parent.find('.opt-group').last();
+     var container = $("#template-use .opt-group");
      var clone = container.clone(true); 
      
      // Set the number of times clicked
-     var count = parseInt(container.attr('count'), 10);
+     var count = parseInt($('#template-use').attr('count'), 10);
      console.log("count: " + count);
+     count = count + 1;
+     $('#template-use').attr('count', count);
+     console.log("count: " + $('#template-use').attr('count'));
      
-     if(!count) {
-       clone.attr('count',"2");
-       count = 2;
-     } else {
-       clone.attr('count', count++);
-     };
-     
-     console.log("count: " + count);
      // Set IDs and name on form elements to match the count
      clone.find('input').each(function(index) {
        // First, remove old counts
@@ -392,25 +409,43 @@ $(document).ready(function(){
        $(this).attr('name', $(this).attr('name') + "-" + count);
      });
      
+     clone.find('.use-id').text(count);
+     
+     // Number the fieldsets
      clone.find('fieldset').each(function(index) {
+       console.log("Updating fieldset");
        console.log($(this));
        console.log($(this).attr('id'));
-       $(this).attr('id', $(this).attr('id').split("-")[0]);
+       
+       // remove old count
+       $(this).attr('id', $(this).attr('id').split("-").slice(0, -1).join('-'));
+       
+       // then, addd new count
        $(this).attr('id', $(this).attr('id') + "-" + count);
      });
      
+     // Number the labels
      clone.find('label').each(function(index) {
        $(this).attr('for', $(this).attr('for').split("-")[0]);
        $(this).attr('for', $(this).attr('for') + "-" + count);
      });
      
+     // Show the clone (the template is hidden by default)
+     clone.show();
+     
+     // Force jquery mobile to render the form elements
+     clone.find('input').each(function(index,elt){
+       $(this).removeAttr('data-role');
+       $(this).trigger("create");
+     });
+     
+     // Add the clone to the page
+     console.log("APPEND AFTER ========");
+     console.log(append_after);
      console.log(clone);
      
-     // clone.appendTo(container);
-     
-     container.append('<input type="checkbox" name="religious-or-institutional" value="religious-or-institutional" id="religious-or-institutional">\
-     <label for="religious-or-institutional">Religious or institutional</label>').trigger("create");
-     
+     append_after.after(clone);
+     clone.trigger("create");
    });
   
   /*
