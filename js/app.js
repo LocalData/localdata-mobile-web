@@ -88,19 +88,6 @@ function selectParcel(m, latlng) {
   }
 }
 
-/* 
-Clear the form and thank the user after a successful submission
-TODO: pass in selected_parcel_json
-*/
-function successfulSubmit() {
-  console.log("Successful submit");
-  console.log(selected_parcel_json);
-  
-  getResponsesInMap();
-     
-  $('#form').slideToggle();
-  $('#thanks').slideToggle();
-}
 
 
 /*
@@ -337,12 +324,81 @@ function ajaxFormSubmit(event, form, successCallback) {
   return this;
 };
 
+/* FORM FUNCTIONS =========================================================*/
+/*
+ * Strip a number from a string. Eg:
+ * "option-retail-1" => "option-retail"
+ */
+function strip_count(str) {
+  console.log("Strip string");
+  l = str.split("-");
+  if (l.length == 1) { 
+    console.log(l); 
+    return l[0]; 
+  };
+  s = l.slice(0, -1).join("-");
+  console.log(s);
+  return s;
+};
+
+function resetForm() {
+   $(this).find('input').each(function(index){
+     $(this).attr('checked', false).checkboxradio('refresh',true);
+   });
+   
+   $('.template-group').remove();
+};
+
+/* 
+ * Clear the form and thank the user after a successful submission
+ * TODO: pass in selected_parcel_json
+ */
+function successfulSubmit() {
+  console.log("Successful submit");
+  console.log(selected_parcel_json);
+  
+  getResponsesInMap();
+     
+  $('#form').slideToggle();
+  $('#thanks').slideToggle();
+  resetForm();
+}
+
+
+
+
+/* DOCUMENT READY ==========================================================*/
 
 /* 
  * Main set of event listeners
  */
 $(document).ready(function(){  
-    
+  /* 
+   * Show additional questions based on selected options.
+   */
+   $('[id^="options-use"] input').change(function(){    
+     console.log("Hiding options");
+     console.log(this);    
+
+     // First, find the options groups in the field, and hide + clear them.
+     var opt_group = $(this).closest('.opt-group');
+     opt_group.find('.options').each(function(index){
+       // Hide every options group
+       $(this).hide();
+
+       // Clear out selected options so we don't accidentally submit them
+       $(this).find('input').each(function(index){
+         $(this).attr('checked', false).checkboxradio('refresh',true);
+       });
+     });
+
+     // show selected option group
+     var group_to_show = "#options-" + $(this).attr('id');
+     var parent = $(this).attr('id');
+     $(group_to_show).slideToggle();
+     console.log("Showing options group " + group_to_show);
+   });
+  
   /*
    * Set the URLs on all forms
    */
@@ -351,35 +407,21 @@ $(document).ready(function(){
     $(this).attr('action', url);
   });
   
-  /* 
-   * Show additional questions based on selected options.
-   */
-   $('[id^="options-use"] input').change(function(){    
-     console.log("Hiding options");
-     console.log(this);    
-     
-     // First, find the options groups in the field, and hide + clear them.
-     var opt_group = $(this).closest('.opt-group');
-     opt_group.find('.options').each(function(index){
-       // Hide every options group
-       $(this).hide();
-       
-       // Clear out selected options so we don't accidentally submit them
-       $(this).find('input').each(function(index){
-         $(this).attr('checked', false).checkboxradio('refresh',true);
-       });
-     });
-          
-     // $(".options input").attr('checked', true).checkboxradio('refresh',true);
-     
-     // show selected option group
-     var group_to_show = "#options-" + $(this).attr('id');
-     var parent = $(this).attr('id');
-     $(group_to_show).slideToggle();
-     console.log("Showing options group " + group_to_show);
-   });
-   
   
+  /*
+   * Remove an option group
+   */
+  $('.remove').click(function(){
+    var parent = $(this).closest('.opt-group');
+    parent.slideToggle('fast', function(){
+      parent.remove();
+    });
+    var count = parseInt($('#template-use').attr('count'), 10);
+    console.log("count: " + count);
+    count = count - 1;
+    $('#template-use').attr('count', count);
+  });
+
   /*
    * When the add-another button is clicked, clone the group
    */
@@ -401,8 +443,8 @@ $(document).ready(function(){
      // Set IDs and name on form elements to match the count
      clone.find('input').each(function(index) {
        // First, remove old counts
-       $(this).attr('id', $(this).attr('id').split("-")[0]);
-       $(this).attr('name', $(this).attr('name').split("-")[0]);
+       $(this).attr('id', strip_count($(this).attr('id')));
+       $(this).attr('name', strip_count($(this).attr('name')));
        
        // Set counts
        $(this).attr('id', $(this).attr('id') + "-" + count);
@@ -418,32 +460,34 @@ $(document).ready(function(){
        console.log($(this).attr('id'));
        
        // remove old count
-       $(this).attr('id', $(this).attr('id').split("-").slice(0, -1).join('-'));
-       
+       $(this).attr('id', strip_count($(this).attr('id')));
+              
        // then, addd new count
        $(this).attr('id', $(this).attr('id') + "-" + count);
      });
      
      // Number the labels
      clone.find('label').each(function(index) {
-       $(this).attr('for', $(this).attr('for').split("-")[0]);
+       $(this).attr('for', strip_count($(this).attr('for')));
+       
+       //$(this).attr('for', $(this).attr('for').split("-").slice(0, -1).join('-'));
        $(this).attr('for', $(this).attr('for') + "-" + count);
      });
      
      // Show the clone (the template is hidden by default)
      clone.show();
+     clone.trigger("create");
      
      // Force jquery mobile to render the form elements
      clone.find('input').each(function(index,elt){
        $(this).removeAttr('data-role');
        $(this).trigger("create");
      });
-     
+      
      // Add the clone to the page
-     console.log("APPEND AFTER ========");
+     console.log("APPEND AFTER ================");
      console.log(append_after);
      console.log(clone);
-     
      append_after.after(clone);
      clone.trigger("create");
    });

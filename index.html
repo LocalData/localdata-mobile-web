@@ -193,7 +193,7 @@
             
         </div><!-- end use container (repeating element) -->
         <fieldset>
-          <a class="add-another" href="#">Add another use</a>
+          <a class="add-another" href="#" data-role="button" data-icon="plus" data-inline="true" data-theme="c">Add another use</a>
         </fieldset>
         </div>
         
@@ -289,17 +289,17 @@
 
     <div id="template-use" style="display:none" count="1">
       
-      <div data-role="fieldcontain" class="opt-group">
+      <div data-role="fieldcontain" class="opt-group template-group">
           <fieldset data-role="controlgroup" id="options-use-1">
               <legend>Use <span class="use-id"></span></legend>
-              <input data-role="none" type="radio" name="use" value="retail" id="retail" class="show-details">
-              <label for="retail" data-role="none">Retail</label>
+              <input data-role="none" type="radio" name="use" value="retail-1" id="retail-1" class="show-details">
+              <label for="retail-1" data-role="none">Retail</label>
             
-              <input data-role="none" type="radio" name="use" value="service" id="service" class="show-details">
-              <label for="service">Service</label>
+              <input data-role="none" type="radio" name="use" value="service-1" id="service-1" class="show-details">
+              <label for="service-1">Service</label>
             
-              <input data-role="none" type="radio" name="use" value="restaurant-or-bar" id="restaurant-or-bar" class="show-details">
-              <label for="restaurant-or-bar">Restaurant or Bar</label>
+              <input data-role="none" type="radio" name="use" value="restaurant-or-bar-1" id="restaurant-or-bar-1" class="show-details">
+              <label for="restaurant-or-bar-1">Restaurant or Bar</label>
             
               <input data-role="none" type="radio" name="use" value="office" id="office">
               <label for="office">Office</label>
@@ -387,6 +387,10 @@
             
             <input data-role="none" type="radio" name="restaurant-use" value="bar-pub-brewery" id="bar-pub-brewery">
             <label for="bar-pub-brewery">Bar, Pub, or Brewery</label>
+          </fieldset>
+          
+          <fieldset id="misc" class="misc">
+            <a class="remove" href="#" data-role="button" data-icon="delete" data-inline="true" data-theme="c">Remove use</a>
           </fieldset>
           
       </div><!-- end use container (repeating element) -->
