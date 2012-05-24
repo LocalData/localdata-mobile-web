@@ -346,7 +346,10 @@ function resetForm() {
      $(this).attr('checked', false).checkboxradio('refresh',true);
    });
    
-   $('.template-group').remove();
+   $('form .template-group').remove();
+   
+   // Reset count of template groups
+   $('#template-use').attr('count', 1);
 };
 
 /* 
@@ -449,6 +452,7 @@ $(document).ready(function(){
        // Set counts
        $(this).attr('id', $(this).attr('id') + "-" + count);
        $(this).attr('name', $(this).attr('name') + "-" + count);
+       
      });
      
      clone.find('.use-id').text(count);
