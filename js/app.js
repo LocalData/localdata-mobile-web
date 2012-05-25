@@ -341,15 +341,28 @@ function strip_count(str) {
   return s;
 };
 
+
+/*
+ * Reset the form: clear checkboxes, remove added option groups, reset counts
+ */
 function resetForm() {
-   $(this).find('input').each(function(index){
-     $(this).attr('checked', false).checkboxradio('refresh',true);
-   });
-   
-   $('form .template-group').remove();
-   
-   // Reset count of template groups
-   $('#template-use').attr('count', 1);
+  // Clear all checkboxes and radio buttons
+  $('input:checkbox').each(function(index){
+    try {
+      $(this).attr('checked', false).checkboxradio('refresh',true);
+    } catch(e){}
+  });
+  $('input:radio').each(function(index){
+    try {
+      $(this).attr('checked', false).checkboxradio('refresh',true);
+    } catch(e){}
+  });
+  
+  // Remove additional template groups (eg use options)
+  $('form .template-group').remove();
+
+  // Reset count of template groups
+  $('#use-count').attr('value', 1);
 };
 
 /* 
@@ -376,6 +389,7 @@ function successfulSubmit() {
  * Main set of event listeners
  */
 $(document).ready(function(){  
+    
   /* 
    * Show additional questions based on selected options.
    */
@@ -419,10 +433,10 @@ $(document).ready(function(){
     parent.slideToggle('fast', function(){
       parent.remove();
     });
-    var count = parseInt($('#template-use').attr('count'), 10);
-    console.log("count: " + count);
+        
+    var count = parseInt($('#use-count').attr('value'), 10);
     count = count - 1;
-    $('#template-use').attr('count', count);
+    $('#use-count').attr('value', count);
   });
 
   /*
@@ -437,11 +451,10 @@ $(document).ready(function(){
      var clone = container.clone(true); 
      
      // Set the number of times clicked
-     var count = parseInt($('#template-use').attr('count'), 10);
-     console.log("count: " + count);
+     var count = parseInt($('#use-count').attr('value'), 10);
      count = count + 1;
-     $('#template-use').attr('count', count);
-     console.log("count: " + $('#template-use').attr('count'));
+     $('#use-count').attr('value', count);
+     console.log("count: " + $('#use-count').attr('value'));
      
      // Set IDs and name on form elements to match the count
      clone.find('input').each(function(index) {
