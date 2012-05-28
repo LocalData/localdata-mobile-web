@@ -4,6 +4,9 @@
 
 // TODO: Abstract these into an object that can be passed around
 var map, marker, circle;
+var markers = {};
+var doneMarkersLayer = new L.LayerGroup();
+
 var selected_polygon = false;
 var selected_centroid = false;
 var selected_parcel_json = false;
@@ -21,19 +24,6 @@ var CheckIcon = L.Icon.extend({
   }
 });                       
 
-$.fn.clearForm = function() {
-  return this.each(function() {
-    var type = this.type, tag = this.tagName.toLowerCase();
-    if (tag == 'form')
-      return $(':input',this).clearForm();
-    if (type == 'text' || type == 'password' || tag == 'textarea')
-      this.value = '';
-    else if (type == 'checkbox' || type == 'radio')
-      this.checked = false;
-    else if (tag == 'select')
-      this.selectedIndex = -1;
-  });
-};
 
 /*
 Generates the URL to retrieve results for a given parcel
@@ -86,19 +76,7 @@ function selectParcel(m, latlng) {
   if($('#thanks').is(":visible")) {
     $('#thanks').slideToggle();
   }
-}
-
-
-
-/*
- * Adds a checkbox marker to the given point
- */
-function addDoneMaker(latlng) {
-  var doneIcon = new CheckIcon();
-  icon = new L.Marker(latlng, {icon: doneIcon});
-  map.addLayer(icon);
-  return icon;
-}
+};
 
 
 /* 
@@ -113,7 +91,7 @@ function highlightPolygon(map, selected_parcel_json) {
   // Remove existing highlighting 
   if(selected_polygon) {
     map.removeLayer(selected_polygon);
-  }
+  };
 
   console.log("Polygon JSON");
   console.log(polygon_json);
@@ -169,48 +147,52 @@ function getPostgresData(latlng, callback) {
 }
 
 
-function getResponsesInMap(){
-  console.log("Getting responses in the map");
-  console.log(map.getBounds());
-  bounds = map.getBounds();
-  southwest = bounds.getSouthWest();
-  northeast = bounds.getNorthEast();
+/*
+ * Adds a checkbox marker to the given point
+ */
+function addDoneMarker(latlng, id) {
   
-  serialized_bounds = southwest.lat + "," + southwest.lng + "," + northeast.lat + "," + northeast.lng;
-  var url = this.getSurveyURL() + "/responses/in/" + serialized_bounds;
-  console.log(url);
-  
-  $.getJSON(url, function(data){
-    console.log(data);
-    if(data.responses) {
-      $.each(data.responses, function(key, val) {
-        p = new L.LatLng(val.geo_info.centroid[0],val.geo_info.centroid[1]);
-        addDoneMaker(p);
-        console.log(p);
-      });
-    };
-  });
+  // Only add markers if they aren't already on the map.
+  if (markers[id] == undefined){
+    var doneIcon = new CheckIcon();
+    doneMarker = new L.Marker(latlng, {icon: doneIcon});
+    doneMarkersLayer.addLayer(doneMarker);
+    markers[id] = doneMarker;
+  };
 };
 
 
 /*
-Serialize an HTML form for submission to the API
-usage: $('#myform').serializeObject();
-*/ 
-$.fn.serializeObject = function() {
-    var o = {};
-    var a = this.serializeArray();
-    $.each(a, function() {
-        if (o[this.name] !== undefined) {
-            if (!o[this.name].push) {
-                o[this.name] = [o[this.name]];
-            }
-            o[this.name].push(this.value || '');
-        } else {
-            o[this.name] = this.value || '';
-        }
-    });
-    return o;
+ * Get all the responses in a map 
+ */
+function getResponsesInMap(){  
+  // Don't add any markers if the zoom is really wide out. 
+  zoom = map.getZoom();
+  if(zoom < 17) {
+    return;
+  }
+  
+  // Get the map bounds
+  bounds = map.getBounds();
+  southwest = bounds.getSouthWest();
+  northeast = bounds.getNorthEast();
+  
+  // Given the bounds, generate a URL to ge the responses from the API.
+  serialized_bounds = southwest.lat + "," + southwest.lng + "," + northeast.lat + "," + northeast.lng;
+  var url = this.getSurveyURL() + "/responses/in/" + serialized_bounds;
+  console.log(url);
+  
+  // Loop through the responses and add a done marker.
+  $.getJSON(url, function(data){
+    if(data.responses) {
+      $.each(data.responses, function(key, elt) {
+        p = new L.LatLng(elt.geo_info.centroid[0],elt.geo_info.centroid[1]);
+        id = elt.parcel_id;
+        addDoneMarker(p, id);
+        console.log(p);
+      });
+    };
+  });
 };
 
 
@@ -219,6 +201,9 @@ function drawMap() {
     Draw the parcel map on the survey page
   */
   map = new L.Map('map-div', {minZoom:13, maxZoom:18});
+  
+  // Add the layer of done markers
+  map.addLayer(doneMarkersLayer);
   
   // Add a bing layer to the map
   bing = new L.BingLayer(settings.bing_key, 'AerialWithLabels', {maxZoom:21});
@@ -251,6 +236,7 @@ function drawMap() {
     // Used for centering the map when we're using geolocation.
     map.on('locationfound', onLocationFound);
     map.on('locationerror', onLocationError);
+    
 
     // Center the map 
     map.locate({setView: true, maxZoom: 18});
@@ -289,6 +275,29 @@ function getMapBounds(m) {
 };
 
 
+
+/* FORM FUNCTIONS ==========================================================*/
+
+/*
+Serialize an HTML form for submission to the API
+usage: $('#myform').serializeObject();
+*/ 
+$.fn.serializeObject = function() {
+    var o = {};
+    var a = this.serializeArray();
+    $.each(a, function() {
+        if (o[this.name] !== undefined) {
+            if (!o[this.name].push) {
+                o[this.name] = [o[this.name]];
+            }
+            o[this.name].push(this.value || '');
+        } else {
+            o[this.name] = this.value || '';
+        }
+    });
+    return o;
+};
+
 /*
  * Overrides the default behavior of a form.
  * Data will be submitted to the action URL in the form.
@@ -324,7 +333,6 @@ function ajaxFormSubmit(event, form, successCallback) {
   return this;
 };
 
-/* FORM FUNCTIONS =========================================================*/
 /*
  * Strip a number from a string. Eg:
  * "option-retail-1" => "option-retail"
@@ -373,14 +381,14 @@ function successfulSubmit() {
   console.log("Successful submit");
   console.log(selected_parcel_json);
   
+  // Update the responses in the map, in case others added responses in the same
+  // area.
   getResponsesInMap();
      
   $('#form').slideToggle();
   $('#thanks').slideToggle();
   resetForm();
 }
-
-
 
 
 /* DOCUMENT READY ==========================================================*/
