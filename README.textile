@@ -1,0 +1,47 @@
+h1. Neighborhood Survey Mobile
+
+We want to make it very easy for neighborhood organizations to collect good
+information about the things they care about, like property condition, 
+vacancy, points of interest, and more. You can check out the app on
+ "Github Pages":http://codeforamerica.github.com/nsb-mobile/ 
+
+This project is part of a toolkit we're building:
+* A survey builder tool 
+* A mobile data collection app 
+* A paper-based survey that's easy to scan & automatically process
+* A "small server":https://github.com/codeforamerica/survey-api to store and 
+retrieve the results 
+
+Very much in prototype stage. Interested in helping out? Contact 
+detroit@codeforamerica.org for more details. 
+
+h2. Running the app 
+
+The app is static HTML pages + javscript. You can run the app off any web 
+server, including github pages. 
+
+You will need to configure some parts:
+* In survey.html, change the action of the form to match the endpoint of your
+API server
+* In app.js:
+** update the BASEURL to point to the endpoint of your API server 
+** set the SURVEYID to match the survey ID from the API server
+** Set the locale, and set the map tilejson URL to match
+
+
+h2. The maps
+
+The maps used in this app are rendered with TileMill. They use street data 
+from OpenStreetMap and parcel data from local municipalities (right now,
+Detroit and San Francisco).
+
+Here are the basic steps we followed -- please feel free to contact us with 
+questions about the details:
+# Download street data from the "Metrio city extracts":http://metro.teczno.com/. 
+You'll want the "9.2 MB osm2pgsql shapefiles." 
+# Get a shapefile with parcel data from your local municipality. 
+# Use TileMill to create and style map that combines those two data sources.
+You can get started with the "TileMill tutorial":http://mapbox.com/tilemill/docs/crashcourse/introduction/ 
+# Export the map as MBTiles
+# Upload the map to the "MapBox hosted service":http://mapbox.com/plans/
+# Use the TileJSON URL in this app. 
