@@ -6,6 +6,7 @@
 var map, marker, circle;
 var markers = {};
 var doneMarkersLayer = new L.LayerGroup();
+var pointMarkersLayer = new L.LayerGroup();
 
 var selected_polygon = false;
 var selected_centroid = false;
@@ -275,6 +276,31 @@ function getMapBounds(m) {
 };
 
 
+/* 
+ * Attempt to center the map on an address using Google's geocoder.
+ */
+function codeAddress(address) {
+  //var address = document.getElementById("address-search").value;
+  console.log(address);
+  var detroit_address = address + " Detroit, MI"; // for ease of geocoding
+  var url = "http://dev.virtualearth.net/REST/v1/Locations/" + detroit_address + "?o=json&key=" + settings.bing_key + "&jsonp=?";
+
+  console.log(url);
+  $.getJSON(url, function(data){
+    if(data.resourceSets.length > 0){
+      console.log(data);
+      var point = data.resourceSets[0].resources[0].point;
+      console.log(point);
+      var latlng = new L.LatLng(point.coordinates[0], point.coordinates[1]);
+
+      var marker = new L.Marker(latlng);
+      map.addLayer(marker);
+      map.setView(latlng, 18);
+    };    
+  });
+};
+
+
 
 /* FORM FUNCTIONS ==========================================================*/
 
@@ -387,6 +413,16 @@ function successfulSubmit() {
      
   $('#form').slideToggle();
   $('#thanks').slideToggle();
+  
+  if($('#address-search-prompt').is(":hidden")) {
+    $('#address-search-prompt').slideToggle();
+  }
+  if($('#address-search').is(":visible")) {
+    $('#address-search').slideToggle();
+  }
+  
+  
+  
   resetForm();
 }
 
@@ -423,6 +459,23 @@ $(document).ready(function(){
      $(group_to_show).slideToggle();
      console.log("Showing options group " + group_to_show);
    });
+   
+   
+  /*
+   *
+   */
+  $("#address-search-toggle").click(function(){
+    console.log("Toggling address search");
+    $("#address-search").slideToggle();
+    $("#address-search-prompt").slideToggle();
+  });
+  
+  /* 
+   * 
+   */
+  $("#address-submit").click(function(){
+    codeAddress($("#address-input").val());
+  });
   
   /*
    * Set the URLs on all forms
@@ -528,7 +581,8 @@ $(document).ready(function(){
     collector_name = $("#collector_name").val();
     console.log(collector_name);
     $.cookie("collector-name", collector_name, { path: '/' });
-    $("#startpoint h2").html("Welcome, " + collector_name + "<br>Select a parcel to begin");
+    $("#startpoint h2").html("Welcome, " + collector_name + 
+      "<br>Select a parcel to begin");
     $(".collector").val(collector_name);
     
     // Hide the homepage, show the survey, draw the map

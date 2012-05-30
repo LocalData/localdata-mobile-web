@@ -49,11 +49,19 @@
   <div class="container" id="survey-container">
     <div id='map-div' style="height:250px;"></div>
     <div id="startpoint">
-        <h2>Select a parcel to begin</h2>
+        <h2>Select a parcel to begin.</h2>
     </div> 
     <div id="thanks">
         <h2>Thank you! Select another parcel to continue.</h2>
     </div>
+    <div id="address-search-prompt">
+      <a href='#' id='address-search-toggle'>Or, search for an address</a>
+    </div>
+    <div id="address-search">
+      <input type="text" name="address-input" id="address-input" style="width:70%" value="" data-mini="true" placeholder="Your name">
+      <input id="address-submit" type="submit" data-icon="arrow-r" data-iconpos="right" data-inline="true" data-theme="e" value="Find address">
+    </div>
+    
     <div id="form">
       <h2>
           <span class="parcel_id">&nbsp;</span>

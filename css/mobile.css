@@ -11,6 +11,14 @@ html, body {
   height: 100%;
 }
 
+a {
+  color:#036;
+}
+
+small {
+  font-size:.7em;
+}
+
 .ui-page  {
   /* This is a jquery mobile container */
   background:#eee;
@@ -36,6 +44,8 @@ h2,
 #startpoint, 
 #thanks,
 #form fieldset,
+#address-search,
+#address-search-prompt,
 #feedback {
   padding:1em;
 }
@@ -52,6 +62,12 @@ h2,
   border-top:1px solid #fff;
   border-bottom:1px solid #ddd;
 }
+
+#address-search {
+  display:none;
+  border-bottom:2px solid #ddd;
+}
+
 
 #head {
   height:20px;
