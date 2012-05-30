@@ -207,7 +207,7 @@ function drawMap() {
   map.addLayer(doneMarkersLayer);
   
   // Add a bing layer to the map
-  bing = new L.TileLayer.Bing(settings.bing_key, 'AerialWithLabels');
+  bing = new L.BingLayer(settings.bing_key, 'AerialWithLabels');
   map.addLayer(bing);
    
   // Add the TileMill maps. 
