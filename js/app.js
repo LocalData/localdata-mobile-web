@@ -201,13 +201,13 @@ function drawMap() {
   /*
     Draw the parcel map on the survey page
   */
-  map = new L.Map('map-div', {minZoom:13, maxZoom:19});
+  map = new L.Map('map-div', {minZoom:13, maxZoom:18});
   
   // Add the layer of done markers
   map.addLayer(doneMarkersLayer);
   
   // Add a bing layer to the map
-  bing = new L.BingLayer(settings.bing_key, 'AerialWithLabels', {maxZoom:21});
+  bing = new L.TileLayer.Bing(settings.bing_key, 'AerialWithLabels');
   map.addLayer(bing);
    
   // Add the TileMill maps. 
@@ -254,7 +254,6 @@ function drawMap() {
     	var radius = e.accuracy / 2;
     	circle = new L.Circle(e.latlng, radius);
     	map.addLayer(circle);
-    	
     	getResponsesInMap();
     }
 
