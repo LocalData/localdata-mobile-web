@@ -1,12 +1,19 @@
 function NSBForm() {
   // Init
+  var form = $(".....");
+  
+  // Bind stuff here....
+  
+  
   
   // Private
+  
+  
   /*
   Serialize an HTML form for submission to the API
   usage: $('#myform').serializeObject();
   */ 
-  $.fn.serializeObject = function() {
+  var serialize = function() {
       var o = {};
       var a = this.serializeArray();
       $.each(a, function() {
@@ -29,7 +36,7 @@ function NSBForm() {
    * The user will not leave the current page
    * successCallback will be called if the submission is successfull
    */
-  function ajaxFormSubmit(event, form, successCallback) {
+  var ajaxFormSubmit = function(event, form, successCallback) {
     event.preventDefault(); // stop form from submitting normally
     url = form.attr('action');
     // TODO: make submit button inactive. 
@@ -58,10 +65,24 @@ function NSBForm() {
     return this;
   };
   
+  /*
+   * Update info on the form based on data from postgis.
+   * TODO: standardize to expect a certian kind of data. 
+   * TODO: test!!!!
+   */
+  function setFormParcelPostGIS(data) {
+    console.log(data);
+    var parcel_id = data.parcel_id;
+    var human_readable_location = data.address;
+
+    $('.parcel_id').val(parcel_id);
+    $('h2 .parcel_id').text(human_readable_location);
+  };
 
   
   /*
    * Remove an option group
+   * 
    */
   $('.remove').click(function(){
     var parent = $(this).closest('.opt-group');
@@ -180,6 +201,7 @@ function NSBForm() {
 
     resetForm();
   }
+
 
   /* 
    * Handle the parcel survey form being submitted

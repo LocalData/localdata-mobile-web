@@ -37,7 +37,7 @@ function NSBMap() {
 
     // Add the TileMill maps. 
     // Get the JSON url from the settings.
-    wax.tilejson(maps[locale]['json'], function(tilejson) {
+    wax.tilejson(settings.maps[settings.locale]['json'], function(tilejson) {
       map.addLayer(new wax.leaf.connector(tilejson));
 
       // Highlight parcels when clicked
