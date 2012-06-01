@@ -45,3 +45,9 @@ You can get started with the "TileMill tutorial":http://mapbox.com/tilemill/docs
 # Export the map as MBTiles
 # Upload the map to the "MapBox hosted service":http://mapbox.com/plans/
 # Use the TileJSON URL in this app. 
+
+h2. Running tests
+
+Load test/SpecRunner.html in a browser to run tests. 
+    
+

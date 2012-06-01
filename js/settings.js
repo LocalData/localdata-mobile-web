@@ -1,4 +1,4 @@
-var NSBSettings = {
+NSB.settings = {
   // ID of the current survey
   surveyid: '23206450-a0ac-11e1-ae6a-a17fba15c6fd', // WSU
   
