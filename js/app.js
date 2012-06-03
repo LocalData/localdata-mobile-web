@@ -3,8 +3,9 @@
 */
 
 // TODO: Abstract these into an object that can be passed around
-var map, marker, circle;
+var map, marker;
 var markers = {};
+var locationCircles = new L.LayerGroup();
 var doneMarkersLayer = new L.LayerGroup();
 var pointMarkersLayer = new L.LayerGroup();
 
@@ -186,6 +187,8 @@ function getResponsesInMap(){
   $.getJSON(url, function(data){
     if(data.responses) {
       $.each(data.responses, function(key, elt) {
+        console.log("result");
+        console.log(elt);
         p = new L.LatLng(elt.geo_info.centroid[0],elt.geo_info.centroid[1]);
         id = elt.parcel_id;
         addDoneMarker(p, id);
@@ -203,6 +206,7 @@ function drawMap() {
   
   // Add the layer of done markers
   map.addLayer(doneMarkersLayer);
+  map.addLayer(locationCircles);
   
   // Add a bing layer to the map
   // bing = new L.BingLayer(settings.bing_key);
@@ -249,12 +253,14 @@ function drawMap() {
     // Mark a location on the map. 
     // Primarily used with browser-based geolocation (aka "where am I?")
     function onLocationFound(e) {
-     // Add the accuracy circle to the map
+      // clear markers
+      locationCircles.clearLayers();
+      
+      // Add the accuracy circle to the map
     	var radius = e.accuracy / 2;
     	circle = new L.Circle(e.latlng, radius);
-    	map.addLayer(circle);
+    	locationCircles.addLayer(circle);
     	getResponsesInMap();
-    	console.log("Locating!!!");
     }
 
     function onLocationError(e) {
