@@ -209,7 +209,7 @@ function drawMap() {
   // Add a bing layer to the map
   bing = new L.BingLayer(settings.bing_key, 'AerialWithLabels');
   map.addLayer(bing);
-   
+     
   // Add the TileMill maps. 
   // Get the JSON url from the settings.
   wax.tilejson(maps[locale]['json'], function(tilejson) {
