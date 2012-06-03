@@ -191,6 +191,7 @@ function getResponsesInMap(){
         console.log(elt);
         p = new L.LatLng(elt.geo_info.centroid[0],elt.geo_info.centroid[1]);
         id = elt.parcel_id;
+                
         addDoneMarker(p, id);
       });
     };
