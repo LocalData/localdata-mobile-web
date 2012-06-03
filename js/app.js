@@ -254,6 +254,7 @@ function drawMap() {
     	circle = new L.Circle(e.latlng, radius);
     	map.addLayer(circle);
     	getResponsesInMap();
+    	console.log("Locating!!!");
     }
 
     function onLocationError(e) {
@@ -278,7 +279,6 @@ function getMapBounds(m) {
  * Attempt to center the map on an address using Google's geocoder.
  */
 function codeAddress(address) {
-  //var address = document.getElementById("address-search").value;
   console.log(address);
   var detroit_address = address + " Detroit, MI"; // for ease of geocoding
   var url = "http://dev.virtualearth.net/REST/v1/Locations/" + detroit_address + "?o=json&key=" + settings.bing_key + "&jsonp=?";
@@ -412,8 +412,8 @@ function successfulSubmit() {
   $('#form').slideToggle();
   $('#thanks').slideToggle();
   
-  if($('#address-search-prompt').is(":hidden")) {
-    $('#address-search-prompt').slideToggle();
+  if($('#tools').is(":hidden")) {
+    $('#tools').slideToggle();
   }
   if($('#address-search').is(":visible")) {
     $('#address-search').slideToggle();
@@ -459,13 +459,17 @@ $(document).ready(function(){
    });
    
    
+   $("#geolocate").click(function(){
+      map.locate({setView: true, maxZoom: 18});
+   });
+   
   /*
    *
    */
   $("#address-search-toggle").click(function(){
     console.log("Toggling address search");
     $("#address-search").slideToggle();
-    $("#address-search-prompt").slideToggle();
+    $("#tools").slideToggle();
   });
   
   /* 
