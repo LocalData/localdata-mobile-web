@@ -201,7 +201,7 @@ function drawMap() {
   /*
     Draw the parcel map on the survey page
   */
-  map = new L.Map('map-div', {minZoom:13, maxZoom:18});
+  map = new L.Map('map-div', {minZoom:13, maxZoom:19});
   
   // Add the layer of done markers
   map.addLayer(doneMarkersLayer);
@@ -240,7 +240,7 @@ function drawMap() {
     
 
     // Center the map 
-    map.locate({setView: true, maxZoom: 18});
+    map.locate({setView: true, maxZoom: 19});
     // var sf = new L.LatLng(37.77555050754543, -122.41365958293713);
     // For Detroit testing: 
     //var detroit = new L.LatLng(42.305213, -83.126260);
