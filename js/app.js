@@ -2,11 +2,14 @@
   Basic app functionality for the mobile survey. 
 */
 
-// TODO: Abstract these into an object that can be passed around
-var collector_name = "";
+
 
 // App namespace
-var NSB = {};
+var NSB = {
+  var collector_name = "";
+  
+};
+
 
 /*
  * Trim function: strips whitespace from a string. 
