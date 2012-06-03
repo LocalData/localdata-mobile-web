@@ -517,10 +517,6 @@ $(document).ready(function(){
      
      // Set IDs and name on form elements to match the count
      clone.find('input').each(function(index) {
-       // First, remove old counts
-       //$(this).attr('id', strip_count($(this).attr('id')));
-       //$(this).attr('name', strip_count($(this).attr('name')));
-       
        // Set counts
        $(this).attr('id', $(this).attr('id') + "-" + count);
        $(this).attr('name', $(this).attr('name') + "-" + count);
@@ -534,19 +530,13 @@ $(document).ready(function(){
        console.log("Updating fieldset");
        console.log($(this));
        console.log($(this).attr('id'));
-       
-       // remove old count
-       //$(this).attr('id', strip_count($(this).attr('id')));
-              
-       // then, addd new count
+                     
+       // add the new count
        $(this).attr('id', $(this).attr('id') + "-" + count);
      });
      
      // Number the labels
      clone.find('label').each(function(index) {
-       //$(this).attr('for', strip_count($(this).attr('for')));
-       
-       //$(this).attr('for', $(this).attr('for').split("-").slice(0, -1).join('-'));
        $(this).attr('for', $(this).attr('for') + "-" + count);
      });
      
