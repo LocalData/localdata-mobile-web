@@ -78,6 +78,9 @@ function selectParcel(m, latlng) {
   if($('#thanks').is(":visible")) {
     $('#thanks').slideToggle();
   }
+  if($('#tools').is(":visible")) {
+    $('#tools').slideToggle();
+  }
 };
 
 
@@ -568,6 +571,14 @@ $(document).ready(function(){
      append_after.after(clone);
      clone.trigger("create");
    });
+  
+  
+  /* 
+   * Set the collector name if we already know it.
+   */ 
+  if ($.cookie('collector-name') != null){
+    $("#collector_name").val($.cookie('collector-name'));
+  }
   
   /*
    * Show the survey & hide the front page after the sign-in form has been 
