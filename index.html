@@ -56,10 +56,7 @@
     
     <div id='map-div' style="height:250px;"></div>
     <div id="startpoint">
-      <h2>Select a parcel to begin.</h2>
-      <a href="dialogs/on-site.html" data-rel="dialog">Site</a>      
-      <a href="dialogs/use-general.html" data-rel="dialog">Use</a>      
-      
+      <h2>Select a parcel to begin.</h2>      
     </div> 
     <div id="thanks">
       <h2>Thank you! Select another parcel to continue.</h2>
@@ -94,8 +91,11 @@
 
         <div data-role="fieldcontain">
             <fieldset data-role="controlgroup">
-            	<legend>What's on the site?</legend>
-            	
+            	<legend>
+            	  What's on the site? 
+            	  <a href="dialogs/on-site.html" data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Site</a>
+              </legend>
+          	  
              	<input type="radio" name="site" id="site" value="one-building">
              	<label for="site">One building</label>
 
@@ -112,8 +112,12 @@
 
         <div class="opt-group-container">
         <div data-role="fieldcontain" class="opt-group">
-            <fieldset data-role="controlgroup" id="options-use">
-                <legend>What is the property used for?</legend>
+            <fieldset data-role="controlgroup" id="options-use">          	  
+                <legend>
+                  What is the property used for?
+                  <a href="dialogs/use.html" data-inline="true"  data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Use</a>
+                </legend>
+                
                 <input type="radio" name="use" value="retail" id="retail" class="show-details">
                 <label for="retail" data-role="none">Retail</label>
               
@@ -146,7 +150,10 @@
             </fieldset>
             
             <fieldset data-role="controlgroup" id="options-retail" class="options" style="display:none;">
-              <legend>What retail is on the site?</legend>
+              <legend>
+                What retail is on the site?
+                <a href="dialogs/use-retail.html" data-inline="true"  data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Retail</a>
+              </legend>
               
               <input type="radio" name="retail-use" value="hardware" id="hardware">
               <label for="hardware">Hardware store</label>
@@ -171,7 +178,10 @@
             </fieldset>
             
             <fieldset data-role="controlgroup" id="options-service" class="options" style="display:none;">
-              <legend>What service is on the site?</legend>
+              <legend>
+                What service is on the site?
+                <a href="dialogs/use-service.html" data-inline="true"  data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Service</a>  
+              </legend>
               
               <input type="radio" name="service-use" value="payday" id="payday">
               <label for="payday">Check cashing or payday loan</label>
@@ -209,7 +219,11 @@
             </fieldset>
             
             <fieldset data-role="controlgroup" id="options-restaurant-or-bar" class="options" style="display:none;">
-              <legend>What restaurant or bar is on the site?</legend>
+              <legend>
+                What restaurant or bar is on the site?
+                <a href="dialogs/use-restaurant.html" data-inline="true"  data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Restaurant Use</a>
+                
+              </legend>
               <input type="radio" name="restaurant-use" value="restaurant+drivethrough" id="restaurant+drivethrough">
               <label for="restaurant+drivethrough">Restaurant with Drive-Through</label>
               
@@ -229,11 +243,16 @@
         <div data-role="fieldcontain"> 
           <fieldset>            
             <input type="checkbox" name="residential-above" id="residential-above" />
-            <label for="residential-above">Residential above</label>
+            <label for="residential-above">
+              Residential above
+            </label>
           </fieldset> 
                 
           <fieldset data-role="controlgroup">
-            <legend>Design</legend>
+            <legend>
+              Design
+              <a href="dialogs/design.html" data-inline="true"  data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Design</a>
+            </legend>
             <input type="radio" name="design" id="auto" value="auto" />
             <label for="auto">Auto-oriented</label>
 
@@ -244,7 +263,11 @@
         
         <div data-role="fieldcontain">
             <fieldset data-role="controlgroup">
-            	<legend>Is the building occupied?</legend>
+            	<legend>
+            	  Is the building occupied?
+            	  <a href="dialogs/occupancy.html" data-inline="true"  data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Occupancy</a>
+              </legend>
+              
              	<input type="radio" name="vacancy-1" id="vacancy-1" value="occupied" checked="checked">
              	<label for="vacancy-1">Occupied</label>
 
@@ -261,7 +284,10 @@
 
         <div data-role="fieldcontain">
           <fieldset data-role="controlgroup">
-          	<legend>What condition is it in?</legend>
+          	<legend>
+          	  What condition is it in?
+          	  <a href="dialogs/condition.html" data-inline="true"  data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Condition</a>
+          	</legend>
            	<input type="radio" name="condition-1" id="condition-1" value="good" checked="checked">
            	<label for="condition-1">Good</label>
 
@@ -274,9 +300,14 @@
            	<input type="radio" name="condition-1" id="condition-4" value="demolish">
            	<label for="condition-4">Demolish</label>
           </fieldset>
-          
+        
           
           <fieldset>
+            <legend>
+              General condition
+              <a href="dialogs/vod-fire.html" data-inline="true"  data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">VOD Fire</a>
+            </legend>
+            
             <input type="checkbox" name="vod" id="vod" />
             <label for="vod">Vacant, open, and dangerous</label>
 
@@ -326,7 +357,10 @@
       
       <div data-role="fieldcontain" class="opt-group template-group">
           <fieldset data-role="controlgroup" id="options-use">
-              <legend>Use <span class="use-id"></span></legend>
+              <legend>Use <span class="use-id"></span>
+                <a href="dialogs/use.html" data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Use</a>
+              </legend>
+              
               <input data-role="none" type="radio" name="use" value="retail" id="retail" class="show-details">
               <label for="retail" data-role="none">Retail</label>
             
@@ -359,7 +393,9 @@
           </fieldset>
           
           <fieldset data-role="controlgroup" id="options-retail" class="options" style="display:none;">
-            <legend>What retail is on the site?</legend>
+            <legend>What retail is on the site?
+              <a href="dialogs/use-retail.html" data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Retail</a>
+            </legend>
             
             <input data-role="none" type="radio" name="retail-use" value="hardware" id="hardware">
             <label for="hardware">Hardware store</label>
@@ -384,7 +420,9 @@
           </fieldset>
           
           <fieldset data-role="controlgroup" id="options-service" class="options" style="display:none;">
-            <legend>What service is on the site?</legend>
+            <legend>What service is on the site?
+              <a href="dialogs/use-service.html" data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Service Use</a>
+            </legend>
             
             <input data-role="none" type="radio" name="service-use" value="payday" id="payday">
             <label for="payday">Check cashing or payday loan</label>
@@ -421,7 +459,10 @@
           </fieldset>
           
           <fieldset data-role="controlgroup" id="options-restaurant-or-bar" class="options" style="display:none;">
-            <legend>What restaurant or bar is on the site?</legend>
+            <legend>What restaurant or bar is on the site?
+              <a href="dialogs/use-restaurant.html" data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Use</a>
+            </legend>
+            
             <input data-role="none" type="radio" name="restaurant-use" value="restaurant+drivethrough" id="restaurant+drivethrough">
             <label for="restaurant+drivethrough">Restaurant with Drive-Through</label>
             
