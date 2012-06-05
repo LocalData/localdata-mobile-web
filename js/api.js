@@ -10,6 +10,7 @@ NSB.API = new function() {
     return NSB.settings.api.baseurl + '/surveys/' + NSB.settings.surveyid + '/parcels/' + parcel_id + '/responses';
   };
 
+
   /*
    * Given a Leaflet latlng object, return a JSON object that describes the 
    * parcel.

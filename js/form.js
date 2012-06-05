@@ -1,4 +1,4 @@
-function NSBForm() {
+NSB.FormView = new function(){
   // Init
   var form = $(".....");
   

@@ -1,5 +1,4 @@
-function NSBMap() {
-  // Init
+NSB.MapView = new function(){
   var map, marker, circle;
   var markers = {};
   var doneMarkersLayer = new L.LayerGroup();
@@ -8,7 +7,8 @@ function NSBMap() {
   var selected_polygon = false;
   var selected_centroid = false;
   var selected_parcel_json = false;
-  
+
+
   // Private things ==========================================================
   var CheckIcon = L.Icon.extend({
     options: {
@@ -22,7 +22,43 @@ function NSBMap() {
     }
   });  
   
-  function drawMap() {
+  /* 
+   * Attempt to center the map on an address using Google's geocoder.
+   */
+  function codeAddress(address) {
+    //var address = document.getElementById("address-search").value;
+    console.log(address);
+    var detroit_address = address + " Detroit, MI"; // for ease of geocoding
+    var url = "http://dev.virtualearth.net/REST/v1/Locations/" + detroit_address + "?o=json&key=" + NSB.settings.bing_key + "&jsonp=?";
+
+    console.log(url);
+    $.getJSON(url, function(data){
+      if(data.resourceSets.length > 0){
+        console.log(data);
+        var point = data.resourceSets[0].resources[0].point;
+        console.log(point);
+        var latlng = new L.LatLng(point.coordinates[0], point.coordinates[1]);
+
+        var marker = new L.Marker(latlng);
+        map.addLayer(marker);
+        map.setView(latlng, 18);
+      };    
+    });
+  };
+  
+  
+  /* 
+   * Given a map object, return the bounds as a string
+   */
+  function getMapBounds(m) {
+    bounds = "";
+    bounds += m.getBounds().getNorthWest().toString();
+    bounds += " " + m.getBounds().getSouthEast().toString();  
+    return bounds;
+  };
+
+  
+  this.init = function() {
     /*
       Draw the parcel map on the survey page
     */
@@ -32,12 +68,12 @@ function NSBMap() {
     map.addLayer(doneMarkersLayer);
 
     // Add a bing layer to the map
-    bing = new L.BingLayer(settings.bing_key, 'AerialWithLabels', {maxZoom:21});
+    bing = new L.BingLayer(NSB.settings.bing_key, 'AerialWithLabels', {maxZoom:21});
     map.addLayer(bing);
 
     // Add the TileMill maps. 
     // Get the JSON url from the settings.
-    wax.tilejson(settings.maps[settings.locale]['json'], function(tilejson) {
+    wax.tilejson(NSB.settings.maps[NSB.settings.locale]['json'], function(tilejson) {
       map.addLayer(new wax.leaf.connector(tilejson));
 
       // Highlight parcels when clicked
@@ -203,4 +239,4 @@ function NSBMap() {
   // Getters / Setters
 
   
-}
+};

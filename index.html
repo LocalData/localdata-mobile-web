@@ -8,7 +8,6 @@
       
     <title>Detroit Commercial Parcel Survey</title>
     
-    <script src='js/settings.js' type='text/javascript'></script>
     <script src='js/jquery.js' type="text/javascript"></script>
     <script src='js/async.min.js' type='text/javascript'></script>
     
@@ -18,6 +17,9 @@
     <script src='wax/dist/wax.leaf.js' type='text/javascript'></script>
     <script src='js/tilelayer.bing.pull.js' type='text/javascript'></script>
     <script src='js/app.js' type='text/javascript'></script>
+    <script src='js/settings.js' type='text/javascript'></script>
+    <script src='js/map.js' type='text/javascript'></script>
+    <script src='js/api.js' type='text/javascript'></script>
 
 <!--
     <script src="http://localhost:8080/target/target-script-min.js#anonymous"></script>
@@ -54,11 +56,12 @@
     <div id="thanks">
         <h2>Thank you! Select another parcel to continue.</h2>
     </div>
-    <div id="address-search-prompt">
-      <a href='#' id='address-search-toggle'>Or, search for an address</a>
+    <div id="tools">
+      <a href='#' id='address-search-toggle' data-icon="search" data-role="button" data-inline="true" >Search for an address</a>
+      <a href='#' id='geolocate' data-icon="star" data-role="button" data-inline="true" >Locate me</a>
     </div>
     <div id="address-search">
-      <input type="text" name="address-input" id="address-input" style="width:70%" value="" data-mini="true" placeholder="Your name">
+      <input type="text" name="address-input" id="address-input" style="width:70%" value="" data-mini="true" placeholder="Address">
       <input id="address-submit" type="submit" data-icon="arrow-r" data-iconpos="right" data-inline="true" data-theme="e" value="Find address">
     </div>
     
@@ -121,6 +124,12 @@
               
                 <input type="radio" name="use" value="residential" id="residential">
                 <label for="residential">Residential</label>
+                
+                <input type="radio" name="use" value="park" id="park">
+                <label for="park">Park</label>
+                
+                <input type="radio" name="use" value="government" id="government">
+                <label for="government">Government</label>
               
                 <input type="radio" name="use" value="unknown" id="unknown">
                 <label for="unknown">Unknown</label>
@@ -129,60 +138,63 @@
             <fieldset data-role="controlgroup" id="options-retail" class="options" style="display:none;">
               <legend>What retail is on the site?</legend>
               
-              <input type="radio" name="retail-use" value="drycleaner" id="drycleaner">
-              <label for="drycleaner">Dry Cleaner</label>
-              
               <input type="radio" name="retail-use" value="hardware" id="hardware">
-              <label for="hardware">Hardware Store</label>
+              <label for="hardware">Hardware store</label>
               
               <input type="radio" name="retail-use" value="gas-station" id="gas-station">
-              <label for="gas-station">Gas Station</label>
+              <label for="gas-station">Gas station</label>
               
               <input type="radio" name="retail-use" value="grocery" id="grocery">
-              <label for="grocery">Grocery Store</label>
+              <label for="grocery">Grocery store</label>
               
               <input type="radio" name="retail-use" value="health" id="health">
-              <label for="health">Health/Personal Store</label>
-              
+              <label for="health">Health/personal store</label>
+                            
               <input type="radio" name="retail-use" value="liquor" id="liquor">
-              <label for="liquor">Liquor Store</label>
+              <label for="liquor">Liquor store</label>
               
               <input type="radio" name="retail-use" value="motor-vehicle" id="motor-vehicle">
-              <label for="motor-vehicle">Motor Vehicle Sales &amp; Parts</label>
+              <label for="motor-vehicle">Motor vehicle Sales &amp; Parts</label>
               
-              <input type="radio" name="retail-use" value="general" id="general">
-              <label for="general">General Retail</label>            
+              <input type="radio" name="retail-use" value="other" id="other-retail">
+              <label for="other-retail">Other retail</label>            
             </fieldset>
             
             <fieldset data-role="controlgroup" id="options-service" class="options" style="display:none;">
               <legend>What service is on the site?</legend>
               
               <input type="radio" name="service-use" value="payday" id="payday">
-              <label for="payday">Check Cashing or Payday Loan </label>
+              <label for="payday">Check cashing or payday loan</label>
               
               <input type="radio" name="service-use" value="bank" id="bank">
-              <label for="bank">Bank</label>
+              <label for="bank">Bank without drive-through</label>
               
               <input type="radio" name="service-use" value="bank+drivethrough" id="bank+drivethrough">
-              <label for="bank+drivethrough">Bank with Drive-Through</label>
+              <label for="bank+drivethrough">Bank with drive-through</label>
               
               <input type="radio" name="service-use" value="salon" id="salon">
-              <label for="salon">Hair, Barber, or Nail Salon</label>
+              <label for="salon">Hair, barber, or nail salon</label>
               
               <input type="radio" name="service-use" value="hotel-motel" id="hotel-motel">
-              <label for="hotel-motel">Hotel or Motel</label>
+              <label for="hotel-motel">Hotel or motel</label>
               
               <input type="radio" name="service-use" value="motor-vehicle-service" id="motor-vehicle-service">
-              <label for="motor-vehicle-service">Motor Vehicle Repair/Service</label>        
+              <label for="motor-vehicle-service">Motor vehicle repair/service</label>        
               
               <input type="radio" name="service-use" value="general-entertainment" id="general-entertainment">
-              <label for="general-entertainment">General Entertainment</label>        
+              <label for="general-entertainment">General entertainment</label>        
               
               <input type="radio" name="service-use" value="adult-entertainment" id="adult-entertainment">
-              <label for="adult-entertainment">Adult Entertainment</label>        
+              <label for="adult-entertainment">Adult entertainment</label>        
               
-              <input type="radio" name="service-use" value="general-service" id="general-service">
-              <label for="general-service">General services</label>        
+              <input type="radio" name="service-use" value="medical" id="medical">
+              <label for="medical">Medical services</label>        
+              
+              <input type="radio" name="service-use" value="drycleaner" id="drycleaner">
+              <label for="drycleaner">Dry Cleaner</label>
+              
+              <input type="radio" name="service-use" value="other" id="general-service">
+              <label for="general-service">Other services</label>        
               
             </fieldset>
             
@@ -222,7 +234,7 @@
         
         <div data-role="fieldcontain">
             <fieldset data-role="controlgroup">
-            	<legend>Is the site occupied?</legend>
+            	<legend>Is the building occupied?</legend>
              	<input type="radio" name="vacancy-1" id="vacancy-1" value="occupied" checked="checked">
              	<label for="vacancy-1">Occupied</label>
 
@@ -303,102 +315,110 @@
     <div id="template-use" style="display:none" count="1">
       
       <div data-role="fieldcontain" class="opt-group template-group">
-          <fieldset data-role="controlgroup" id="options-use-1">
+          <fieldset data-role="controlgroup" id="options-use">
               <legend>Use <span class="use-id"></span></legend>
-              <input data-role="none" type="radio" name="use-1" value="retail" id="retail-1" class="show-details">
-              <label for="retail-1" data-role="none">Retail</label>
+              <input data-role="none" type="radio" name="use" value="retail" id="retail" class="show-details">
+              <label for="retail" data-role="none">Retail</label>
             
-              <input data-role="none" type="radio" name="use-1" value="service" id="service-1" class="show-details">
-              <label for="service-1">Service</label>
+              <input data-role="none" type="radio" name="use" value="service" id="service" class="show-details">
+              <label for="service">Service</label>
             
-              <input data-role="none" type="radio" name="use-1" value="restaurant-or-bar" id="restaurant-or-bar-1" class="show-details">
-              <label for="restaurant-or-bar-1">Restaurant or Bar</label>
+              <input data-role="none" type="radio" name="use" value="restaurant-or-bar" id="restaurant-or-bar" class="show-details">
+              <label for="restaurant-or-bar">Restaurant or Bar</label>
             
-              <input data-role="none" type="radio" name="use-1" value="office" id="office">
+              <input data-role="none" type="radio" name="use" value="office" id="office">
               <label for="office">Office</label>
             
-              <input data-role="none" type="radio" name="use-1" value="industrial" id="industrial">
+              <input data-role="none" type="radio" name="use" value="industrial" id="industrial">
               <label for="industrial">Industrial</label>
             
-              <input data-role="none" type="radio" name="use-1" value="religious-or-institutional" id="religious-or-institutional">
+              <input data-role="none" type="radio" name="use" value="religious-or-institutional" id="religious-or-institutional">
               <label for="religious-or-institutional">Religious or institutional</label>
             
-              <input data-role="none" type="radio" name="use-1" value="residential" id="residential">
+              <input data-role="none" type="radio" name="use" value="residential" id="residential">
               <label for="residential">Residential</label>
+                
+              <input data-role="none" type="radio" name="use" value="park" id="park">
+              <label for="park">Park</label>
+              
+              <input data-role="none" type="radio" name="use" value="government" id="government">
+              <label for="government">Government</label>
             
-              <input data-role="none" type="radio" name="use-1" value="unknown" id="unknown">
+              <input data-role="none" type="radio" name="use" value="unknown" id="unknown">
               <label for="unknown">Unknown</label>
           </fieldset>
           
-          <fieldset data-role="controlgroup" id="options-retail-1" class="options" style="display:none;">
+          <fieldset data-role="controlgroup" id="options-retail" class="options" style="display:none;">
             <legend>What retail is on the site?</legend>
             
-            <input data-role="none" type="radio" name="retail-use-1" value="drycleaner" id="drycleaner">
-            <label for="drycleaner">Dry Cleaner</label>
+            <input data-role="none" type="radio" name="retail-use" value="hardware" id="hardware">
+            <label for="hardware">Hardware store</label>
             
-            <input data-role="none" type="radio" name="retail-use-1" value="hardware" id="hardware">
-            <label for="hardware">Hardware Store</label>
+            <input data-role="none" type="radio" name="retail-use" value="gas-station" id="gas-station">
+            <label for="gas-station">Gas station</label>
             
-            <input data-role="none" type="radio" name="retail-use-1" value="gas-station" id="gas-station">
-            <label for="gas-station">Gas Station</label>
+            <input data-role="none" type="radio" name="retail-use" value="grocery" id="grocery">
+            <label for="grocery">Grocery store</label>
             
-            <input data-role="none" type="radio" name="retail-use-1" value="grocery" id="grocery">
-            <label for="grocery">Grocery Store</label>
+            <input data-role="none" type="radio" name="retail-use" value="health" id="health">
+            <label for="health">Health/personal store</label>
+                          
+            <input data-role="none" type="radio" name="retail-use" value="liquor" id="liquor">
+            <label for="liquor">Liquor store</label>
             
-            <input data-role="none" type="radio" name="retail-use-1" value="health" id="health">
-            <label for="health">Health/Personal Store</label>
+            <input data-role="none" type="radio" name="retail-use" value="motor-vehicle" id="motor-vehicle">
+            <label for="motor-vehicle">Motor vehicle Sales &amp; Parts</label>
             
-            <input data-role="none" type="radio" name="retail-use-1" value="liquor" id="liquor">
-            <label for="liquor">Liquor Store</label>
-            
-            <input data-role="none" type="radio" name="retail-use-1" value="motor-vehicle" id="motor-vehicle">
-            <label for="motor-vehicle">Motor Vehicle Sales &amp; Parts</label>
-            
-            <input data-role="none" type="radio" name="retail-use-1" value="general" id="general">
-            <label for="general">General Retail</label>            
+            <input data-role="none" type="radio" name="retail-use" value="other" id="other-retail">
+            <label for="other-retail">Other retail</label>            
           </fieldset>
           
-          <fieldset data-role="controlgroup" id="options-service-1" class="options" style="display:none;">
+          <fieldset data-role="controlgroup" id="options-service" class="options" style="display:none;">
             <legend>What service is on the site?</legend>
             
-            <input data-role="none" type="radio" name="service-use-1" value="payday" id="payday">
-            <label for="payday">Check Cashing or Payday Loan </label>
+            <input data-role="none" type="radio" name="service-use" value="payday" id="payday">
+            <label for="payday">Check cashing or payday loan</label>
             
-            <input data-role="none" type="radio" name="service-use-1" value="bank" id="bank">
-            <label for="bank">Bank</label>
+            <input data-role="none" type="radio" name="service-use" value="bank" id="bank">
+            <label for="bank">Bank without drive-through</label>
             
-            <input data-role="none" type="radio" name="service-use-1" value="bank+drivethrough" id="bank+drivethrough">
-            <label for="bank+drivethrough">Bank with Drive-Through</label>
+            <input data-role="none" type="radio" name="service-use" value="bank+drivethrough" id="bank+drivethrough">
+            <label for="bank+drivethrough">Bank with drive-through</label>
             
-            <input data-role="none" type="radio" name="service-use-1" value="salon" id="salon">
-            <label for="salon">Hair, Barber, or Nail Salon</label>
+            <input data-role="none" type="radio" name="service-use" value="salon" id="salon">
+            <label for="salon">Hair, barber, or nail salon</label>
             
-            <input data-role="none" type="radio" name="service-use-1" value="hotel-motel" id="hotel-motel">
-            <label for="hotel-motel">Hotel or Motel</label>
+            <input data-role="none" type="radio" name="service-use" value="hotel-motel" id="hotel-motel">
+            <label for="hotel-motel">Hotel or motel</label>
             
-            <input data-role="none" type="radio" name="service-use-1" value="motor-vehicle-service" id="motor-vehicle-service">
-            <label for="motor-vehicle-service">Motor Vehicle Repair/Service</label>        
+            <input data-role="none" type="radio" name="service-use" value="motor-vehicle-service" id="motor-vehicle-service">
+            <label for="motor-vehicle-service">Motor vehicle repair/service</label>        
             
-            <input data-role="none" type="radio" name="service-use-1" value="general-entertainment" id="general-entertainment">
-            <label for="general-entertainment">General Entertainment</label>        
+            <input data-role="none" type="radio" name="service-use" value="general-entertainment" id="general-entertainment">
+            <label for="general-entertainment">General entertainment</label>        
             
-            <input data-role="none" type="radio" name="service-use-1" value="adult-entertainment" id="adult-entertainment">
-            <label for="adult-entertainment">Adult Entertainment</label>        
+            <input data-role="none" type="radio" name="service-use" value="adult-entertainment" id="adult-entertainment">
+            <label for="adult-entertainment">Adult entertainment</label>        
             
-            <input data-role="none" type="radio" name="service-use-1" value="general-service" id="general-service">
-            <label for="general-service">General services</label>        
+            <input data-role="none" type="radio" name="service-use" value="medical" id="medical">
+            <label for="medical">Medical services</label>        
             
+            <input data-role="none" type="radio" name="service-use" value="drycleaner" id="drycleaner">
+            <label for="drycleaner">Dry Cleaner</label>
+            
+            <input data-role="none" type="radio" name="service-use" value="other" id="general-service">
+            <label for="general-service">Other services</label>        
           </fieldset>
           
-          <fieldset data-role="controlgroup" id="options-restaurant-or-bar-1" class="options" style="display:none;">
+          <fieldset data-role="controlgroup" id="options-restaurant-or-bar" class="options" style="display:none;">
             <legend>What restaurant or bar is on the site?</legend>
-            <input data-role="none" type="radio" name="restaurant-use-1" value="restaurant+drivethrough" id="restaurant+drivethrough">
+            <input data-role="none" type="radio" name="restaurant-use" value="restaurant+drivethrough" id="restaurant+drivethrough">
             <label for="restaurant+drivethrough">Restaurant with Drive-Through</label>
             
-            <input data-role="none" type="radio" name="restaurant-use-1" value="restaurant" id="restaurant">
+            <input data-role="none" type="radio" name="restaurant-use" value="restaurant" id="restaurant">
             <label for="restaurant">Restaurant (no Drive-Through)</label>
             
-            <input data-role="none" type="radio" name="restaurant-use-1" value="bar-pub-brewery" id="bar-pub-brewery">
+            <input data-role="none" type="radio" name="restaurant-use" value="bar-pub-brewery" id="bar-pub-brewery">
             <label for="bar-pub-brewery">Bar, Pub, or Brewery</label>
           </fieldset>
           
