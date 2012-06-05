@@ -3,8 +3,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE">
-    <META HTTP-EQUIV="PRAGMA" CONTENT="NO-CACHE">
+<!--
+    <meta http-equiv="CACHE-CONTROL" content="NO-CACHE">
+    <meta http-equiv="PRAGMA" content="NO-CACHE">
+-->
       
     <title>Detroit Commercial Parcel Survey</title>
     
@@ -13,7 +15,7 @@
     <script src='js/async.min.js' type='text/javascript'></script>
     
     <script src='js/jquery.cookie.js' type="text/javascript"></script>
-    <script src="http://code.jquery.com/mobile/1.1.0-rc.2/jquery.mobile-1.1.0-rc.2.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.js"></script>
     <script src='wax/ext/leaflet.js' type='text/javascript'></script>
     <script src='wax/dist/wax.leaf.js' type='text/javascript'></script>
     <script src='js/tilelayer.bing.js' type='text/javascript'></script>
@@ -26,7 +28,7 @@
 
     
     <link href='http://fonts.googleapis.com/css?family=Crete+Round' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0-rc.2/jquery.mobile-1.1.0-rc.2.min.css">
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.css">
     <style type="text/css" media="screen">
       @import url(css/reset.css);
       @import url(css/mobile.css);      
@@ -35,6 +37,9 @@
 </head>
 
 <body id="home">
+  
+  <div data-role="page">
+    
   <div class="container" id="home-container">
       <h1>
         Neighborhood<br>
@@ -48,12 +53,16 @@
   </div><!-- end home -->
     
   <div class="container" id="survey-container">
+    
     <div id='map-div' style="height:250px;"></div>
     <div id="startpoint">
-        <h2>Select a parcel to begin.</h2>
+      <h2>Select a parcel to begin.</h2>
+      <a href="dialogs/on-site.html" data-rel="dialog">Site</a>      
+      <a href="dialogs/use-general.html" data-rel="dialog">Use</a>      
+      
     </div> 
     <div id="thanks">
-        <h2>Thank you! Select another parcel to continue.</h2>
+      <h2>Thank you! Select another parcel to continue.</h2>
     </div>
     <div id="tools">
       <a href='#' id='address-search-toggle' data-icon="search" data-role="button" data-inline="true" >Search for an address</a>
@@ -63,6 +72,7 @@
       <input type="text" name="address-input" id="address-input" style="width:70%" value="" data-mini="true" placeholder="Address">
       <input id="address-submit" type="submit" data-icon="arrow-r" data-iconpos="right" data-inline="true" data-theme="e" value="Find address">
     </div>
+    
     
     <div id="form">
       <h2>
@@ -85,6 +95,7 @@
         <div data-role="fieldcontain">
             <fieldset data-role="controlgroup">
             	<legend>What's on the site?</legend>
+            	
              	<input type="radio" name="site" id="site" value="one-building">
              	<label for="site">One building</label>
 
@@ -431,6 +442,6 @@
 
 
   </div><!-- end survey -->
-  
+  </div>
   </body>
 </html>

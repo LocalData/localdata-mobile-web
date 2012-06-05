@@ -161,3 +161,34 @@ input[type="submit"] {
   margin-bottom:10px;
 }
 
+.ui-dialog-contain .ui-content {
+}
+
+.ui-dialog-contain .ui-content strong {
+  font-weight:bold; 
+}
+
+.ui-dialog-contain .ui-content em {
+  font-style:italic;
+}
+
+.ui-dialog-contain ol {
+  padding-left:20px;
+  list-style-type:decimal;
+}
+
+.ui-dialog-contain p,
+.ui-dialog-contain .callout,
+.ui-dialog-contain li {
+  margin-bottom:1em;
+  line-height:1.2;
+  font:verdana, sans-serif;
+}
+
+.ui-dialog-contain .callout {
+  margin-bottom:1.5em;
+  border:1px solid yellow;
+  padding:10px;
+  background:#ffe;
+}
+
