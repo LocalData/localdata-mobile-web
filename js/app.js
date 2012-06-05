@@ -3,9 +3,11 @@
 */
 
 // TODO: Abstract these into an object that can be passed around
-var map, marker, circle;
+var map, marker;
 var markers = {};
+var locationCircles = new L.LayerGroup();
 var doneMarkersLayer = new L.LayerGroup();
+var pointMarkersLayer = new L.LayerGroup();
 
 var selected_polygon = false;
 var selected_centroid = false;
@@ -75,6 +77,9 @@ function selectParcel(m, latlng) {
   }
   if($('#thanks').is(":visible")) {
     $('#thanks').slideToggle();
+  }
+  if($('#tools').is(":visible")) {
+    $('#tools').slideToggle();
   }
 };
 
@@ -151,7 +156,6 @@ function getPostgresData(latlng, callback) {
  * Adds a checkbox marker to the given point
  */
 function addDoneMarker(latlng, id) {
-  
   // Only add markers if they aren't already on the map.
   if (markers[id] == undefined){
     var doneIcon = new CheckIcon();
@@ -186,10 +190,12 @@ function getResponsesInMap(){
   $.getJSON(url, function(data){
     if(data.responses) {
       $.each(data.responses, function(key, elt) {
+        console.log("result");
+        console.log(elt);
         p = new L.LatLng(elt.geo_info.centroid[0],elt.geo_info.centroid[1]);
         id = elt.parcel_id;
+                
         addDoneMarker(p, id);
-        console.log(p);
       });
     };
   });
@@ -200,15 +206,17 @@ function drawMap() {
   /*
     Draw the parcel map on the survey page
   */
-  map = new L.Map('map-div', {minZoom:13, maxZoom:18});
+  map = new L.Map('map-div', {minZoom:13, maxZoom:20});
   
   // Add the layer of done markers
   map.addLayer(doneMarkersLayer);
+  map.addLayer(locationCircles);
   
   // Add a bing layer to the map
-  bing = new L.BingLayer(settings.bing_key, 'AerialWithLabels', {maxZoom:21});
+  // bing = new L.BingLayer(settings.bing_key);
+  bing = new L.TileLayer.Bing(settings.bing_key, 'AerialWithLabels', {minZoom:13, maxZoom:19});
   map.addLayer(bing);
-   
+     
   // Add the TileMill maps. 
   // Get the JSON url from the settings.
   wax.tilejson(maps[locale]['json'], function(tilejson) {
@@ -249,11 +257,13 @@ function drawMap() {
     // Mark a location on the map. 
     // Primarily used with browser-based geolocation (aka "where am I?")
     function onLocationFound(e) {
-     // Add the accuracy circle to the map
+      // clear markers
+      locationCircles.clearLayers();
+      
+      // Add the accuracy circle to the map
     	var radius = e.accuracy / 2;
     	circle = new L.Circle(e.latlng, radius);
-    	map.addLayer(circle);
-    	
+    	locationCircles.addLayer(circle);
     	getResponsesInMap();
     }
 
@@ -272,6 +282,30 @@ function getMapBounds(m) {
   bounds += m.getBounds().getNorthWest().toString();
   bounds += " " + m.getBounds().getSouthEast().toString();  
   return bounds;
+};
+
+
+/* 
+ * Attempt to center the map on an address using Google's geocoder.
+ */
+function codeAddress(address) {
+  console.log(address);
+  var detroit_address = address + " Detroit, MI"; // for ease of geocoding
+  var url = "http://dev.virtualearth.net/REST/v1/Locations/" + detroit_address + "?o=json&key=" + settings.bing_key + "&jsonp=?";
+
+  console.log(url);
+  $.getJSON(url, function(data){
+    if(data.resourceSets.length > 0){
+      console.log(data);
+      var point = data.resourceSets[0].resources[0].point;
+      console.log(point);
+      var latlng = new L.LatLng(point.coordinates[0], point.coordinates[1]);
+
+      var marker = new L.Marker(latlng);
+      map.addLayer(marker);
+      map.setView(latlng, 18);
+    };    
+  });
 };
 
 
@@ -387,6 +421,16 @@ function successfulSubmit() {
      
   $('#form').slideToggle();
   $('#thanks').slideToggle();
+  
+  if($('#tools').is(":hidden")) {
+    $('#tools').slideToggle();
+  }
+  if($('#address-search').is(":visible")) {
+    $('#address-search').slideToggle();
+  }
+  
+  
+  
   resetForm();
 }
 
@@ -397,7 +441,7 @@ function successfulSubmit() {
  * Main set of event listeners
  */
 $(document).ready(function(){  
-    
+  
   /* 
    * Show additional questions based on selected options.
    */
@@ -423,6 +467,27 @@ $(document).ready(function(){
      $(group_to_show).slideToggle();
      console.log("Showing options group " + group_to_show);
    });
+   
+   
+   $("#geolocate").click(function(){
+      map.locate({setView: true, maxZoom: 18});
+   });
+   
+  /*
+   *
+   */
+  $("#address-search-toggle").click(function(){
+    console.log("Toggling address search");
+    $("#address-search").slideToggle();
+    $("#tools").slideToggle();
+  });
+  
+  /* 
+   * 
+   */
+  $("#address-submit").click(function(){
+    codeAddress($("#address-input").val());
+  });
   
   /*
    * Set the URLs on all forms
@@ -466,10 +531,6 @@ $(document).ready(function(){
      
      // Set IDs and name on form elements to match the count
      clone.find('input').each(function(index) {
-       // First, remove old counts
-       $(this).attr('id', strip_count($(this).attr('id')));
-       $(this).attr('name', strip_count($(this).attr('name')));
-       
        // Set counts
        $(this).attr('id', $(this).attr('id') + "-" + count);
        $(this).attr('name', $(this).attr('name') + "-" + count);
@@ -483,19 +544,13 @@ $(document).ready(function(){
        console.log("Updating fieldset");
        console.log($(this));
        console.log($(this).attr('id'));
-       
-       // remove old count
-       $(this).attr('id', strip_count($(this).attr('id')));
-              
-       // then, addd new count
+                     
+       // add the new count
        $(this).attr('id', $(this).attr('id') + "-" + count);
      });
      
      // Number the labels
      clone.find('label').each(function(index) {
-       $(this).attr('for', strip_count($(this).attr('for')));
-       
-       //$(this).attr('for', $(this).attr('for').split("-").slice(0, -1).join('-'));
        $(this).attr('for', $(this).attr('for') + "-" + count);
      });
      
@@ -517,6 +572,14 @@ $(document).ready(function(){
      clone.trigger("create");
    });
   
+  
+  /* 
+   * Set the collector name if we already know it.
+   */ 
+  if ($.cookie('collector-name') != null){
+    $("#collector_name").val($.cookie('collector-name'));
+  }
+  
   /*
    * Show the survey & hide the front page after the sign-in form has been 
    * submitted
@@ -528,7 +591,8 @@ $(document).ready(function(){
     collector_name = $("#collector_name").val();
     console.log(collector_name);
     $.cookie("collector-name", collector_name, { path: '/' });
-    $("#startpoint h2").html("Welcome, " + collector_name + "<br>Select a parcel to begin");
+    $("#startpoint h2").html("Welcome, " + collector_name + 
+      "<br>Select a parcel to begin");
     $(".collector").val(collector_name);
     
     // Hide the homepage, show the survey, draw the map

@@ -11,6 +11,14 @@ html, body {
   height: 100%;
 }
 
+a {
+  color:#036;
+}
+
+small {
+  font-size:.7em;
+}
+
 .ui-page  {
   /* This is a jquery mobile container */
   background:#eee;
@@ -36,8 +44,25 @@ h2,
 #startpoint, 
 #thanks,
 #form fieldset,
+#address-search,
+#tools,
 #feedback {
   padding:1em;
+}
+
+
+#startpoint,
+#startpoint h2,
+#tools {
+  padding-bottom:0;
+}
+
+#tools {
+  padding:0px 30px 0px 30px;
+}
+
+#address-search {
+  padding-left:30px;
 }
 
 #form {
@@ -52,6 +77,12 @@ h2,
   border-top:1px solid #fff;
   border-bottom:1px solid #ddd;
 }
+
+#address-search {
+  display:none;
+  border-bottom:2px solid #ddd;
+}
+
 
 #head {
   height:20px;
@@ -128,5 +159,36 @@ input[type="submit"] {
   border-top:2px solid #ddd;
   border-bottom:2px solid #ddd;
   margin-bottom:10px;
+}
+
+.ui-dialog-contain .ui-content {
+}
+
+.ui-dialog-contain .ui-content strong {
+  font-weight:bold; 
+}
+
+.ui-dialog-contain .ui-content em {
+  font-style:italic;
+}
+
+.ui-dialog-contain ol {
+  padding-left:20px;
+  list-style-type:decimal;
+}
+
+.ui-dialog-contain p,
+.ui-dialog-contain .callout,
+.ui-dialog-contain li {
+  margin-bottom:1em;
+  line-height:1.2;
+  font:verdana, sans-serif;
+}
+
+.ui-dialog-contain .callout {
+  margin-bottom:1.5em;
+  border:1px solid yellow;
+  padding:10px;
+  background:#ffe;
 }
 

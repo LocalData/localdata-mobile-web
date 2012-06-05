@@ -7,7 +7,8 @@ var BASEURL = 'http://surveydet.herokuapp.com'; // no trailing slash
 BASEURL = 'http://localhost:3000';
 var GEOAPI = 'http://stormy-mountain-3909.herokuapp.com';
 var SURVEYID = '23206450-a0ac-11e1-ae6a-a17fba15c6fd'; // WSU
-SURVEYID = '3dbbc420-9ad6-11e1-b4b6-f184112d9089'; //test survey
+//SURVEYID = '69bef580-88eb-11e1-af82-a7908e0eb230'; //test survey
+
 var CARTO_ACCOUNT = 'matth';
 
 var locale = "detroit-transparent"; // our current set of parcels. 
