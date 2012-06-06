@@ -22,11 +22,11 @@
     
     <script src='js/app.js' type='text/javascript'></script>
 
+    <!-- weinre -->
 <!--
     <script src="http://localhost:8080/target/target-script-min.js#anonymous"></script>
 -->
 
-    
     <link href='http://fonts.googleapis.com/css?family=Crete+Round' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.css">
     <style type="text/css" media="screen">
@@ -96,21 +96,24 @@
             	  <a href="dialogs/on-site.html" data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Site</a>
               </legend>
           	  
-             	<input type="radio" name="site" id="site" value="one-building">
-             	<label for="site">One building</label>
+             	<input type="radio" name="site" id="site" value="buildings" class="show-options">
+             	<label for="site">Building(s)</label>
 
-             	<input type="radio" name="site" id="multiple-codes" value="multiple-codes">
+             	<input type="radio" name="site" id="multiple-codes" value="multiple-codes" class="show-options">
              	<label for="multiple-codes">Multiple codes</label>
 
-             	<input type="radio" name="site" id="radio-choice-3" value="parking-lot">
-             	<label for="radio-choice-3">A paved parking lot</label>
-
-             	<input type="radio" name="site" id="radio-choice-4" value="empty-lot">
-             	<label for="radio-choice-4">An empty lot</label>
+             	<input type="radio" name="site" id="site-parking-lot" value="parking-lot" class="hide-options">
+             	<label for="site-parking-lot">A paved parking lot</label>
+             	
+             	<input type="radio" name="site" id="site-park" value="park" class="hide-options">
+             	<label for="site-park">A park</label>
+             	
+             	<input type="radio" name="site" id="site-lot" value="empty-lot" class="hide-options">
+             	<label for="site-lot">An empty lot</label>
             </fieldset>
         </div>
 
-        <div class="opt-group-container">
+        <div class="opt-group-container contingent-hide-site-lot contingent-hide-site-park contingent-hide-site-parking-lot contingent-show-buildings contingent-show-multiple-codes">
         <div data-role="fieldcontain" class="opt-group">
             <fieldset data-role="controlgroup" id="options-use">          	  
                 <legend>
@@ -138,13 +141,7 @@
               
                 <input type="radio" name="use" value="residential" id="residential">
                 <label for="residential">Residential</label>
-                
-                <input type="radio" name="use" value="park" id="park">
-                <label for="park">Park</label>
-                
-                <input type="radio" name="use" value="government" id="government">
-                <label for="government">Government</label>
-              
+                                
                 <input type="radio" name="use" value="unknown" id="unknown">
                 <label for="unknown">Unknown</label>
             </fieldset>
@@ -268,7 +265,7 @@
             	  <a href="dialogs/occupancy.html" data-inline="true"  data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Occupancy</a>
               </legend>
               
-             	<input type="radio" name="vacancy-1" id="vacancy-1" value="occupied" checked="checked">
+             	<input type="radio" name="vacancy-1" id="vacancy-1" value="occupied">
              	<label for="vacancy-1">Occupied</label>
 
              	<input type="radio" name="vacancy-1" id="vacancy-2" value="probably-occupied">
@@ -288,7 +285,7 @@
           	  What condition is it in?
           	  <a href="dialogs/condition.html" data-inline="true"  data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Condition</a>
           	</legend>
-           	<input type="radio" name="condition-1" id="condition-1" value="good" checked="checked">
+           	<input type="radio" name="condition-1" id="condition-1" value="good">
            	<label for="condition-1">Good</label>
 
            	<input type="radio" name="condition-1" id="condition-2" value="fair">
@@ -381,13 +378,7 @@
             
               <input data-role="none" type="radio" name="use" value="residential" id="residential">
               <label for="residential">Residential</label>
-                
-              <input data-role="none" type="radio" name="use" value="park" id="park">
-              <label for="park">Park</label>
-              
-              <input data-role="none" type="radio" name="use" value="government" id="government">
-              <label for="government">Government</label>
-            
+                            
               <input data-role="none" type="radio" name="use" value="unknown" id="unknown">
               <label for="unknown">Unknown</label>
           </fieldset>

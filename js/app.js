@@ -442,13 +442,35 @@ function successfulSubmit() {
  */
 $(document).ready(function(){  
   
+  
+  $('input.hide-options').change(function(){
+    var id = $(this).attr('id');
+    var to_hide = '.contingent-hide-' + id;
+    if ($(to_hide).is(':visible')) {
+      $(to_hide).slideToggle();    
+    };
+    
+    // Clear out selected options so we don't accidentally submit them
+    $(to_hide).find('input').each(function(index){
+      $(this).attr('checked', false).checkboxradio('refresh',true);
+    });
+    
+  });
+  
+  $('input.show-options').change(function(){
+    var id = $(this).attr('id');
+    var to_show = '.contingent-show-' + id;
+    if ($(to_show).is(':hidden')) {
+      
+      $(to_show).slideToggle();
+    };
+  });
+  
+  
   /* 
    * Show additional questions based on selected options.
    */
    $('[id^="options-use"] input').change(function(){    
-     console.log("Hiding options");
-     console.log(this);    
-
      // First, find the options groups in the field, and hide + clear them.
      var opt_group = $(this).closest('.opt-group');
      opt_group.find('.options').each(function(index){
