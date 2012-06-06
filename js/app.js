@@ -5,9 +5,12 @@
 // TODO: Abstract these into an object that can be passed around
 var map, marker;
 var markers = {};
+var questionMarkers = {};
 var locationCircles = new L.LayerGroup();
 var doneMarkersLayer = new L.LayerGroup();
 var pointMarkersLayer = new L.LayerGroup();
+var questionMarkersLayer = new L.LayerGroup();
+
 
 var selected_polygon = false;
 var selected_centroid = false;
@@ -19,6 +22,19 @@ var CheckIcon = L.Icon.extend({
     className: 'CheckIcon',
     iconUrl: 'img/icons/check-16.png',
     shadowUrl: 'img/icons/check-16.png',
+  	iconSize: new L.Point(16, 16),
+  	shadowSize: new L.Point(16, 16),
+  	iconAnchor: new L.Point(8, 8),
+  	popupAnchor: new L.Point(8, 8)
+  }
+});                       
+
+
+var QuestionIcon = L.Icon.extend({
+  options: {
+    className: 'QuestionIcon',
+    iconUrl: 'img/icons/question-16.png',
+    shadowUrl: 'img/icons/question-16.png',
   	iconSize: new L.Point(16, 16),
   	shadowSize: new L.Point(16, 16),
   	iconAnchor: new L.Point(8, 8),
@@ -167,6 +183,21 @@ function addDoneMarker(latlng, id) {
 
 
 /*
+ * Adds a question marker to the given point
+ */
+function addQuestionMarker(latlng, id) {
+  // Only add markers if they aren't already on the map.
+  if (questionMarkers[id] == undefined){
+    var checkIcon = new QuestionIcon();
+    doneMarker = new L.Marker(latlng, {icon: checkIcon});
+    questionMarkersLayer.addLayer(doneMarker);
+    markers[id] = doneMarker;
+  };
+};
+
+
+
+/*
  * Get all the responses in a map 
  */
 function getResponsesInMap(){  
@@ -194,8 +225,13 @@ function getResponsesInMap(){
         console.log(elt);
         p = new L.LatLng(elt.geo_info.centroid[0],elt.geo_info.centroid[1]);
         id = elt.parcel_id;
-                
-        addDoneMarker(p, id);
+        
+        if (elt.responses['needs-verification'] == 'on') {
+          console.log("needs verification");
+          addQuestionMarker(p, id);
+        }else {
+          addDoneMarker(p, id);
+        };
       });
     };
   });
@@ -210,6 +246,7 @@ function drawMap() {
   
   // Add the layer of done markers
   map.addLayer(doneMarkersLayer);
+  map.addLayer(questionMarkersLayer);
   map.addLayer(locationCircles);
   
   // Add a bing layer to the map
