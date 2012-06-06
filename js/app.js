@@ -250,8 +250,8 @@ function drawMap() {
     map.locate({setView: true, maxZoom: 18});
     // var sf = new L.LatLng(37.77555050754543, -122.41365958293713);
     // For Detroit testing: 
-    //var detroit = new L.LatLng(42.305213, -83.126260);
-    //map.setView(detroit, 18);
+    var detroit = new L.LatLng(42.305213, -83.126260);
+    map.setView(detroit, 18);
     
 
     // Mark a location on the map. 
