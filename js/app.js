@@ -491,14 +491,12 @@ $(document).ready(function(){
     $(to_hide).find('input').each(function(index){
       $(this).attr('checked', false).checkboxradio('refresh',true);
     });
-    
   });
   
   $('input.show-options').change(function(){
     var id = $(this).attr('id');
     var to_show = '.contingent-show-' + id;
     if ($(to_show).is(':hidden')) {
-      
       $(to_show).slideToggle();
     };
   });
@@ -582,7 +580,7 @@ $(document).ready(function(){
      var container = $("#template-use .opt-group");
      var clone = container.clone(true); 
      
-     // Set the number of times clicked
+     // Update the number of times the count has been increased
      var count = parseInt($('#use-count').attr('value'), 10);
      count = count + 1;
      $('#use-count').attr('value', count);
@@ -593,7 +591,6 @@ $(document).ready(function(){
        // Set counts
        $(this).attr('id', $(this).attr('id') + "-" + count);
        $(this).attr('name', $(this).attr('name') + "-" + count);
-       
      });
      
      clone.find('.use-id').text(count);

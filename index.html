@@ -231,6 +231,25 @@
               <label for="bar-pub-brewery">Bar, Pub, or Brewery</label>
             </fieldset>
             
+            <fieldset data-role="controlgroup">
+            	<legend>
+            	  Is it occupied?
+            	  <a href="dialogs/occupancy.html" data-inline="true"  data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Occupancy</a>
+              </legend>
+
+             	<input type="radio" name="vacancy" id="occupied" value="occupied">
+             	<label for="occupied">Occupied</label>
+
+             	<input type="radio" name="vacancy" id="probably-occupied" value="probably-occupied">
+             	<label for="probably-occupied">Probably occupied</label>
+
+             	<input type="radio" name="vacancy" id="probably-vacant" value="probably-vacant">
+             	<label for="probably-vacant">Probably vacant</label>
+
+             	<input type="radio" name="vacancy" id="vacant" value="vacant">
+             	<label for="vacant">Vacant, abandoned</label>
+            </fieldset>          
+            
         </div><!-- end use container (repeating element) -->
         <fieldset>
           <a class="add-another" href="#" data-role="button" data-icon="plus" data-inline="true" data-theme="c">Add another use</a>
@@ -258,26 +277,6 @@
           </fieldset>
         </div>
         
-        <div data-role="fieldcontain">
-            <fieldset data-role="controlgroup">
-            	<legend>
-            	  Is the building occupied?
-            	  <a href="dialogs/occupancy.html" data-inline="true"  data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Occupancy</a>
-              </legend>
-              
-             	<input type="radio" name="vacancy-1" id="vacancy-1" value="occupied">
-             	<label for="vacancy-1">Occupied</label>
-
-             	<input type="radio" name="vacancy-1" id="vacancy-2" value="probably-occupied">
-             	<label for="vacancy-2">Probably occupied</label>
-
-             	<input type="radio" name="vacancy-1" id="vacancy-3" value="probably-vacant">
-             	<label for="vacancy-3">Probably vacant</label>
-
-             	<input type="radio" name="vacancy-1" id="vacancy-4" value="vacant">
-             	<label for="vacancy-4">Vacant, abandoned</label>
-            </fieldset>
-        </div>
 
         <div data-role="fieldcontain">
           <fieldset data-role="controlgroup">
@@ -463,6 +462,26 @@
             <input data-role="none" type="radio" name="restaurant-use" value="bar-pub-brewery" id="bar-pub-brewery">
             <label for="bar-pub-brewery">Bar, Pub, or Brewery</label>
           </fieldset>
+          
+          <fieldset data-role="controlgroup" id="vacancy-fieldset">
+          	<legend>
+          	  Is it occupied?
+          	  <a href="dialogs/occupancy.html" data-inline="true"  data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Occupancy</a>
+            </legend>
+
+           	<input data-role="none" type="radio" name="vacancy" id="occupied" value="occupied">
+           	<label for="occupied">Occupied</label>
+
+           	<input data-role="none" type="radio" name="vacancy" id="probably-occupied" value="probably-occupied">
+           	<label for="probably-occupied">Probably occupied</label>
+
+           	<input data-role="none" type="radio" name="vacancy" id="probably-vacant" value="probably-vacant">
+           	<label for="probably-vacant">Probably vacant</label>
+
+           	<input data-role="none" type="radio" name="vacancy" id="vacant" value="vacant">
+           	<label for="vacant">Vacant, abandoned</label>
+          </fieldset>          
+          
           
           <fieldset id="misc" class="misc">
             <a class="remove" href="#" data-role="button" data-icon="delete" data-inline="true" data-theme="c">Remove use</a>
