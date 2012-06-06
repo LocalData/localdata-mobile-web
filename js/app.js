@@ -479,13 +479,15 @@ function successfulSubmit() {
  */
 $(document).ready(function(){  
   
-  
   $('input.hide-options').change(function(){
     var id = $(this).attr('id');
     var to_hide = '.contingent-hide-' + id;
-    if ($(to_hide).is(':visible')) {
-      $(to_hide).slideToggle();    
-    };
+    
+    $(to_hide).each(function(index){
+      if ($(this).is(':visible')) {
+        $(this).slideToggle();    
+      };
+    });
     
     // Clear out selected options so we don't accidentally submit them
     $(to_hide).find('input').each(function(index){
@@ -496,9 +498,12 @@ $(document).ready(function(){
   $('input.show-options').change(function(){
     var id = $(this).attr('id');
     var to_show = '.contingent-show-' + id;
-    if ($(to_show).is(':hidden')) {
-      $(to_show).slideToggle();
-    };
+    
+    $(to_show).each(function(index){
+      if ($(this).is(':hidden')) {
+        $(this).slideToggle();
+      };
+    });
   });
   
   
