@@ -87,6 +87,8 @@ Moves the marker to indicate the selected parcel.
 function selectParcel(m, latlng) {
   if(!$('#form').is(":visible")) {
       $('#form').slideToggle();
+      console.log('showing default');
+      $('.show-default').show();
   }
   if($('#startpoint').is(":visible")) {
     $('#startpoint').slideToggle();
@@ -440,6 +442,7 @@ function resetForm() {
   // Remove additional template groups (eg use options)
   $('form .template-group').remove();
 
+  
   // Reset count of template groups
   $('#use-count').attr('value', 1);
 };
@@ -465,8 +468,6 @@ function successfulSubmit() {
   if($('#address-search').is(":visible")) {
     $('#address-search').slideToggle();
   }
-  
-  
   
   resetForm();
 }
