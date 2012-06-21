@@ -1,92 +1,39 @@
-NSB.MapView = new function(){
+NSB.MapView = function(mapContainerId){
+    
   var map, marker, circle;
   var markers = {};
   var doneMarkersLayer = new L.LayerGroup();
   var pointMarkersLayer = new L.LayerGroup();
 
-  var selected_polygon = false;
-  var selected_centroid = false;
-  var selected_parcel_json = false;
-
-
-  // Private things ==========================================================
-  var CheckIcon = L.Icon.extend({
-    options: {
-      className: 'CheckIcon',
-      iconUrl: 'img/icons/check-16.png',
-      shadowUrl: 'img/icons/check-16.png',
-    	iconSize: new L.Point(16, 16),
-    	shadowSize: new L.Point(16, 16),
-    	iconAnchor: new L.Point(8, 8),
-    	popupAnchor: new L.Point(8, 8)
-    }
-  });  
-  
-  /* 
-   * Attempt to center the map on an address using Google's geocoder.
-   */
-  function codeAddress(address) {
-    //var address = document.getElementById("address-search").value;
-    console.log(address);
-    var detroit_address = address + " Detroit, MI"; // for ease of geocoding
-    var url = "http://dev.virtualearth.net/REST/v1/Locations/" + detroit_address + "?o=json&key=" + NSB.settings.bing_key + "&jsonp=?";
-
-    console.log(url);
-    $.getJSON(url, function(data){
-      if(data.resourceSets.length > 0){
-        console.log(data);
-        var point = data.resourceSets[0].resources[0].point;
-        console.log(point);
-        var latlng = new L.LatLng(point.coordinates[0], point.coordinates[1]);
-
-        var marker = new L.Marker(latlng);
-        map.addLayer(marker);
-        map.setView(latlng, 18);
-      };    
-    });
-  };
-  
-  
-  /* 
-   * Given a map object, return the bounds as a string
-   */
-  function getMapBounds(m) {
-    bounds = "";
-    bounds += m.getBounds().getNorthWest().toString();
-    bounds += " " + m.getBounds().getSouthEast().toString();  
-    return bounds;
-  };
-
+  var selectedPolygon = false;
+  var selectedCentroid = false;
+  var selectedObjectJSON = false;
   
   this.init = function() {
-    /*
-      Draw the parcel map on the survey page
-    */
-    map = new L.Map('map-div', {minZoom:13, maxZoom:18});
+    map = new L.Map(mapContainerId, {minZoom:13, maxZoom:18});
 
-    // Add the layer of done markers
+    // Add the layer of done markers; will be populated later
     map.addLayer(doneMarkersLayer);
 
     // Add a bing layer to the map
     bing = new L.BingLayer(NSB.settings.bing_key, 'AerialWithLabels', {maxZoom:21});
     map.addLayer(bing);
 
-    // Add the TileMill maps. 
-    // Get the JSON url from the settings.
+    // Add the maps from TileMill. 
     wax.tilejson(NSB.settings.maps[NSB.settings.locale]['json'], function(tilejson) {
       map.addLayer(new wax.leaf.connector(tilejson));
 
       // Highlight parcels when clicked
       map.on('click', function(e) {
-        // e contains information about the interaction. 
-       // console.log(e);
-       getPostgresData(e.latlng, function(data){
-         selected_parcel_json = data;
-         selected_centroid = new L.LatLng(selected_parcel_json.centroid.coordinates[1], selected_parcel_json.centroid.coordinates[0]);
-         setFormParcelPostGIS(data);
-         highlightPolygon(map, data);
-         selectParcel();
-       });
+        getPostgresData(e.latlng, function(data){
+          selectedObjectJSON = data;
+          selectedObjectJSON.selectedCentroid = new L.LatLng(selectedObjectJSON.centroid.coordinates[1], selectedObjectJSON.centroid.coordinates[0]);      
+          
+          highlightObject(data);
+          $.publish("objectSelected", [data.parcel_id, data.address]);
+        });
+        
+        
       });
 
       map.on('moveend', function(e) {
@@ -99,19 +46,13 @@ NSB.MapView = new function(){
       map.on('locationfound', onLocationFound);
       map.on('locationerror', onLocationError);
 
-
       // Center the map 
-      //map.locate({setView: true, maxZoom: 18});
-      // var sf = new L.LatLng(37.77555050754543, -122.41365958293713);
-      // For Detroit testing: 
-      var detroit = new L.LatLng(42.305213, -83.126260);
-      map.setView(detroit, 18);
-
+      map.locate({setView: true, maxZoom: 18});
 
       // Mark a location on the map. 
       // Primarily used with browser-based geolocation (aka "where am I?")
       function onLocationFound(e) {
-       // Add the accuracy circle to the map
+        // Add the accuracy circle to the map
       	var radius = e.accuracy / 2;
       	circle = new L.Circle(e.latlng, radius);
       	map.addLayer(circle);
@@ -126,27 +67,97 @@ NSB.MapView = new function(){
   };
   
   
+  // Icons ===================================================================
+  var CheckIcon = L.Icon.extend({
+    options: {
+      className: 'CheckIcon',
+      iconUrl: 'img/icons/check-16.png',
+      shadowUrl: 'img/icons/check-16.png',
+    	iconSize: new L.Point(16, 16),
+    	shadowSize: new L.Point(16, 16),
+    	iconAnchor: new L.Point(8, 8),
+    	popupAnchor: new L.Point(8, 8)
+    }
+  });  
+  
+  
+  // APIs ====================================================================
+  /* 
+   * Attempt to center the map on an address using Google's geocoder.
+   */
+  var codeAddress = function(address) {
+    //var address = document.getElementById("address-search").value;
+    console.log(address);
+    var detroitAddress = address + " Detroit, MI"; // for ease of geocoding
+    var geocodeEndpoint = "http://dev.virtualearth.net/REST/v1/Locations/" + detroitAddress + "?o=json&key=" + NSB.settings.bing_key + "&jsonp=?";
+
+    $.getJSON(url, function(data){
+      if(data.resourceSets.length > 0){
+        var point = data.resourceSets[0].resources[0].point;
+        var latlng = new L.LatLng(point.coordinates[0], point.coordinates[1]);
+
+        var marker = new L.Marker(latlng);
+        map.addLayer(marker);
+        map.setView(latlng, 18);
+      };    
+    });
+  };
+  
+  
+  // Given a Leaflet latlng object, return a JSON object that describes the 
+  // parcel.
+  // Attributes: parcel_id (string), address (string), polygon (GeoJSON)
+  var getPostgresData = function(latlng, callback) {
+    var lat = latlng.lat;
+    var lng = latlng.lng; //http://stormy-mountain-3909.herokuapp.com
+    var url = 'http://stormy-mountain-3909.herokuapp.com/detroit/parcel?lat=' + lat + '&lng=' + lng;
+    console.log(url);
+    
+    $.mobile.showPageLoadingMsg(); //Show spinner
+    
+    $.getJSON(url, function(data){
+      // Process the results. Strip whitespace. Convert the polygon to geoJSON
+      var result = {
+        parcel_id: data[0].trim(), 
+        address: data[3].trim(),
+        polygon: jQuery.parseJSON(data[4]),
+        centroid: jQuery.parseJSON(data[5])
+      };
+      
+      $.mobile.hidePageLoadingMsg(); //Hide spinner
+      callback(result);
+    });
+  };
+  
+
+  /* 
+   * Return the bounds of the map as a string
+   */
+  var getMapBounds = function() {
+    bounds = "";
+    bounds += map.getBounds().getNorthWest().toString();
+    bounds += " " + map.getBounds().getSouthEast().toString();  
+    return bounds;
+  };
+  
+  
+  // Handle selecting objects ===============================================
   /* 
    * Outline the given polygon
+   * expects polygon to be {coordinates: [[x,y], [x,y], ...] }
    */
-  function highlightPolygon(map, selected_parcel_json) {
-    // expects format: 
-    // {coordinates: [[x,y], [x,y], ...] }
-
-    polygon_json = selected_parcel_json.polygon;
+  var highlightObject = function(selectedObjectJSON) {
+    polygonJSON = selectedObjectJSON.polygon;
 
     // Remove existing highlighting 
-    if(selected_polygon) {
-      map.removeLayer(selected_polygon);
+    if(selectedPolygon) {
+      map.removeLayer(selectedPolygon);
     };
-
-    console.log("Polygon JSON");
-    console.log(polygon_json);
 
     // Add the new polygon
     var polypoints = new Array();  
-    for (var i = polygon_json.coordinates[0].length - 1; i >= 0; i--){
-      point = new L.LatLng(polygon_json.coordinates[0][i][1], polygon_json.coordinates[0][i][0]);
+    for (var i = polygonJSON.coordinates[0].length - 1; i >= 0; i--){
+      point = new L.LatLng(polygonJSON.coordinates[0][i][1], polygonJSON.coordinates[0][i][0]);
       polypoints.push(point);
     };
     options = {
@@ -154,17 +165,14 @@ NSB.MapView = new function(){
         fillColor: 'transparent',
         fillOpacity: 0.5
     };
-    selected_polygon = new L.Polygon(polypoints, options);
-    map.addLayer(selected_polygon);
-
-    return selected_polygon;  
-  }
+    selectedPolygon = new L.Polygon(polypoints, options);
+    map.addLayer(selectedPolygon);
+  };
   
   /*
    * Adds a checkbox marker to the given point
    */
-  function addDoneMarker(latlng, id) {
-
+  var addDoneMarker = function(latlng, id) {
     // Only add markers if they aren't already on the map.
     if (markers[id] == undefined){
       var doneIcon = new CheckIcon();
@@ -177,10 +185,9 @@ NSB.MapView = new function(){
   
   /*
    * Get all the responses in a map 
-   * TODO -- Extract out API stuff
    */
-  function getResponsesInMap(){  
-    // Don't add any markers if the zoom is really wide out. 
+  var getResponsesInMap = function(){  
+    // Don't add any markers if the zoom is really far out. 
     zoom = map.getZoom();
     if(zoom < 17) {
       return;
@@ -192,8 +199,8 @@ NSB.MapView = new function(){
     northeast = bounds.getNorthEast();
 
     // Given the bounds, generate a URL to ge the responses from the API.
-    serialized_bounds = southwest.lat + "," + southwest.lng + "," + northeast.lat + "," + northeast.lng;
-    var url = this.getSurveyURL() + "/responses/in/" + serialized_bounds;
+    serializedBounds = southwest.lat + "," + southwest.lng + "," + northeast.lat + "," + northeast.lng;
+    var url = NSB.API.getSurveyURL() + "/responses/in/" + serializedBounds;
     console.log(url);
 
     // Loop through the responses and add a done marker.
@@ -203,28 +210,11 @@ NSB.MapView = new function(){
           p = new L.LatLng(elt.geo_info.centroid[0],elt.geo_info.centroid[1]);
           id = elt.parcel_id;
           addDoneMarker(p, id);
-          console.log(p);
         });
       };
     });
   };
   
-  
-  
-  /*
-   * Hides and shows things once the parcel has been suggested.
-   */
-  function selectParcel(m, latlng) {
-    if(!$('#form').is(":visible")) {
-        $('#form').slideToggle();
-    }
-    if($('#startpoint').is(":visible")) {
-      $('#startpoint').slideToggle();
-    }
-    if($('#thanks').is(":visible")) {
-      $('#thanks').slideToggle();
-    }
-  };
                        
   // Private
   var privatestuff = function() {
@@ -236,7 +226,5 @@ NSB.MapView = new function(){
     privatestuff();
   };
   
-  // Getters / Setters
-
-  
+  this.init();
 };

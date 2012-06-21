@@ -1,42 +1,30 @@
 /* 
  * Basic app functionality for the mobile survey. 
- * 
- * 
- * 
  */
 
-// App namespace
-var NSB = {
-  'collector_name': "",
-  map = ...
-  form = ....
+
+var NSB = {  
   
-  init: function() {
-    /*
-     * Show the survey & hide the front page after the sign-in form has been 
-     * submitted.
-     */
+  init: function() {  
+    // Show the survey & hide the front page after the sign-in form has been 
+    // submitted.
     $("#collector-name-submit").click(function(event) {
-      // Get the value of the collector name
-      this.collector_name = $("#collector_name").val();
-      $("#startpoint h2").html("Welcome, " + this.collector_name + 
-        "<br>Select a parcel to begin");
-      $(".collector").val(this.collector_name);
+      NSB.collectorName = $("#collector_name").val();
+      $("#startpoint h2").html("Welcome, " + NSB.collectorName + "<br>Select a parcel to begin");
+      $(".collector").val(NSB.collectorName);
       
       // Set a cookie with the collector's name
-      $.cookie("collector-name", this.collector_name, { path: '/' });
+      $.cookie("collectorName", NSB.collectorName, { path: '/' });
       
       // Hide the homepage, show the survey
       $('#home-container').slideToggle();
       $('#survey-container').slideToggle();
       $("body").attr("id","survey");
       
-      // Draw the map
-      NSB.Map.init();
-      
-    }); // end collector-name-submit
+      NSB.map = new NSB.MapView('map-div');
+      NSB.f = new NSB.FormView('#form');
+    }); 
   }
-  
 };
 
 

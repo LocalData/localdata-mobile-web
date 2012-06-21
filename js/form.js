@@ -1,13 +1,30 @@
-NSB.FormView = new function(){
-  // Init
-  var form = $(".....");
+NSB.FormView = function(formContainerId){
+  var form = $(formContainerId);
   
-  // Bind stuff here....
+  this.init = function(){
+    // Set the URLs on all forms
+    url = NSB.API.getSurveyURL() + $(this).attr('action'); 
+    form.attr('action', url);    
+  };
   
+  $.subscribe("objectSelected", setSelectedObjectInfo);  
   
-  
-  // Private
-  
+
+  var setSelectedObjectInfo = function(parcelId, humanReadableLocation) {
+    $('.parcel_id').val(parcelId);
+    $('h2 .parcel_id').text(humanReadableLocation);
+    
+    if(!$('#form').is(":visible")) {
+        $('#form').slideToggle();
+    }
+    if($('#startpoint').is(":visible")) {
+      $('#startpoint').slideToggle();
+    }
+    if($('#thanks').is(":visible")) {
+      $('#thanks').slideToggle();
+    }
+  };
+
   
   /*
   Serialize an HTML form for submission to the API
@@ -166,14 +183,7 @@ NSB.FormView = new function(){
    });
    
    
-     /*
-   * Set the URLs on all forms
-   */
-  $("form").each(function(index, form) {
-    url = getSurveyURL() + $(this).attr('action'); 
-    $(this).attr('action', url);
-  });
-
+  
 
   /* 
    * Clear the form and thank the user after a successful submission
@@ -196,8 +206,6 @@ NSB.FormView = new function(){
     if($('#address-search').is(":visible")) {
       $('#address-search').slideToggle();
     }
-
-
 
     resetForm();
   }
@@ -274,8 +282,7 @@ NSB.FormView = new function(){
   this.something = function(){
     privatestuff();
   };
-  
-  // Getters / Setters
 
   
-}
+  this.init();
+};
