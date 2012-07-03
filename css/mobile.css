@@ -34,9 +34,7 @@ small {
   padding:0;
 }
 
-#survey-container,
-#feedback-in,
-#feedback-send {
+#survey-container 
   display:none;
 }
 
@@ -45,8 +43,7 @@ h2,
 #thanks,
 #form fieldset,
 #address-search,
-#tools,
-#feedback {
+#tools {
   padding:1em;
 }
 
