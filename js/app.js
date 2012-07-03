@@ -5,9 +5,12 @@
 
 var NSB = {  
   
+  /* 
+   * Show the survey & hide the front page after the sign-in form has been 
+   * submitted
+   */
+ 
   init: function() {  
-    // Show the survey & hide the front page after the sign-in form has been 
-    // submitted.
     $("#collector-name-submit").click(function(event) {
       NSB.collectorName = $("#collector_name").val();
       $("#startpoint h2").html("Welcome, " + NSB.collectorName + "<br>Select a parcel to begin");
@@ -140,21 +143,6 @@ if(typeof(String.prototype.trim) === "undefined")
 //    $('#feedback-in').slideToggle();
 //  });
 //  
-//  
-//  /*
-//   * Submit the feedback form 
-//   */
-//  $("#feedback-form").submit(function(event){ 
-//    // set the bounds for debugging.
-//    event.preventDefault();
-//    $('.bounds').val(getMapBounds(map));
-//    ajaxFormSubmit(event, $("#feedback-form"), function() { 
-//      console.log("Feedback form submitted successfully");
-//      $('#feedback-show').slideToggle();
-//      $('#feedback-in').slideToggle();
-//    });
-//  });
-// 
 // 
 //  
 //}); // end onready
