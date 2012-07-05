@@ -41,6 +41,82 @@ var QuestionIcon = L.Icon.extend({
   }
 });                       
 
+/*
+ * Cross-origin requests
+ * We need to use XDomainRequest on IE 8 and 9. We can use jQuery on other platforms.
+ */
+function getRandomInt(min, max)  {  
+  return Math.floor(Math.random() * (max - min + 1)) + min;  
+} 
+
+function apiAjax(url, data, type) {
+  // TODO: We should just use $.ajax on IE 10, even though it has XDomainRequest.
+  if (window.XDomainRequest) {
+    var def = new $.Deferred();
+    var xdr = new window.XDomainRequest();
+    var apiUrl;
+    if (type === 'GET') {
+      // HACK: IE returns the cached response when we refresh, so we change the
+      // URL to fool it
+      $.extend(data, { nocache: getRandomInt(0,100000).toString() });
+      var queryParts = [];
+      var key;
+      for (key in data) {
+        if (data.hasOwnProperty(key)) {
+          queryParts.push(encodeURIComponent(key) + '=' + encodeURIComponent(data[key]));
+        }
+      }
+      if (url.indexOf('?') !== -1) {
+        apiUrl = url + '&' + queryParts.join('&');
+      } else {
+        apiUrl = url + '?' + queryParts.join('&');
+      }
+    } else {
+      apiUrl = url;
+    }
+    xdr.open(type, apiUrl);
+    xdr.onload = function() {
+      def.resolve(JSON.parse(xdr.responseText));
+    };
+    xdr.onerror = function() {
+      def.reject();
+    };
+    xdr.onprogress = function() {};
+
+    if (type === 'POST') {
+      xdr.send(JSON.stringify(data));
+    } else {
+      xdr.send();
+    }
+
+    return def;
+  }
+
+  return $.ajax({
+    url: url,
+    type: type,
+    data: data,
+    dataType: 'json'
+  });
+}
+
+function apiGet(url, data) {
+  return apiAjax(url, data, 'GET');
+}
+
+function apiGetJSONP(url, data) {
+  return $.ajax({
+    url: url,
+    data: data,
+    dataType: 'json'
+  });
+}
+
+function apiPost(url, data) {
+  return apiAjax(url, data, 'POST');
+}
+
+
 
 /*
 Generates the URL to retrieve results for a given parcel
@@ -156,7 +232,7 @@ function getPostgresData(latlng, callback) {
   var lng = latlng.lng; //http://stormy-mountain-3909.herokuapp.com
   var url = 'http://stormy-mountain-3909.herokuapp.com/detroit/parcel?lat=' + lat + '&lng=' + lng;
   console.log(url);
-  $.getJSON(url, function(data){
+  apiGet(url).done(function (data) {
     // Process the results. Strip whitespace. Convert the polygon to geoJSON
     var result = {
       parcel_id: data[0].trim(), 
@@ -219,7 +295,7 @@ function getResponsesInMap(){
   console.log(url);
   
   // Loop through the responses and add a done marker.
-  $.getJSON(url, function(data){
+  apiGet(url).done(function (data) {
     if(data.responses) {
       $.each(data.responses, function(key, elt) {
         console.log("result");
@@ -332,7 +408,7 @@ function codeAddress(address) {
   var url = "http://dev.virtualearth.net/REST/v1/Locations/" + detroit_address + "?o=json&key=" + settings.bing_key + "&jsonp=?";
 
   console.log(url);
-  $.getJSON(url, function(data){
+  apiGetJSONP(url).done(function (data) {
     if(data.resourceSets.length > 0){
       console.log(data);
       var point = data.resourceSets[0].resources[0].point;
@@ -387,20 +463,22 @@ function ajaxFormSubmit(event, form, successCallback) {
   console.log(serialized);
 
   // Post the form
-  var jqxhr = $.post(url, {responses: [{parcel_id:serialized, responses: serialized}]}, 
-   function() {
+  apiPost(url, {responses: [{parcel_id:serialized, responses: serialized}]})
+  .always(function () {
      console.log("Form posted");
-   },
-   "text"
-  ).error(function(){ 
-    var result = "";
-    for (var key in jqxhr) {
-      result += key + ": " + jqxhr[key] + "\n";
+  })
+  .fail(function (jqxhr) {
+    if (jqxhr) {
+      var result = "";
+      for (var key in jqxhr) {
+        result += key + ": " + jqxhr[key] + "\n";
+      }
+      console.log("error: " + result);
+    } else {
+      console.log("Unknown error");
     }
-    console.log("error: " + result);
-  }).success(
-    successCallback()
-  );
+  })
+  .done(successCallback);
   
   return this;
 };
@@ -718,16 +796,22 @@ $(document).ready(function(){
     console.log(responses);
     
     // Post the form
-    var jqxhr = $.post(url, responses, function() {
-        console.log("Form successfully posted");
-      },
-      "text").error(function(){ 
-      var result = "";
-      for (var key in jqxhr) {
-        result += key + ": " + jqxhr[key] + "\n";
+    apiPost(url, responses)
+    .fail(function (jqxhr) {
+      if (jqxhr) {
+        var result = "";
+        for (var key in jqxhr) {
+          result += key + ": " + jqxhr[key] + "\n";
+        }
+        console.log("error: " + result);
+      } else {
+        console.log("Unknown error");
       }
-      console.log("error: " + result);
-    }).success(function(){
+    })
+    .done(function () {
+      console.log("Form successfully posted");
+    })
+    .done(function () {
       successfulSubmit();
     });
   });
