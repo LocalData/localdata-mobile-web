@@ -11,7 +11,6 @@ var doneMarkersLayer = new L.LayerGroup();
 var pointMarkersLayer = new L.LayerGroup();
 var questionMarkersLayer = new L.LayerGroup();
 
-
 var selected_polygon = false;
 var selected_centroid = false;
 var selected_parcel_json = false;

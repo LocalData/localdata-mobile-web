@@ -96,8 +96,8 @@
             	  <a href="dialogs/on-site.html" data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Site</a>
               </legend>
           	  
-             	<input type="radio" name="site" id="buildings" value="buildings" class="show-options">
-             	<label for="buildings">Building(s)</label>
+             	<input type="radio" name="site" id="site" value="one-building">
+             	<label for="site">One building</label>
 
              	<input type="radio" name="site" id="multiple-codes" value="multiple-codes" class="show-options">
              	<label for="multiple-codes">Multiple codes</label>
@@ -141,7 +141,13 @@
               
                 <input type="radio" name="use" value="residential" id="residential">
                 <label for="residential">Residential</label>
-                                
+
+                <input type="radio" name="use" value="park" id="park">
+                <label for="park">Park</label>
+                
+                <input type="radio" name="use" value="government" id="government">
+                <label for="government">Government</label>
+              
                 <input type="radio" name="use" value="unknown" id="unknown">
                 <label for="unknown">Unknown</label>
             </fieldset>
@@ -276,7 +282,6 @@
             <label for="pedestrian">Pedestrian-oriented</label>
           </fieldset>
         </div>
-        
 
         <div data-role="fieldcontain">
           <fieldset data-role="controlgroup">
@@ -377,7 +382,7 @@
             
               <input data-role="none" type="radio" name="use" value="residential" id="residential">
               <label for="residential">Residential</label>
-                            
+
               <input data-role="none" type="radio" name="use" value="unknown" id="unknown">
               <label for="unknown">Unknown</label>
           </fieldset>

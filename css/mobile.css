@@ -65,6 +65,21 @@ h2,
   padding-left:30px;
 }
 
+
+#startpoint,
+#startpoint h2,
+#tools {
+  padding-bottom:0;
+}
+
+#tools {
+  padding:0px 30px 0px 30px;
+}
+
+#address-search {
+  padding-left:30px;
+}
+
 #form {
   background:#fff;
   border-bottom:2px solid #ddd;
