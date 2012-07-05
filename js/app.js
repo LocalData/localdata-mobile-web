@@ -9,7 +9,6 @@ var NSB = {
    * Show the survey & hide the front page after the sign-in form has been 
    * submitted
    */
- 
   init: function() {  
     $("#collector-name-submit").click(function(event) {
       NSB.collectorName = $("#collector_name").val();
@@ -134,16 +133,6 @@ if(typeof(String.prototype.trim) === "undefined")
 //    $("body").attr("id","survey");
 //  });
 //  
-//  
-//  /*
-//   * Show the feedback bar
-//   */
-//  $("#feedback-show").click(function(event) {
-//    $('#feedback-show').slideToggle();
-//    $('#feedback-in').slideToggle();
-//  });
-//  
-// 
 //  
 //}); // end onready
   

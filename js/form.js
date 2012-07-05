@@ -7,10 +7,12 @@ NSB.FormView = function(formContainerId){
     form.attr('action', url);    
   };
   
+  // Listen for events
   $.subscribe("objectSelected", setSelectedObjectInfo);  
   
 
   var setSelectedObjectInfo = function(parcelId, humanReadableLocation) {
+    console.log("Hey setting selected object info");
     $('.parcel_id').val(parcelId);
     $('h2 .parcel_id').text(humanReadableLocation);
     

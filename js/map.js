@@ -23,6 +23,7 @@ NSB.MapView = function(mapContainerId){
     wax.tilejson(NSB.settings.maps[NSB.settings.locale]['json'], function(tilejson) {
       map.addLayer(new wax.leaf.connector(tilejson));
 
+      // Click handler
       // Highlight parcels when clicked
       map.on('click', function(e) {
         getPostgresData(e.latlng, function(data){
@@ -36,12 +37,15 @@ NSB.MapView = function(mapContainerId){
         
       });
 
+      // MoveEnd handler
+      // Show which parcels have responses when the map is moved.
       map.on('moveend', function(e) {
         try {
           getResponsesInMap();
         } catch(e){}
       });
 
+      // Location handlers
       // Used for centering the map when we're using geolocation.
       map.on('locationfound', onLocationFound);
       map.on('locationerror', onLocationError);
@@ -64,7 +68,7 @@ NSB.MapView = function(mapContainerId){
       	alert(e.message);
       }
     });
-  };
+  }; // end init
   
   
   // Icons ===================================================================
@@ -109,7 +113,7 @@ NSB.MapView = function(mapContainerId){
   // Attributes: parcel_id (string), address (string), polygon (GeoJSON)
   var getPostgresData = function(latlng, callback) {
     var lat = latlng.lat;
-    var lng = latlng.lng; //http://stormy-mountain-3909.herokuapp.com
+    var lng = latlng.lng; 
     var url = 'http://stormy-mountain-3909.herokuapp.com/detroit/parcel?lat=' + lat + '&lng=' + lng;
     console.log(url);
     
