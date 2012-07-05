@@ -4,12 +4,13 @@ var settings = {
 };
 
 var BASEURL = 'http://surveydet.herokuapp.com'; // no trailing slash
+BASEURL = 'http://surveyapidev.herokuapp.com/';
 BASEURL = 'http://localhost:3000';
+
 var GEOAPI = 'http://stormy-mountain-3909.herokuapp.com';
 var SURVEYID = '23206450-a0ac-11e1-ae6a-a17fba15c6fd'; // WSU
-//SURVEYID = '69bef580-88eb-11e1-af82-a7908e0eb230'; //test survey
-
-var CARTO_ACCOUNT = 'matth';
+SURVEYID = '69bef580-88eb-11e1-af82-a7908e0eb230'; //test survey
+SURVEYID = '06b1b920-bfb2-11e1-96af-73f00f6f83d7'; // local test survey
 
 var locale = "detroit-transparent"; // our current set of parcels. 
 

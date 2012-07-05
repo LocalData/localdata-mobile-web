@@ -5,9 +5,11 @@
 // TODO: Abstract these into an object that can be passed around
 var map, marker;
 var markers = {};
+var questionMarkers = {};
 var locationCircles = new L.LayerGroup();
 var doneMarkersLayer = new L.LayerGroup();
 var pointMarkersLayer = new L.LayerGroup();
+var questionMarkersLayer = new L.LayerGroup();
 
 var selected_polygon = false;
 var selected_centroid = false;
@@ -19,6 +21,19 @@ var CheckIcon = L.Icon.extend({
     className: 'CheckIcon',
     iconUrl: 'img/icons/check-16.png',
     shadowUrl: 'img/icons/check-16.png',
+  	iconSize: new L.Point(16, 16),
+  	shadowSize: new L.Point(16, 16),
+  	iconAnchor: new L.Point(8, 8),
+  	popupAnchor: new L.Point(8, 8)
+  }
+});                       
+
+
+var QuestionIcon = L.Icon.extend({
+  options: {
+    className: 'QuestionIcon',
+    iconUrl: 'img/icons/question-16.png',
+    shadowUrl: 'img/icons/question-16.png',
   	iconSize: new L.Point(16, 16),
   	shadowSize: new L.Point(16, 16),
   	iconAnchor: new L.Point(8, 8),
@@ -71,6 +86,8 @@ Moves the marker to indicate the selected parcel.
 function selectParcel(m, latlng) {
   if(!$('#form').is(":visible")) {
       $('#form').slideToggle();
+      console.log('showing default');
+      $('.show-default').show();
   }
   if($('#startpoint').is(":visible")) {
     $('#startpoint').slideToggle();
@@ -167,6 +184,21 @@ function addDoneMarker(latlng, id) {
 
 
 /*
+ * Adds a question marker to the given point
+ */
+function addQuestionMarker(latlng, id) {
+  // Only add markers if they aren't already on the map.
+  if (questionMarkers[id] == undefined){
+    var checkIcon = new QuestionIcon();
+    doneMarker = new L.Marker(latlng, {icon: checkIcon});
+    questionMarkersLayer.addLayer(doneMarker);
+    markers[id] = doneMarker;
+  };
+};
+
+
+
+/*
  * Get all the responses in a map 
  */
 function getResponsesInMap(){  
@@ -194,8 +226,13 @@ function getResponsesInMap(){
         console.log(elt);
         p = new L.LatLng(elt.geo_info.centroid[0],elt.geo_info.centroid[1]);
         id = elt.parcel_id;
-                
-        addDoneMarker(p, id);
+        
+        if (elt.responses['needs-verification'] == 'on') {
+          console.log("needs verification");
+          addQuestionMarker(p, id);
+        }else {
+          addDoneMarker(p, id);
+        };
       });
     };
   });
@@ -209,6 +246,7 @@ function drawMap() {
   map = new L.Map('map-div', {minZoom:13, maxZoom:20});
   
   // Add the layer of done markers
+  map.addLayer(questionMarkersLayer);
   map.addLayer(doneMarkersLayer);
   map.addLayer(locationCircles);
   
@@ -250,8 +288,8 @@ function drawMap() {
     map.locate({setView: true, maxZoom: 18});
     // var sf = new L.LatLng(37.77555050754543, -122.41365958293713);
     // For Detroit testing: 
-    //var detroit = new L.LatLng(42.305213, -83.126260);
-    //map.setView(detroit, 18);
+    // var detroit = new L.LatLng(42.305213, -83.126260);
+    // map.setView(detroit, 18);
     
 
     // Mark a location on the map. 
@@ -403,6 +441,7 @@ function resetForm() {
   // Remove additional template groups (eg use options)
   $('form .template-group').remove();
 
+  
   // Reset count of template groups
   $('#use-count').attr('value', 1);
 };
@@ -429,8 +468,6 @@ function successfulSubmit() {
     $('#address-search').slideToggle();
   }
   
-  
-  
   resetForm();
 }
 
@@ -442,13 +479,38 @@ function successfulSubmit() {
  */
 $(document).ready(function(){  
   
+  $('input.hide-options').change(function(){
+    var id = $(this).attr('id');
+    var to_hide = '.contingent-hide-' + id;
+    
+    $(to_hide).each(function(index){
+      if ($(this).is(':visible')) {
+        $(this).slideToggle();    
+      };
+    });
+    
+    // Clear out selected options so we don't accidentally submit them
+    $(to_hide).find('input').each(function(index){
+      $(this).attr('checked', false).checkboxradio('refresh',true);
+    });
+  });
+  
+  $('input.show-options').change(function(){
+    var id = $(this).attr('id');
+    var to_show = '.contingent-show-' + id;
+    
+    $(to_show).each(function(index){
+      if ($(this).is(':hidden')) {
+        $(this).slideToggle();
+      };
+    });
+  });
+  
+  
   /* 
    * Show additional questions based on selected options.
    */
    $('[id^="options-use"] input').change(function(){    
-     console.log("Hiding options");
-     console.log(this);    
-
      // First, find the options groups in the field, and hide + clear them.
      var opt_group = $(this).closest('.opt-group');
      opt_group.find('.options').each(function(index){
@@ -523,7 +585,7 @@ $(document).ready(function(){
      var container = $("#template-use .opt-group");
      var clone = container.clone(true); 
      
-     // Set the number of times clicked
+     // Update the number of times the count has been increased
      var count = parseInt($('#use-count').attr('value'), 10);
      count = count + 1;
      $('#use-count').attr('value', count);
@@ -534,7 +596,6 @@ $(document).ready(function(){
        // Set counts
        $(this).attr('id', $(this).attr('id') + "-" + count);
        $(this).attr('name', $(this).attr('name') + "-" + count);
-       
      });
      
      clone.find('.use-id').text(count);

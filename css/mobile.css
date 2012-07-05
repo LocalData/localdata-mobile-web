@@ -47,7 +47,22 @@ h2,
 #address-search,
 #tools,
 #feedback {
-  padding:1em;
+  padding:.5em;
+}
+
+
+#startpoint,
+#startpoint h2,
+#tools {
+  padding-bottom:0;
+}
+
+#tools {
+  padding:0px 10px 0px 10px;
+}
+
+#address-search {
+  padding-left:30px;
 }
 
 
