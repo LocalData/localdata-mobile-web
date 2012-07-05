@@ -105,6 +105,14 @@ function apiGet(url, data) {
   return apiAjax(url, data, 'GET');
 }
 
+function apiGetJSONP(url, data) {
+  return $.ajax({
+    url: url,
+    data: data,
+    dataType: 'json'
+  });
+}
+
 function apiPost(url, data) {
   return apiAjax(url, data, 'POST');
 }
@@ -401,7 +409,7 @@ function codeAddress(address) {
   var url = "http://dev.virtualearth.net/REST/v1/Locations/" + detroit_address + "?o=json&key=" + settings.bing_key + "&jsonp=?";
 
   console.log(url);
-  apiGet(url).done(function (data) {
+  apiGetJSONP(url).done(function (data) {
     if(data.resourceSets.length > 0){
       console.log(data);
       var point = data.resourceSets[0].resources[0].point;
