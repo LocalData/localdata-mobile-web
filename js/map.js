@@ -5,11 +5,12 @@ NSB.MapView = function(mapContainerId){
   var doneMarkersLayer = new L.LayerGroup();
   var pointMarkersLayer = new L.LayerGroup();
 
-  var selectedPolygon = false;
-  var selectedCentroid = false;
-  var selectedObjectJSON = false;
+  var selectedPolygon = null;
+  var selectedCentroid = null;
+  var selectedObjectJSON = null;
   
   this.init = function() {
+    console.log("Initialize map");
     map = new L.Map(mapContainerId, {minZoom:13, maxZoom:18});
 
     // Add the layer of done markers; will be populated later
@@ -18,23 +19,30 @@ NSB.MapView = function(mapContainerId){
     // Add a bing layer to the map
     bing = new L.BingLayer(NSB.settings.bing_key, 'AerialWithLabels', {maxZoom:21});
     map.addLayer(bing);
+    
+    // Listen for events
+    $.subscribe("successfulSubmit", getResponsesInMap);
 
     // Add the maps from TileMill. 
     wax.tilejson(NSB.settings.maps[NSB.settings.locale]['json'], function(tilejson) {
       map.addLayer(new wax.leaf.connector(tilejson));
 
-      // Click handler
       // Highlight parcels when clicked
+      // Trigger form updates
       map.on('click', function(e) {
-        getPostgresData(e.latlng, function(data){
+        console.log("Map clicked");
+        
+        NSB.API.getObjectDataAtPoint(e.latlng, function(data){
           selectedObjectJSON = data;
-          selectedObjectJSON.selectedCentroid = new L.LatLng(selectedObjectJSON.centroid.coordinates[1], selectedObjectJSON.centroid.coordinates[0]);      
+          selectedCentroid = new L.LatLng(selectedObjectJSON.centroid.coordinates[1], selectedObjectJSON.centroid.coordinates[0]);      
           
           highlightObject(data);
-          $.publish("objectSelected", [data.parcel_id, data.address]);
+          NSB.selectedObject = {};
+          NSB.selectedObject.id = data.parcel_id;
+          NSB.selectedObject.humanReadableName = data.address;
+          
+          $.publish("objectSelected");
         });
-        
-        
       });
 
       // MoveEnd handler
@@ -68,9 +76,39 @@ NSB.MapView = function(mapContainerId){
       	alert(e.message);
       }
     });
+    
+    // Map tools =============================================================
+    // Handle searching for addresses
+    $("#address-search-toggle").click(function(){
+      console.log("Toggling address search");
+      $("#address-search").slideToggle();
+      $("#address-search-prompt").slideToggle();
+    });
+    
+    $("#address-submit").click(function(){
+      goToAddress($("#address-input").val());
+    });
+    
+    
   }; // end init
   
   
+  // Map information for consumers ===========================================
+  // Get the selected centroid.
+  // Pretty simple! 
+  this.getSelectedCentroid = function() {
+    return selectedCentroid;
+  };
+  
+  // Return the bounds of the map as a string
+  this.getMapBounds = function() {
+    bounds = "";
+    bounds += map.getBounds().getNorthWest().toString();
+    bounds += " " + map.getBounds().getSouthEast().toString();  
+    return bounds;
+  };
+  
+
   // Icons ===================================================================
   var CheckIcon = L.Icon.extend({
     options: {
@@ -85,71 +123,22 @@ NSB.MapView = function(mapContainerId){
   });  
   
   
-  // APIs ====================================================================
-  /* 
-   * Attempt to center the map on an address using Google's geocoder.
-   */
-  var codeAddress = function(address) {
-    //var address = document.getElementById("address-search").value;
-    console.log(address);
-    var detroitAddress = address + " Detroit, MI"; // for ease of geocoding
-    var geocodeEndpoint = "http://dev.virtualearth.net/REST/v1/Locations/" + detroitAddress + "?o=json&key=" + NSB.settings.bing_key + "&jsonp=?";
-
-    $.getJSON(url, function(data){
-      if(data.resourceSets.length > 0){
-        var point = data.resourceSets[0].resources[0].point;
-        var latlng = new L.LatLng(point.coordinates[0], point.coordinates[1]);
-
-        var marker = new L.Marker(latlng);
-        map.addLayer(marker);
-        map.setView(latlng, 18);
-      };    
+  // Move the map ============================================================
+  // Attempt to center the map on an address using Google's geocoder.
+  // This should probably live in APIs. 
+  var goToAddress = function(address) {
+    console.log("Coding an address");
+    NSB.API.codeAddress(address, function(latlng){
+      var marker = new L.Marker(latlng);
+      map.addLayer(marker);
+      map.setView(latlng, 18);
     });
   };
-  
-  
-  // Given a Leaflet latlng object, return a JSON object that describes the 
-  // parcel.
-  // Attributes: parcel_id (string), address (string), polygon (GeoJSON)
-  var getPostgresData = function(latlng, callback) {
-    var lat = latlng.lat;
-    var lng = latlng.lng; 
-    var url = 'http://stormy-mountain-3909.herokuapp.com/detroit/parcel?lat=' + lat + '&lng=' + lng;
-    console.log(url);
     
-    $.mobile.showPageLoadingMsg(); //Show spinner
     
-    $.getJSON(url, function(data){
-      // Process the results. Strip whitespace. Convert the polygon to geoJSON
-      var result = {
-        parcel_id: data[0].trim(), 
-        address: data[3].trim(),
-        polygon: jQuery.parseJSON(data[4]),
-        centroid: jQuery.parseJSON(data[5])
-      };
-      
-      $.mobile.hidePageLoadingMsg(); //Hide spinner
-      callback(result);
-    });
-  };
-  
-
-  /* 
-   * Return the bounds of the map as a string
-   */
-  var getMapBounds = function() {
-    bounds = "";
-    bounds += map.getBounds().getNorthWest().toString();
-    bounds += " " + map.getBounds().getSouthEast().toString();  
-    return bounds;
-  };
-  
-  
   // Handle selecting objects ===============================================
-  /* 
-   * Outline the given polygon
-   * expects polygon to be {coordinates: [[x,y], [x,y], ...] }
-   */
+  // Outline the given polygon
+  // expects polygon to be {coordinates: [[x,y], [x,y], ...] }
   var highlightObject = function(selectedObjectJSON) {
     polygonJSON = selectedObjectJSON.polygon;
 
@@ -173,9 +162,7 @@ NSB.MapView = function(mapContainerId){
     map.addLayer(selectedPolygon);
   };
   
-  /*
-   * Adds a checkbox marker to the given point
-   */
+  // Adds a checkbox marker to the given point
   var addDoneMarker = function(latlng, id) {
     // Only add markers if they aren't already on the map.
     if (markers[id] == undefined){
@@ -186,49 +173,29 @@ NSB.MapView = function(mapContainerId){
     };
   };
   
-  
-  /*
-   * Get all the responses in a map 
-   */
+  // Get all the responses in a map 
   var getResponsesInMap = function(){  
+    console.log("Getting responses in the map");
+    
     // Don't add any markers if the zoom is really far out. 
     zoom = map.getZoom();
     if(zoom < 17) {
       return;
     }
 
-    // Get the map bounds
-    bounds = map.getBounds();
-    southwest = bounds.getSouthWest();
-    northeast = bounds.getNorthEast();
-
-    // Given the bounds, generate a URL to ge the responses from the API.
-    serializedBounds = southwest.lat + "," + southwest.lng + "," + northeast.lat + "," + northeast.lng;
-    var url = NSB.API.getSurveyURL() + "/responses/in/" + serializedBounds;
-    console.log(url);
-
-    // Loop through the responses and add a done marker.
-    $.getJSON(url, function(data){
-      if(data.responses) {
-        $.each(data.responses, function(key, elt) {
-          p = new L.LatLng(elt.geo_info.centroid[0],elt.geo_info.centroid[1]);
-          id = elt.parcel_id;
-          addDoneMarker(p, id);
-        });
-      };
+    // Get the objects in the bounds
+    // And add them to the map   
+    NSB.API.getObjectsInBounds(map.getBounds(), function(results) {
+      $.each(results, function(key, elt) {
+        p = new L.LatLng(elt.geo_info.centroid[0],elt.geo_info.centroid[1]);
+        id = elt.parcel_id;
+        addDoneMarker(p, id);
+      });
     });
+
   };
   
-                       
-  // Private
-  var privatestuff = function() {
-    
-  };
   
-  // Public
-  this.something = function(){
-    privatestuff();
-  };
-  
+  // Map init ================================================================
   this.init();
 };

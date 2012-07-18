@@ -1,10 +1,10 @@
 NSB.settings = {
   // ID of the current survey
-  surveyid: '23206450-a0ac-11e1-ae6a-a17fba15c6fd', // WSU
+  surveyid: '3dbbc420-9ad6-11e1-b4b6-f184112d9089', //'23206450-a0ac-11e1-ae6a-a17fba15c6fd', // WSU
   
   // URLs of services used to store, retrieve survey data
   api: {
-    baseurl: 'http://surveydet.herokuapp.com', // no trailing slash
+    baseurl: 'http://localhost:3000', // 'http://surveydet.herokuapp.com', // no trailing slash
     geo: 'http://stormy-mountain-3909.herokuapp.com',
   },
   

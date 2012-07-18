@@ -2,16 +2,23 @@
  * Basic app functionality for the mobile survey. 
  */
 
-
 var NSB = {  
-  
   /* 
    * Show the survey & hide the front page after the sign-in form has been 
    * submitted
    */
   init: function() {  
+    console.log("Initialize NSB");
+    
+    // Set the collector name, if we already know it.
+    if ($.cookie('collectorName') != null){
+      $("#collector_name").val($.cookie('collectorName'));
+    }
+    
     $("#collector-name-submit").click(function(event) {
-      NSB.collectorName = $("#collector_name").val();
+      console.log("Setting collector name");
+      
+      NSB.collectorName = $("#collector_name").val();      
       $("#startpoint h2").html("Welcome, " + NSB.collectorName + "<br>Select a parcel to begin");
       $(".collector").val(NSB.collectorName);
       
@@ -26,9 +33,9 @@ var NSB = {
       NSB.map = new NSB.MapView('map-div');
       NSB.f = new NSB.FormView('#form');
     }); 
+    
   }
 };
-
 
 $(document).ready(function(){ 
   NSB.init();
@@ -46,6 +53,7 @@ if(typeof(String.prototype.trim) === "undefined")
         return String(this).replace(/^\s+|\s+$/g, '');
     };
 }
+
 
 
 /* DOCUMENT READY ==========================================================*/
@@ -96,41 +104,6 @@ if(typeof(String.prototype.trim) === "undefined")
 //   */
 //  $("#address-submit").click(function(){
 //    codeAddress($("#address-input").val());
-//  });
-//  
-//  
-//  /*
-//   * Set the URLs on all forms
-//   */
-//  $("form").each(function(index, form) {
-//    url = getSurveyURL() + $(this).attr('action'); 
-//    $(this).attr('action', url);
-//  });
-//  
-//  
-//  
-//  /*
-//   * Show the survey & hide the front page after the sign-in form has been 
-//   * submitted
-//   */
-//  $("#collector-name-submit").click(function(event) {
-//    console.log("Button clicked");
-//    // Get the value of the collector name
-//    // Set a cookie with the name
-//    collector_name = $("#collector_name").val();
-//    console.log(collector_name);
-//    $.cookie("collector-name", collector_name, { path: '/' });
-//    $("#startpoint h2").html("Welcome, " + collector_name + 
-//      "<br>Select a parcel to begin");
-//    $(".collector").val(collector_name);
-//    
-//    // Hide the homepage, show the survey, draw the map
-//    $('#home-container').slideToggle();
-//    $('#survey-container').slideToggle();
-//    drawMap();
-//    
-//    // Change the body ID
-//    $("body").attr("id","survey");
 //  });
 //  
 //  

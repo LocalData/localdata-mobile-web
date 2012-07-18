@@ -9,7 +9,7 @@
     <title>Detroit Commercial Parcel Survey</title>
     
     <script src='js/lib/jquery.js' type="text/javascript"></script>
-    <script src="http://code.jquery.com/mobile/1.1.0-rc.2/jquery.mobile-1.1.0-rc.2.min.js"></script>
+    <script src="js/lib/jquery.mobile.js"></script>
     <script src='js/lib/jquery.cookie.js' type="text/javascript"></script>
     <script src='js/lib/jquery.tinypubsub.js' type="text/javascript"></script>
     <script src='js/lib/wax/ext/leaflet.js' type='text/javascript'></script>
@@ -81,9 +81,7 @@
       -->
       <form action="/responses" method="post" accept-charset="utf-8" id="parcelform" data-enhance="false">
 
-        <input type="hidden" name="parcel_id" value="" id="parcel_id" class="parcel_id">
         <input type="hidden" name="use-count" value="1" id="use-count" class="use-count">
-        <input type="hidden" name="collector" value="" id="collector" class="collector">
 
         <div data-role="fieldcontain">
             <fieldset data-role="controlgroup">
