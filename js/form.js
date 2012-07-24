@@ -1,5 +1,6 @@
 NSB.FormView = function(formContainerId){
   var form = $(formContainerId + ' form');
+  var formQuestions = $('#questions'); 
   
   this.init = function(){
     console.log("Initialize form");
@@ -10,6 +11,13 @@ NSB.FormView = function(formContainerId){
     
     // Listen for events
     $.subscribe("objectSelected", setSelectedObjectInfo);  
+    
+    // Render the form 
+    $.each(NSB.test.questions, function (index, question) {
+      console.log("Adding question");
+      console.log(question);
+      addQuestion(question);
+    });
     
     // Add a function to serialize the form for submission to the API
     // usage: form.serializeObject();
@@ -50,7 +58,9 @@ NSB.FormView = function(formContainerId){
     }
   };
 
-  // Form submission =========================================================
+  // Form submission 
+  // ===============
+  
   // Handle the parcel survey form being submitted
   form.submit(function(event) {
     console.log("Submitting survey results");
@@ -75,7 +85,7 @@ NSB.FormView = function(formContainerId){
         "source": {"type":"mobile", "collector":NSB.collectorName}, 
         "geo_info": {
           "centroid":[centroidLat, centroidLng], 
-          parcel_id: NSB.selectedObject.id, // Soon to be deprecated
+          parcel_id: NSB.selectedObject.id // Soon to be deprecated
         }, 
         "parcel_id": NSB.selectedObject.id, // Soon to be deprecated
         "object_id": NSB.selectedObject.id, // Replaces parcel_id
@@ -134,6 +144,7 @@ NSB.FormView = function(formContainerId){
   //  reset counts
   function resetForm() {
     console.log("Resetting form");
+    
     // Clear all checkboxes and radio buttons
     $('input:checkbox').each(function(index){
       try {
@@ -153,8 +164,113 @@ NSB.FormView = function(formContainerId){
     $('#use-count').attr('value', 1);
   };
   
+  // Render the form. 
+  // ================
+  function addQuestion(question, visible, parentID, triggerID) {
+    console.log("Adding question");
+    console.log(question);
+    console.log(question.name);
+    
+    if (visible === undefined) {
+      visible = true;
+    }
+    if (parentID === undefined) {
+      parentID = '';
+    }
+    if (triggerID === undefined) {
+      triggerID = '';
+    }
+
+    // Give the question an ID 
+    var id = _.uniqueId(question.name);
+    var data = {
+      text: question.text,
+      id: id,
+      parentID: parentID,
+      triggerID: triggerID
+    };
+
+    // Render the question block template
+    var $question = $(_.template($('#question').html(), data));
+    if (!visible) {
+      $question.hide();
+    }
+    formQuestions.append($question);
+
+    // Add each answer to the question
+    _.each(question.answers, function (answer) {
+      
+      // The triggerID is used to hide/show other question groups
+      var triggerID = _.uniqueId(question.name);
+      
+      // Set the data used to render the answer
+      var data = {
+        questionName: question.name,
+        id: triggerID,
+        value: answer.value,
+        text: answer.text
+      };
+      
+      // Render the answer and append it to the fieldset.
+      var $answer = $(_.template($('#answer').html(), data));
+      $question.append($answer);
+
+      // Add the click handler
+      $answer.click(function handleClick(e) {
+        // Hide all of the conditional questions, recursively.
+        hideSubQ(id);
+
+        // Show the conditional questions for this response.
+        $('.control-group[data-trigger=' + triggerID + ']').each(function (i) {
+          $(this).show();
+        });
+      });
+
+      // If there are conditional questions, add them.
+      // They are hidden by default.
+      if (answer.questions !== undefined) {
+        _.each(answer.questions, function (subq) {
+          addQuestion(subq, false, id, triggerID);
+        });
+      }
+    });
+    
+    // After adding each response, we need to make sure that jquery mobile
+    // knows to render each form element.
+    console.log(form);
+    form.trigger("create");
+    console.log(form);
+
+    // form.find('fieldset').each(function(index, elt){
+    //   console.log("Triggering create on form elements");
+    //   console.log(elt);
+    //   $(elt).removeAttr('data-role');
+    //   $(elt).trigger("create");
+    //   console.log(elt);
+    // });
+    
+  }
   
-  // Option group stuff ======================================================
+  
+  // Option group stuff 
+  // ======================================================
+  
+  // Show / hide sub questions
+  function hideSubQ(parent) {
+    $('.control-group[data-parent=' + parent + ']').each(function (i) {
+      var $el = $(this);
+      $el.hide();
+
+      // Uncheck the answers
+      $('input[type=radio]', $el).each(function () {
+        $(this).attr('checked', false);
+      });
+
+      // Handle conditional questions.
+      hideSubQ($el.attr('id'));
+    });
+  }
+  
   // Remove an option group
   $('.remove').click(function(){
     var parent = $(this).closest('.opt-group');

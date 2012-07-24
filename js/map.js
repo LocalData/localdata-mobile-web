@@ -89,7 +89,10 @@ NSB.MapView = function(mapContainerId){
       goToAddress($("#address-input").val());
     });
     
-    
+    $("#geolocate").click(function(){
+       map.locate({setView: true, maxZoom: 18});
+    });
+        
   }; // end init
   
   
@@ -194,7 +197,6 @@ NSB.MapView = function(mapContainerId){
     });
 
   };
-  
   
   // Map init ================================================================
   this.init();

@@ -89,22 +89,6 @@ if(typeof(String.prototype.trim) === "undefined")
 //     console.log("Showing options group " + group_to_show);
 //   });
 //   
-//   
-//  /*
-//   * Show the "search by address" form
-//   */
-//  $("#address-search-toggle").click(function(){
-//    console.log("Toggling address search");
-//    $("#address-search").slideToggle();
-//    $("#address-search-prompt").slideToggle();
-//  });
-//  
-//  /* 
-//   * Search for an address and locate it on the map
-//   */
-//  $("#address-submit").click(function(){
-//    codeAddress($("#address-input").val());
-//  });
 //  
 //  
 //}); // end onready

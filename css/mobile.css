@@ -55,7 +55,8 @@ h2,
 }
 
 #tools {
-  padding:0px 30px 0px 30px;
+  padding:5px 30px 5px 30px;
+  background:transparent url(../img/shadow.png) repeat-x left top;
 }
 
 #address-search {

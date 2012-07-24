@@ -17,7 +17,7 @@ NSB.API = new function() {
   // Given a Leaflet latlng object, return a JSON object that describes the 
   // parcel.
   this.getObjectDataAtPoint = function(latlng, callback) {
-    console.log("Processing PostGIS data");
+    console.log("Waiting for PostGIS data");
     var lat = latlng.lat;
     var lng = latlng.lng; 
     
@@ -26,6 +26,7 @@ NSB.API = new function() {
     $.getJSON(url, function(data){
       // Process the results. Strip whitespace. Convert the polygon to geoJSON
       // TODO: This will need to be genercized (id column, addres, etc.)
+      console.log("Got PostGIS data");
       callback(NSB.API.parseObjectData(data));
     }, this);
   };
