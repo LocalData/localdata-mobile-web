@@ -34,9 +34,7 @@ small {
   padding:0;
 }
 
-#survey-container,
-#feedback-in,
-#feedback-send {
+#survey-container {
   display:none;
 }
 
@@ -45,9 +43,8 @@ h2,
 #thanks,
 #form fieldset,
 #address-search,
-#tools,
-#feedback {
-  padding:.5em;
+#tools {
+  padding:1em;
 }
 
 
@@ -58,22 +55,8 @@ h2,
 }
 
 #tools {
-  padding:0px 10px 0px 10px;
-}
-
-#address-search {
-  padding-left:30px;
-}
-
-
-#startpoint,
-#startpoint h2,
-#tools {
-  padding-bottom:0;
-}
-
-#tools {
-  padding:0px 30px 0px 30px;
+  padding:5px 30px 5px 30px;
+  background:transparent url(../img/shadow.png) repeat-x left top;
 }
 
 #address-search {
@@ -175,35 +158,3 @@ input[type="submit"] {
   border-bottom:2px solid #ddd;
   margin-bottom:10px;
 }
-
-.ui-dialog-contain .ui-content {
-}
-
-.ui-dialog-contain .ui-content strong {
-  font-weight:bold; 
-}
-
-.ui-dialog-contain .ui-content em {
-  font-style:italic;
-}
-
-.ui-dialog-contain ol {
-  padding-left:20px;
-  list-style-type:decimal;
-}
-
-.ui-dialog-contain p,
-.ui-dialog-contain .callout,
-.ui-dialog-contain li {
-  margin-bottom:1em;
-  line-height:1.2;
-  font:verdana, sans-serif;
-}
-
-.ui-dialog-contain .callout {
-  margin-bottom:1.5em;
-  border:1px solid yellow;
-  padding:10px;
-  background:#ffe;
-}
-

@@ -3,43 +3,46 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<!--
-    <meta http-equiv="CACHE-CONTROL" content="NO-CACHE">
-    <meta http-equiv="PRAGMA" content="NO-CACHE">
--->
+    <META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE">
+    <META HTTP-EQUIV="PRAGMA" CONTENT="NO-CACHE">
       
     <title>Detroit Commercial Parcel Survey</title>
     
-    <script src='js/settings.js' type='text/javascript'></script>
-    <script src='js/vendor/jquery.js' type="text/javascript"></script>
-    <script src='js/async.min.js' type='text/javascript'></script>
+    <!-- Libraries -->
+    <script src='js/lib/jquery.js' type="text/javascript"></script>
+    <script src="js/lib/jquery.mobile.js"></script>
+    <script src='js/lib/jquery.cookie.js' type="text/javascript"></script>
+    <script src='js/lib/jquery.tinypubsub.js' type="text/javascript"></script>
+    <script src='js/lib/underscore.js' type='text/javascript'></script>
+    <script src='js/lib/wax/ext/leaflet.js' type='text/javascript'></script>
+    <script src='js/lib/wax/dist/wax.leaf.js' type='text/javascript'></script>
+    <script src='js/lib/tilelayer.bing.pull.js' type='text/javascript'></script>
     
-    <script src='js/vendor/jquery.cookie.js' type="text/javascript"></script>
-    <script src="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.js"></script>
-    <script src='wax/ext/leaflet.js' type='text/javascript'></script>
-    <script src='wax/dist/wax.leaf.js' type='text/javascript'></script>
-    <script src='js/vendor/tilelayer.bing.js' type='text/javascript'></script>
-    
+    <!-- App JS -->
     <script src='js/app.js' type='text/javascript'></script>
-
-    <!-- weinre -->
-<!--
-    <script src="http://localhost:8080/target/target-script-min.js#anonymous"></script>
--->
-
+    <script src='js/settings.js' type='text/javascript'></script>
+    <script src='js/map.js' type='text/javascript'></script>
+    <script src='js/form.js' type='text/javascript'></script>
+    <script src='js/api.js' type='text/javascript'></script>
+    <script src='js/data.js' type='text/javascript'></script>
+    
+    <!-- Styles -->
     <link href='http://fonts.googleapis.com/css?family=Crete+Round' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.css">
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0-rc.2/jquery.mobile-1.1.0-rc.2.min.css">
     <style type="text/css" media="screen">
       @import url(css/reset.css);
       @import url(css/mobile.css);      
     </style>
-    <link href='wax/ext/leaflet.css' rel='stylesheet' type='text/css'>
+    <link href='js/lib/wax/ext/leaflet.css' rel='stylesheet' type='text/css'>
+    
+    
+    <!--
+        <script src="http://localhost:8080/target/target-script-min.js#anonymous"></script>
+    -->
+
 </head>
 
 <body id="home">
-  
-  <div data-role="page">
-    
   <div class="container" id="home-container">
       <h1>
         Neighborhood<br>
@@ -53,13 +56,12 @@
   </div><!-- end home -->
     
   <div class="container" id="survey-container">
-    
     <div id='map-div' style="height:250px;"></div>
     <div id="startpoint">
-      <h2>Select a parcel to begin.</h2>      
+        <h2>Select a parcel to begin.</h2>
     </div> 
     <div id="thanks">
-      <h2>Thank you! Select another parcel to continue.</h2>
+        <h2>Thank you! Select another parcel to continue.</h2>
     </div>
     <div id="tools">
       <a href='#' id='address-search-toggle' data-icon="search" data-role="button" data-inline="true" >Search for an address</a>
@@ -70,298 +72,39 @@
       <input id="address-submit" type="submit" data-icon="arrow-r" data-iconpos="right" data-inline="true" data-theme="e" value="Find address">
     </div>
     
-    
     <div id="form">
       <h2>
           <span class="parcel_id">&nbsp;</span>
       </h2>
 
       <div id="results"></div>
-      <!-- 
-      For local testing:
-      [Should be parameterized in JS]
 
-      http://surveydet.herokuapp.com/surveys/e458a930-8e27-11e1-b08f-37bd5a7df741/responses
-      -->
       <form action="/responses" method="post" accept-charset="utf-8" id="parcelform" data-enhance="false">
-
-        <input type="hidden" name="parcel_id" value="" id="parcel_id" class="parcel_id">
-        <input type="hidden" name="use-count" value="1" id="use-count" class="use-count">
-        <input type="hidden" name="collector" value="" id="collector" class="collector">
-
-        <div data-role="fieldcontain">
-            <fieldset data-role="controlgroup">
-            	<legend>
-            	  What's on the site? 
-            	  <a href="dialogs/on-site.html" data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Site</a>
-              </legend>
-          	  
-             	<input type="radio" name="site" id="site" value="one-building">
-             	<label for="site">One building</label>
-
-             	<input type="radio" name="site" id="multiple-codes" value="multiple-codes" class="show-options">
-             	<label for="multiple-codes">Multiple codes</label>
-
-             	<input type="radio" name="site" id="site-parking-lot" value="parking-lot" class="hide-options">
-             	<label for="site-parking-lot">A parking lot</label>
-             	
-             	<input type="radio" name="site" id="site-park" value="park" class="hide-options">
-             	<label for="site-park">A park</label>
-             	
-             	<input type="radio" name="site" id="site-lot" value="empty-lot" class="hide-options">
-             	<label for="site-lot">An empty lot</label>
-            </fieldset>
+        <div id="questions">
         </div>
-
-        <div class="show-default opt-group-container contingent-hide-site-lot contingent-hide-site-park contingent-hide-site-parking-lot contingent-show-buildings contingent-show-multiple-codes">
-        <div data-role="fieldcontain" class="opt-group">
-            <fieldset data-role="controlgroup" id="options-use">          	  
-                <legend>
-                  What is the property used for?
-                  <a href="dialogs/use.html" data-inline="true"  data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Use</a>
-                </legend>
-                
-                <input type="radio" name="use" value="retail" id="retail" class="show-details">
-                <label for="retail" data-role="none">Retail</label>
-              
-                <input type="radio" name="use" value="service" id="service" class="show-details">
-                <label for="service">Service</label>
-              
-                <input type="radio" name="use" value="restaurant-or-bar" id="restaurant-or-bar" class="show-details">
-                <label for="restaurant-or-bar">Restaurant or Bar</label>
-              
-                <input type="radio" name="use" value="office" id="office">
-                <label for="office">Office</label>
-              
-                <input type="radio" name="use" value="industrial" id="industrial">
-                <label for="industrial">Industrial</label>
-              
-                <input type="radio" name="use" value="religious-or-institutional" id="religious-or-institutional">
-                <label for="religious-or-institutional">Religious or institutional</label>
-              
-                <input type="radio" name="use" value="residential" id="residential">
-                <label for="residential">Residential</label>
-
-                <input type="radio" name="use" value="park" id="park">
-                <label for="park">Park</label>
-                
-                <input type="radio" name="use" value="government" id="government">
-                <label for="government">Government</label>
-              
-                <input type="radio" name="use" value="unknown" id="unknown">
-                <label for="unknown">Unknown</label>
-            </fieldset>
-            
-            <fieldset data-role="controlgroup" id="options-retail" class="options" style="display:none;">
-              <legend>
-                What retail is on the site?
-                <a href="dialogs/use-retail.html" data-inline="true"  data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Retail</a>
-              </legend>
-              
-              <input type="radio" name="retail-use" value="hardware" id="hardware">
-              <label for="hardware">Hardware store</label>
-              
-              <input type="radio" name="retail-use" value="gas-station" id="gas-station">
-              <label for="gas-station">Gas station</label>
-              
-              <input type="radio" name="retail-use" value="grocery" id="grocery">
-              <label for="grocery">Grocery store</label>
-              
-              <input type="radio" name="retail-use" value="health" id="health">
-              <label for="health">Health/personal store</label>
-                            
-              <input type="radio" name="retail-use" value="liquor" id="liquor">
-              <label for="liquor">Liquor store</label>
-              
-              <input type="radio" name="retail-use" value="motor-vehicle" id="motor-vehicle">
-              <label for="motor-vehicle">Motor vehicle Sales &amp; Parts</label>
-              
-              <input type="radio" name="retail-use" value="other" id="other-retail">
-              <label for="other-retail">Other retail</label>            
-            </fieldset>
-            
-            <fieldset data-role="controlgroup" id="options-service" class="options" style="display:none;">
-              <legend>
-                What service is on the site?
-                <a href="dialogs/use-service.html" data-inline="true"  data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Service</a>  
-              </legend>
-              
-              <input type="radio" name="service-use" value="payday" id="payday">
-              <label for="payday">Check cashing or payday loan</label>
-              
-              <input type="radio" name="service-use" value="bank" id="bank">
-              <label for="bank">Bank without drive-through</label>
-              
-              <input type="radio" name="service-use" value="bank+drivethrough" id="bank+drivethrough">
-              <label for="bank+drivethrough">Bank with drive-through</label>
-              
-              <input type="radio" name="service-use" value="salon" id="salon">
-              <label for="salon">Hair, barber, or nail salon</label>
-              
-              <input type="radio" name="service-use" value="hotel-motel" id="hotel-motel">
-              <label for="hotel-motel">Hotel or motel</label>
-              
-              <input type="radio" name="service-use" value="motor-vehicle-service" id="motor-vehicle-service">
-              <label for="motor-vehicle-service">Motor vehicle repair/service</label>        
-              
-              <input type="radio" name="service-use" value="general-entertainment" id="general-entertainment">
-              <label for="general-entertainment">General entertainment</label>        
-              
-              <input type="radio" name="service-use" value="adult-entertainment" id="adult-entertainment">
-              <label for="adult-entertainment">Adult entertainment</label>        
-              
-              <input type="radio" name="service-use" value="medical" id="medical">
-              <label for="medical">Medical services</label>        
-              
-              <input type="radio" name="service-use" value="drycleaner" id="drycleaner">
-              <label for="drycleaner">Dry Cleaner</label>
-              
-              <input type="radio" name="service-use" value="other" id="general-service">
-              <label for="general-service">Other services</label>        
-              
-            </fieldset>
-            
-            <fieldset data-role="controlgroup" id="options-restaurant-or-bar" class="options" style="display:none;">
-              <legend>
-                What restaurant or bar is on the site?
-                <a href="dialogs/use-restaurant.html" data-inline="true"  data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Restaurant Use</a>
-                
-              </legend>
-              <input type="radio" name="restaurant-use" value="restaurant+drivethrough" id="restaurant+drivethrough">
-              <label for="restaurant+drivethrough">Restaurant with Drive-Through</label>
-              
-              <input type="radio" name="restaurant-use" value="restaurant" id="restaurant">
-              <label for="restaurant">Restaurant (no Drive-Through)</label>
-              
-              <input type="radio" name="restaurant-use" value="bar-pub-brewery" id="bar-pub-brewery">
-              <label for="bar-pub-brewery">Bar, Pub, or Brewery</label>
-            </fieldset>
-            
-            <fieldset data-role="controlgroup">
-            	<legend>
-            	  Is it occupied?
-            	  <a href="dialogs/occupancy.html" data-inline="true"  data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Occupancy</a>
-              </legend>
-
-             	<input type="radio" name="vacancy" id="occupied" value="occupied">
-             	<label for="occupied">Occupied</label>
-
-             	<input type="radio" name="vacancy" id="probably-occupied" value="probably-occupied">
-             	<label for="probably-occupied">Probably occupied</label>
-
-             	<input type="radio" name="vacancy" id="probably-vacant" value="probably-vacant">
-             	<label for="probably-vacant">Probably vacant</label>
-
-             	<input type="radio" name="vacancy" id="vacant" value="vacant">
-             	<label for="vacant">Vacant, abandoned</label>
-            </fieldset>          
-            
-        </div><!-- end use container (repeating element) -->
-        <fieldset>
-          <a class="add-another" href="#" data-role="button" data-icon="plus" data-inline="true" data-theme="c">Add another use</a>
+        <script type="text/template" id="question">
+        <fieldset data-role="controlgroup" class="control-group" id="<%= id %>" data-parent="<%= parentID %>" data-trigger="<%= triggerID %>">
+          <legend class="control-legend"><%= text %></legend>
         </fieldset>
-        </div>
+        </script>
         
-        <div data-role="fieldcontain" class="show-default contingent-hide-site-lot contingent-hide-site-park contingent-hide-site-parking-lot contingent-show-buildings contingent-show-multiple-codes"> 
-          <fieldset>            
-            <input type="checkbox" name="residential-above" id="residential-above" />
-            <label for="residential-above">
-              Residential above
-            </label>
-          </fieldset> 
+        <script type="text/template" id="answer">
+          <input type="radio" name="<%= questionName %>" id="<%= id %>" value="<%= value %>">
+          <label for="<%= id %>"><%= text %></label>
+        </script>
                 
-          <fieldset data-role="controlgroup" class="show-default contingent-hide-site-lot contingent-hide-site-park contingent-hide-site-parking-lot contingent-show-buildings contingent-show-multiple-codes">
-            <legend>
-              Design
-              <a href="dialogs/design.html" data-inline="true"  data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Design</a>
-            </legend>
-            <input type="radio" name="design" id="auto" value="auto" />
-            <label for="auto">Auto-oriented</label>
-
-            <input type="radio" name="design" id="pedestrian" value="pedestrian" />
-            <label for="pedestrian">Pedestrian-oriented</label>
-          </fieldset>
-        </div>
-
-        <div data-role="fieldcontain">
-          <fieldset data-role="controlgroup">
-          	<legend>
-          	  What condition is it in?
-          	  <a href="dialogs/condition.html" data-inline="true"  data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Condition</a>
-          	</legend>
-           	<input type="radio" name="condition-1" id="condition-1" value="good">
-           	<label for="condition-1">Good</label>
-
-           	<input type="radio" name="condition-1" id="condition-2" value="fair">
-           	<label for="condition-2">Fair</label>
-
-           	<input type="radio" name="condition-1" id="condition-3" value="poor">
-           	<label for="condition-3">Poor</label>
-
-           	<input type="radio" name="condition-1" id="condition-4" value="demolish">
-           	<label for="condition-4">Demolish</label>
-          </fieldset>
-        
-          
-          <fieldset>
-            <legend>
-              General condition
-              <a href="dialogs/vod-fire.html" data-inline="true"  data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">VOD Fire</a>
-            </legend>
-            
-            <input type="checkbox" name="vod" id="vod" />
-            <label for="vod">Vacant, open, and dangerous</label>
-
-            <input type="checkbox" name="fire-damage" id="fire-damage" />
-            <label for="fire-damage">Fire damage</label>
-          </fieldset>
-          
-          <fieldset>
-            <input type="checkbox" name="needs-verification" id="needs-verification" />
-            <label for="needs-verification">Verify later</label>
-          </fieldset>
-          
-        </div>        
-
         <input type="submit" data-theme="b" data-icon="check" value="Submit answers">
       </form>
-    </div>
+    </div><!-- end form -->
     
-<!--
-    <div id="feedback">
-      <a id="feedback-show" data-role="button" data-icon="arrow-r" data-iconpos="right" data-inline="true" data-theme="d">Send in feedback</a>
-      
-      <div id="feedback-in">  
-        <h2>Send in problems, ideas, and other feedback</h2>
-        <form id="feedback-form" action="/feedback" method="get" accept-charset="utf-8">
-          <input type="hidden" name="parcel_id" value="" class="parcel_id">
-          <input type="hidden" name="centroid" value="" class="centroid">
-          <input type="hidden" name="collector" value="" class="collector" >
-          <input type="hidden" name="bounds" value="" class="bounds" >
-      
-          <textarea name="feedback" placeholder="Your feedback"></textarea>
-          <p><input type="submit" value="Submit Feedback"></p>
-      
-          <p>To email feedback: <a href="mailto:detroit@codeforamerica.org">detroit@codeforamerica.org</a></p>
-      
-          <p>Urgent problem? Call Matt Hampel: (734) 846-5010</p>
-        </form>
-      </div>
-      
-      <div id="feedback-send">
-        <h2>Thanks! Your feedback has been recorded.</h2>
-      </div>
-    </div>
--->
-
+    
+    
+    
     <div id="template-use" style="display:none" count="1">
       
       <div data-role="fieldcontain" class="opt-group template-group">
           <fieldset data-role="controlgroup" id="options-use">
-              <legend>Use <span class="use-id"></span>
-                <a href="dialogs/use.html" data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Use</a>
-              </legend>
-              
+              <legend>Use <span class="use-id"></span></legend>
               <input data-role="none" type="radio" name="use" value="retail" id="retail" class="show-details">
               <label for="retail" data-role="none">Retail</label>
             
@@ -382,15 +125,19 @@
             
               <input data-role="none" type="radio" name="use" value="residential" id="residential">
               <label for="residential">Residential</label>
-
+                
+              <input data-role="none" type="radio" name="use" value="park" id="park">
+              <label for="park">Park</label>
+              
+              <input data-role="none" type="radio" name="use" value="government" id="government">
+              <label for="government">Government</label>
+            
               <input data-role="none" type="radio" name="use" value="unknown" id="unknown">
               <label for="unknown">Unknown</label>
           </fieldset>
           
           <fieldset data-role="controlgroup" id="options-retail" class="options" style="display:none;">
-            <legend>What retail is on the site?
-              <a href="dialogs/use-retail.html" data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Retail</a>
-            </legend>
+            <legend>What retail is on the site?</legend>
             
             <input data-role="none" type="radio" name="retail-use" value="hardware" id="hardware">
             <label for="hardware">Hardware store</label>
@@ -415,9 +162,7 @@
           </fieldset>
           
           <fieldset data-role="controlgroup" id="options-service" class="options" style="display:none;">
-            <legend>What service is on the site?
-              <a href="dialogs/use-service.html" data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Service Use</a>
-            </legend>
+            <legend>What service is on the site?</legend>
             
             <input data-role="none" type="radio" name="service-use" value="payday" id="payday">
             <label for="payday">Check cashing or payday loan</label>
@@ -454,10 +199,7 @@
           </fieldset>
           
           <fieldset data-role="controlgroup" id="options-restaurant-or-bar" class="options" style="display:none;">
-            <legend>What restaurant or bar is on the site?
-              <a href="dialogs/use-restaurant.html" data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Use</a>
-            </legend>
-            
+            <legend>What restaurant or bar is on the site?</legend>
             <input data-role="none" type="radio" name="restaurant-use" value="restaurant+drivethrough" id="restaurant+drivethrough">
             <label for="restaurant+drivethrough">Restaurant with Drive-Through</label>
             
@@ -467,26 +209,6 @@
             <input data-role="none" type="radio" name="restaurant-use" value="bar-pub-brewery" id="bar-pub-brewery">
             <label for="bar-pub-brewery">Bar, Pub, or Brewery</label>
           </fieldset>
-          
-          <fieldset data-role="controlgroup" id="vacancy-fieldset">
-          	<legend>
-          	  Is it occupied?
-          	  <a href="dialogs/occupancy.html" data-inline="true"  data-role="button" data-icon="info" data-iconpos="notext" data-rel="dialog">Occupancy</a>
-            </legend>
-
-           	<input data-role="none" type="radio" name="vacancy" id="occupied" value="occupied">
-           	<label for="occupied">Occupied</label>
-
-           	<input data-role="none" type="radio" name="vacancy" id="probably-occupied" value="probably-occupied">
-           	<label for="probably-occupied">Probably occupied</label>
-
-           	<input data-role="none" type="radio" name="vacancy" id="probably-vacant" value="probably-vacant">
-           	<label for="probably-vacant">Probably vacant</label>
-
-           	<input data-role="none" type="radio" name="vacancy" id="vacant" value="vacant">
-           	<label for="vacant">Vacant, abandoned</label>
-          </fieldset>          
-          
           
           <fieldset id="misc" class="misc">
             <a class="remove" href="#" data-role="button" data-icon="delete" data-inline="true" data-theme="c">Remove use</a>
@@ -498,6 +220,6 @@
 
 
   </div><!-- end survey -->
-  </div>
+  
   </body>
 </html>

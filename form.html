@@ -1,0 +1,202 @@
+<!-- preserved here for legacy -->
+
+
+<input type="hidden" name="use-count" value="1" id="use-count" class="use-count">
+
+<div data-role="fieldcontain">
+    <fieldset data-role="controlgroup">
+    	<legend>What's on the site?</legend>
+     	<input type="radio" name="site" id="site" value="one-building">
+     	<label for="site">One building</label>
+
+     	<input type="radio" name="site" id="multiple-codes" value="multiple-codes">
+     	<label for="multiple-codes">Multiple codes</label>
+
+     	<input type="radio" name="site" id="radio-choice-3" value="parking-lot">
+     	<label for="radio-choice-3">A paved parking lot</label>
+
+     	<input type="radio" name="site" id="radio-choice-4" value="empty-lot">
+     	<label for="radio-choice-4">An empty lot</label>
+    </fieldset>
+</div>
+
+<div class="opt-group-container">
+<div data-role="fieldcontain" class="opt-group">
+    <fieldset data-role="controlgroup" id="options-use">
+        <legend>What is the property used for?</legend>
+        <input type="radio" name="use" value="retail" id="retail" class="show-details">
+        <label for="retail" data-role="none">Retail</label>
+      
+        <input type="radio" name="use" value="service" id="service" class="show-details">
+        <label for="service">Service</label>
+      
+        <input type="radio" name="use" value="restaurant-or-bar" id="restaurant-or-bar" class="show-details">
+        <label for="restaurant-or-bar">Restaurant or Bar</label>
+      
+        <input type="radio" name="use" value="office" id="office">
+        <label for="office">Office</label>
+      
+        <input type="radio" name="use" value="industrial" id="industrial">
+        <label for="industrial">Industrial</label>
+      
+        <input type="radio" name="use" value="religious-or-institutional" id="religious-or-institutional">
+        <label for="religious-or-institutional">Religious or institutional</label>
+      
+        <input type="radio" name="use" value="residential" id="residential">
+        <label for="residential">Residential</label>
+        
+        <input type="radio" name="use" value="park" id="park">
+        <label for="park">Park</label>
+        
+        <input type="radio" name="use" value="government" id="government">
+        <label for="government">Government</label>
+      
+        <input type="radio" name="use" value="unknown" id="unknown">
+        <label for="unknown">Unknown</label>
+    </fieldset>
+    
+    <fieldset data-role="controlgroup" id="options-retail" class="options" style="display:none;">
+      <legend>What retail is on the site?</legend>
+      
+      <input type="radio" name="retail-use" value="hardware" id="hardware">
+      <label for="hardware">Hardware store</label>
+      
+      <input type="radio" name="retail-use" value="gas-station" id="gas-station">
+      <label for="gas-station">Gas station</label>
+      
+      <input type="radio" name="retail-use" value="grocery" id="grocery">
+      <label for="grocery">Grocery store</label>
+      
+      <input type="radio" name="retail-use" value="health" id="health">
+      <label for="health">Health/personal store</label>
+                    
+      <input type="radio" name="retail-use" value="liquor" id="liquor">
+      <label for="liquor">Liquor store</label>
+      
+      <input type="radio" name="retail-use" value="motor-vehicle" id="motor-vehicle">
+      <label for="motor-vehicle">Motor vehicle Sales &amp; Parts</label>
+      
+      <input type="radio" name="retail-use" value="other" id="other-retail">
+      <label for="other-retail">Other retail</label>            
+    </fieldset>
+    
+    <fieldset data-role="controlgroup" id="options-service" class="options" style="display:none;">
+      <legend>What service is on the site?</legend>
+      
+      <input type="radio" name="service-use" value="payday" id="payday">
+      <label for="payday">Check cashing or payday loan</label>
+      
+      <input type="radio" name="service-use" value="bank" id="bank">
+      <label for="bank">Bank without drive-through</label>
+      
+      <input type="radio" name="service-use" value="bank+drivethrough" id="bank+drivethrough">
+      <label for="bank+drivethrough">Bank with drive-through</label>
+      
+      <input type="radio" name="service-use" value="salon" id="salon">
+      <label for="salon">Hair, barber, or nail salon</label>
+      
+      <input type="radio" name="service-use" value="hotel-motel" id="hotel-motel">
+      <label for="hotel-motel">Hotel or motel</label>
+      
+      <input type="radio" name="service-use" value="motor-vehicle-service" id="motor-vehicle-service">
+      <label for="motor-vehicle-service">Motor vehicle repair/service</label>        
+      
+      <input type="radio" name="service-use" value="general-entertainment" id="general-entertainment">
+      <label for="general-entertainment">General entertainment</label>        
+      
+      <input type="radio" name="service-use" value="adult-entertainment" id="adult-entertainment">
+      <label for="adult-entertainment">Adult entertainment</label>        
+      
+      <input type="radio" name="service-use" value="medical" id="medical">
+      <label for="medical">Medical services</label>        
+      
+      <input type="radio" name="service-use" value="drycleaner" id="drycleaner">
+      <label for="drycleaner">Dry Cleaner</label>
+      
+      <input type="radio" name="service-use" value="other" id="general-service">
+      <label for="general-service">Other services</label>        
+      
+    </fieldset>
+    
+    <fieldset data-role="controlgroup" id="options-restaurant-or-bar" class="options" style="display:none;">
+      <legend>What restaurant or bar is on the site?</legend>
+      <input type="radio" name="restaurant-use" value="restaurant+drivethrough" id="restaurant+drivethrough">
+      <label for="restaurant+drivethrough">Restaurant with Drive-Through</label>
+      
+      <input type="radio" name="restaurant-use" value="restaurant" id="restaurant">
+      <label for="restaurant">Restaurant (no Drive-Through)</label>
+      
+      <input type="radio" name="restaurant-use" value="bar-pub-brewery" id="bar-pub-brewery">
+      <label for="bar-pub-brewery">Bar, Pub, or Brewery</label>
+    </fieldset>
+    
+</div><!-- end use container (repeating element) -->
+<fieldset>
+  <a class="add-another" href="#" data-role="button" data-icon="plus" data-inline="true" data-theme="c">Add another use</a>
+</fieldset>
+</div>
+
+<div data-role="fieldcontain"> 
+  <fieldset>            
+    <input type="checkbox" name="residential-above" id="residential-above" />
+    <label for="residential-above">Residential above</label>
+  </fieldset> 
+        
+  <fieldset data-role="controlgroup">
+    <legend>Design</legend>
+    <input type="radio" name="design" id="auto" value="auto" />
+    <label for="auto">Auto-oriented</label>
+
+    <input type="radio" name="design" id="pedestrian" value="pedestrian" />
+    <label for="pedestrian">Pedestrian-oriented</label>
+  </fieldset>
+</div>
+
+<div data-role="fieldcontain">
+    <fieldset data-role="controlgroup">
+    	<legend>Is the building occupied?</legend>
+     	<input type="radio" name="vacancy-1" id="vacancy-1" value="occupied" checked="checked">
+     	<label for="vacancy-1">Occupied</label>
+
+     	<input type="radio" name="vacancy-1" id="vacancy-2" value="probably-occupied">
+     	<label for="vacancy-2">Probably occupied</label>
+
+     	<input type="radio" name="vacancy-1" id="vacancy-3" value="probably-vacant">
+     	<label for="vacancy-3">Probably vacant</label>
+
+     	<input type="radio" name="vacancy-1" id="vacancy-4" value="vacant">
+     	<label for="vacancy-4">Vacant, abandoned</label>
+    </fieldset>
+</div>
+
+<div data-role="fieldcontain">
+  <fieldset data-role="controlgroup">
+  	<legend>What condition is it in?</legend>
+   	<input type="radio" name="condition-1" id="condition-1" value="good" checked="checked">
+   	<label for="condition-1">Good</label>
+
+   	<input type="radio" name="condition-1" id="condition-2" value="fair">
+   	<label for="condition-2">Fair</label>
+
+   	<input type="radio" name="condition-1" id="condition-3" value="poor">
+   	<label for="condition-3">Poor</label>
+
+   	<input type="radio" name="condition-1" id="condition-4" value="demolish">
+   	<label for="condition-4">Demolish</label>
+  </fieldset>
+  
+  
+  <fieldset>
+    <input type="checkbox" name="vod" id="vod" />
+    <label for="vod">Vacant, open, and dangerous</label>
+
+    <input type="checkbox" name="fire-damage" id="fire-damage" />
+    <label for="fire-damage">Fire damage</label>
+  </fieldset>
+  
+  <fieldset>
+    <input type="checkbox" name="needs-verification" id="needs-verification" />
+    <label for="needs-verification">Verify later</label>
+  </fieldset>
+  
+</div>        
