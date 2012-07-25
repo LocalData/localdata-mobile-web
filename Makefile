@@ -44,9 +44,8 @@ copy:
 	cp dialogs/*.html $(OUTPUT)/dialogs/
 	mkdir -p $(OUTPUT)/img
 	cp -r img/* $(OUTPUT)/img/
-	mkdir -p $(OUTPUT)/js/vendor
-	cp -r js/vendor/* $(OUTPUT)/js/vendor/
-	cp -r wax $(OUTPUT)/wax
+	mkdir -p $(OUTPUT)/js/lib
+	cp -r js/lib/* $(OUTPUT)/js/lib/
 
 build: $(OUTPUT) minify copy
 .PHONY: build
