@@ -2,10 +2,13 @@ OUTPUT=publish
 
 RECESS = recess
 UGLIFY = uglifyjs
+S3CMD = s3cmd
 
 CSS_FILES = $(wildcard css/*.css css/**/*.css)
 JS_FILES = $(wildcard js/*.js)
 
+all: build
+.PHONY: all
 
 $(OUTPUT):
 	mkdir -p $(OUTPUT)
@@ -45,9 +48,15 @@ copy:
 	cp -r js/vendor/* $(OUTPUT)/js/vendor/
 	cp -r wax $(OUTPUT)/wax
 
-all: $(OUTPUT) minify copy
-.PHONY: all
+build: $(OUTPUT) minify copy
+.PHONY: build
 
 .PHONY: clean
 clean:
 	rm -rf $(OUTPUT)
+
+.PHONY: deploy
+deploy:
+	# The trailing slash on the local directory is important, so that we sync the
+	# contents of the directory and not the directory itself.
+	$(S3CMD) sync $(OUTPUT)/ s3://locald/web/mobile-test/
