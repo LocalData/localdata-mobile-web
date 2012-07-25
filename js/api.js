@@ -11,7 +11,7 @@ NSB.API = new function() {
   };
   
   this.getGeoPointInfoURL = function(lat, lng) {
-    return NSB.settings.api.geo + '/detroit/parcel?lat=' + lat + '&lng=' + lng;
+    return NSB.settings.api.geo + '/parcels/parcel?lat=' + lat + '&lng=' + lng;
   };
   
   // Given a Leaflet latlng object, return a JSON object that describes the 
@@ -37,10 +37,10 @@ NSB.API = new function() {
   // address => object_location
   this.parseObjectData = function(data) {
     return {
-      parcel_id: data[0].trim(), 
-      address: data[3].trim(),
-      polygon: jQuery.parseJSON(data[4]),
-      centroid: jQuery.parseJSON(data[5])
+      parcelId: data.parcelId, 
+      address: data.address,
+      polygon: data.polygon,
+      centroid: data.centroid
     };
   };
   

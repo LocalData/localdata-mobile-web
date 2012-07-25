@@ -9,7 +9,7 @@ NSB.FormView = function(formContainerId){
     url = NSB.API.getSurveyURL() + form.attr('action'); 
     form.attr('action', url);    
     
-    // Listen for events
+    // Listen for objectedSelected, triggered when items on the map are tapped
     $.subscribe("objectSelected", setSelectedObjectInfo);  
     
     // Render the form 
@@ -57,6 +57,7 @@ NSB.FormView = function(formContainerId){
       $('#thanks').slideToggle();
     }
   };
+
 
   // Form submission 
   // ===============
@@ -121,10 +122,6 @@ NSB.FormView = function(formContainerId){
     // Publish  a "form submitted" event
     $.publish("successfulSubmit");
     
-    // Update the responses in the map, in case others added responses 
-    // in the same area
-    //getResponsesInMap();
-
     // Hide the form and show the thanks
     $('#form').slideToggle();
     $('#thanks').slideToggle();
@@ -164,6 +161,7 @@ NSB.FormView = function(formContainerId){
     $('#use-count').attr('value', 1);
   };
   
+  
   // Render the form. 
   // ================
   function addQuestion(question, visible, parentID, triggerID) {
@@ -171,6 +169,7 @@ NSB.FormView = function(formContainerId){
     console.log(question);
     console.log(question.name);
     
+    // Set default values for questions
     if (visible === undefined) {
       visible = true;
     }
@@ -181,8 +180,10 @@ NSB.FormView = function(formContainerId){
       triggerID = '';
     }
 
-    // Give the question an ID 
+    // Give the question an ID based on its name
     var id = _.uniqueId(question.name);
+    
+    // Collected the data needed to render the question 
     var data = {
       text: question.text,
       id: id,
@@ -240,15 +241,6 @@ NSB.FormView = function(formContainerId){
     console.log(form);
     form.trigger("create");
     console.log(form);
-
-    // form.find('fieldset').each(function(index, elt){
-    //   console.log("Triggering create on form elements");
-    //   console.log(elt);
-    //   $(elt).removeAttr('data-role');
-    //   $(elt).trigger("create");
-    //   console.log(elt);
-    // });
-    
   }
   
   
@@ -351,7 +343,9 @@ NSB.FormView = function(formContainerId){
     clone.trigger("create");
   });
 
-  // Trigger form init =======================================================  
+
+  // Trigger form init 
+  // ==================
   this.init();
   
 };

@@ -38,7 +38,7 @@ NSB.MapView = function(mapContainerId){
           
           highlightObject(data);
           NSB.selectedObject = {};
-          NSB.selectedObject.id = data.parcel_id;
+          NSB.selectedObject.id = data.parcelId;
           NSB.selectedObject.humanReadableName = data.address;
           
           $.publish("objectSelected");

@@ -5,7 +5,7 @@ NSB.settings = {
   // URLs of services used to store, retrieve survey data
   api: {
     baseurl: 'http://localhost:3000', // 'http://surveydet.herokuapp.com', // no trailing slash
-    geo: 'http://stormy-mountain-3909.herokuapp.com',
+    geo: 'http://parcelserver.herokuapp.com',
   },
   
   // Information about where to find map tiles.
