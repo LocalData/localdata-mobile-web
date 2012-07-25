@@ -40,8 +40,6 @@ $(OUTPUT)/js/%.js: js/%.js
 copy:
 	mkdir -p $(OUTPUT)
 	cp *.html $(OUTPUT)/
-	mkdir -p $(OUTPUT)/dialogs
-	cp dialogs/*.html $(OUTPUT)/dialogs/
 	mkdir -p $(OUTPUT)/img
 	cp -r img/* $(OUTPUT)/img/
 	mkdir -p $(OUTPUT)/js/lib
