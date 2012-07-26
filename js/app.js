@@ -33,8 +33,11 @@ var NSB = {
       NSB.map = new NSB.MapView('map-div');
       NSB.f = new NSB.FormView('#form');
     }); 
-    
-  }
+  },
+  
+  // We'll use this to keep track of the object currently selected in the app
+  selectedObject: {}
+  
 };
 
 $(document).ready(function(){ 

@@ -14,6 +14,10 @@ NSB.API = new function() {
     return NSB.settings.api.geo + '/parcels/parcel?lat=' + lat + '&lng=' + lng;
   };
   
+  this.getGeoBoundsObjectsURL = function(southwest, northeast) {
+    return NSB.settings.api.geo + '/parcels/bounds?lowerleft=' + southwest.lat + "," + southwest.lng + "&topright=" + northeast.lat + "," + northeast.lng;
+  };
+  
   // Given a Leaflet latlng object, return a JSON object that describes the 
   // parcel.
   this.getObjectDataAtPoint = function(latlng, callback) {
@@ -66,14 +70,13 @@ NSB.API = new function() {
   // Take a map bounds object
   // Find the objects in the bounds
   // Feed those objects to the callback
-  this.getObjectsInBounds = function(bounds, callback) {
-    southwest = bounds.getSouthWest();
-    northeast = bounds.getNorthEast();
+  this.getResponsesInBounds = function(bounds, callback) {
+    var southwest = bounds.getSouthWest();
+    var northeast = bounds.getNorthEast();
     
     // Given the bounds, generate a URL to ge the responses from the API.
     serializedBounds = southwest.lat + "," + southwest.lng + "," + northeast.lat + "," + northeast.lng;
     var url = NSB.API.getSurveyURL() + "/responses/in/" + serializedBounds;
-    //  console.log(url);
 
     // Give the callback the responses.
     $.getJSON(url, function(data){
@@ -83,6 +86,42 @@ NSB.API = new function() {
     });
   };
   
-  
+  // Take a map bounds object
+  // Find the parcels in the bounds
+  // Feed those objects to the callback
+  this.getObjectsInBounds = function(bounds, callback) {
+    bufferedBounds = addBuffer(bounds);
+    var southwest = bufferedBounds.getSouthWest();
+    var northeast = bufferedBounds.getNorthEast();
+    
+    // Given the bounds, generate a URL to ge the responses from the API.
+    var url = this.getGeoBoundsObjectsURL(southwest, northeast);
+    console.log(url);
+
+    // Give the callback the responses.
+    $.getJSON(url, function(data){
+      if(data) {
+        callback(data);
+      };
+    });
+  };
+    
+  // Add a 100% buffer to a bounds object.
+  // Makes parcels render faster when the map is moved
+  var addBuffer = function(bounds) {    
+    sw = bounds.getSouthWest();
+    ne = bounds.getNorthEast();
+    
+    lngDiff = ne.lng - sw.lng;
+    latDiff = ne.lat - sw.lat;
+    
+    lngMod = lngDiff;
+    latMod = latDiff;
+    
+    var newSW = new L.LatLng(sw.lat - latMod, sw.lng - lngMod);
+    var newNE = new L.LatLng(ne.lat + latMod, ne.lng + lngMod);
+    
+    return new L.LatLngBounds(newSW, newNE);
+  };
   
 };
