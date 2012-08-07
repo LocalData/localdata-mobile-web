@@ -43,6 +43,8 @@ NSB.FormView = function(formContainerId){
   // Then, display the form.
   var setSelectedObjectInfo = function(e) {
     console.log("Showing the form");
+    
+    console.log(NSB.selectedObject);
         
     // $('.parcel_id').val(NSB.selectedObject.id);
     $('h2 .parcel_id').text(NSB.selectedObject.humanReadableName);
@@ -165,9 +167,9 @@ NSB.FormView = function(formContainerId){
   // Render the form. 
   // ================
   function addQuestion(question, visible, parentID, triggerID) {
-    console.log("Adding question");
-    console.log(question);
-    console.log(question.name);
+    // console.log("Adding question");
+    // console.log(question);
+    // console.log(question.name);
     
     // Set default values for questions
     if (visible === undefined) {
@@ -238,9 +240,7 @@ NSB.FormView = function(formContainerId){
     
     // After adding each response, we need to make sure that jquery mobile
     // knows to render each form element.
-    console.log(form);
     form.trigger("create");
-    console.log(form);
   }
   
   
