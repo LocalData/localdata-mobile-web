@@ -1,7 +1,7 @@
 OUTPUT=publish
 
 RECESS = recess
-UGLIFY = uglifyjs
+UGLIFY =  ./node_modules/uglify-js/bin/uglifyjs
 S3CMD = s3cmd
 
 CSS_FILES = $(wildcard css/*.css css/**/*.css)
@@ -59,4 +59,11 @@ clean:
 deploy:
 	# The trailing slash on the local directory is important, so that we sync the
 	# contents of the directory and not the directory itself.
-	$(S3CMD) sync $(OUTPUT)/ s3://locald/web/mobile-test/
+	# Default: mobile-test
+	# ifeq ($(strip $(remote)),)
+	#   @echo "You need to specify the remote directory path, eg make deploy remote=mobile-test"
+	# else
+	#   $(S3CMD) sync $(OUTPUT)/ s3://locald/web/$(remote)/
+	# endif
+  $(S3CMD) sync $(OUTPUT)/ s3://locald/web/mobile-test/
+  
