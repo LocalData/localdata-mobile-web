@@ -4,6 +4,8 @@ RECESS = recess
 UGLIFY = uglifyjs
 S3CMD = s3cmd
 
+S3DIR = mobile-test
+
 CSS_FILES = $(wildcard css/*.css css/**/*.css)
 JS_FILES = $(wildcard js/*.js)
 
@@ -56,4 +58,4 @@ clean:
 deploy:
 	# The trailing slash on the local directory is important, so that we sync the
 	# contents of the directory and not the directory itself.
-	$(S3CMD) sync $(OUTPUT)/ s3://locald/web/mobile-test/
+	$(S3CMD) sync $(OUTPUT)/ s3://locald/web/$(S3DIR)/
