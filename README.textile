@@ -36,6 +36,15 @@ API server
 ** set the SURVEYID to match the survey ID from the API server
 ** Set the locale, and set the map tilejson URL to match
 
+h3. To run using our new thing that isn't documented yet:
+
+There's a Makefile that supports building a publish directory and syncing that 
+directory to S3. The Makefile depends on `recess`, `uglify-js`, and `s3cmd`. 
+You can install s3cmd on a Mac with `brew install s3cmd`. To sync to S3, you must 
+first run `s3cmd --configure` and supply the appropriate keys.
+
+Build with `make` or `make build`. Deploy with `make publish`.
+
 
 h2. The maps
 
