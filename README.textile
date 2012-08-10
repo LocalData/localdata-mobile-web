@@ -1,4 +1,4 @@
-h1. Neighborhood Survey Mobile
+h1. "LocalData":http://golocaldata.com
 
 We want to make it very easy for neighborhood organizations to collect good
 information about the things they care about, like property condition, 
@@ -23,7 +23,7 @@ server, including github pages.
 You will need to configure some parts:
 * In survey.html, change the action of the form to match the endpoint of your
 API server
-* In app.js:
+* In settings.js:
 ** update the BASEURL to point to the endpoint of your API server 
 ** set the SURVEYID to match the survey ID from the API server
 ** Set the locale, and set the map tilejson URL to match
