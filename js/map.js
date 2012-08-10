@@ -122,7 +122,7 @@ NSB.MapView = function(mapContainerId){
   // Get the selected centroid.
   // Pretty simple! 
   this.getSelectedCentroid = function() {
-    return selectedCentroid;
+    return NSB.selectedObject.centroid;
   };
   
   // Return the bounds of the map as a string
@@ -201,6 +201,7 @@ NSB.MapView = function(mapContainerId){
           geojsonLayer.setStyle(defaultStyle);
           
           geojsonLayer.on('click', function(e){ 
+          
             // Deselect the previous layer, if any
             if (selectedLayer != null) {
               selectedLayer.setStyle(defaultStyle);
@@ -209,6 +210,8 @@ NSB.MapView = function(mapContainerId){
             // Keep track of the selected object centrally
             NSB.selectedObject.id = elt['parcelId'];
             NSB.selectedObject.humanReadableName = elt['address'];
+            NSB.selectedObject.centroid = elt['centroid'];
+            NSB.selectedObject.geometry = elt['geometry']; 
             console.log(NSB.selectedObject);
             
             // Select the current layer

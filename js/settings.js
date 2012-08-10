@@ -1,6 +1,6 @@
 NSB.settings = {
   // ID of the current survey
-  surveyid: '3dbbc420-9ad6-11e1-b4b6-f184112d9089', //'23206450-a0ac-11e1-ae6a-a17fba15c6fd', // WSU
+  surveyid: 'c6fc1a00-e27f-11e1-9391-a91f94405155', //'23206450-a0ac-11e1-ae6a-a17fba15c6fd', // WSU
   
   // URLs of services used to store, retrieve survey data
   api: {

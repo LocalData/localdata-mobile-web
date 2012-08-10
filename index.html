@@ -88,10 +88,16 @@
         </fieldset>
         </script>
         
-        <script type="text/template" id="answer">
+        <script type="text/template" id="answer-radio">
           <input type="radio" name="<%= questionName %>" id="<%= id %>" value="<%= value %>">
           <label for="<%= id %>"><%= text %></label>
         </script>
+        
+        <script type="text/template" id="answer-checkbox">
+          <input type="checkbox" name="<%= questionName %>" id="<%= id %>" value="<%= value %>">
+          <label for="<%= id %>"><%= text %></label>
+        </script>
+        
                 
         <input type="submit" data-theme="b" data-icon="check" value="Submit answers">
       </form>

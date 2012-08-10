@@ -14,8 +14,8 @@ NSB.FormView = function(formContainerId){
     
     // Render the form 
     $.each(NSB.test.questions, function (index, question) {
-      console.log("Adding question");
-      console.log(question);
+      // console.log("Adding question");
+      // console.log(question);
       addQuestion(question);
     });
     
@@ -74,18 +74,24 @@ NSB.FormView = function(formContainerId){
     serialized = form.serializeObject();
 
     // Get some info about the centroid as floats. 
-    var selectedCentroid = NSB.map.getSelectedCentroid();
-    var centroidLat = parseFloat(selectedCentroid.lat);
-    var centroidLng = parseFloat(selectedCentroid.lng);
+    var selectedCentroid = NSB.selectedObject.centroid;
+    console.log(selectedCentroid);
+    var centroidLat = parseFloat(selectedCentroid.coordinates[0]);
+    var centroidLng = parseFloat(selectedCentroid.coordinates[1]);
     
     console.log("Selected object ID");
     console.log(NSB.selectedObject.id);
     
     // Construct a response in the format we need it.  
     responses = {responses: [{
-        "source": {"type":"mobile", "collector":NSB.collectorName}, 
+        "source": {
+          "type":"mobile", 
+          "collector":NSB.collectorName
+        }, 
         "geo_info": {
           "centroid":[centroidLat, centroidLng], 
+          "geometry": NSB.selectedObject.geometry,
+          "humanReadableName": NSB.selectedObject.humanReadableName, 
           parcel_id: NSB.selectedObject.id // Soon to be deprecated
         }, 
         "parcel_id": NSB.selectedObject.id, // Soon to be deprecated
@@ -165,9 +171,8 @@ NSB.FormView = function(formContainerId){
   // Render the form. 
   // ================
   function addQuestion(question, visible, parentID, triggerID) {
-    console.log("Adding question");
-    console.log(question);
-    console.log(question.name);
+    // console.log("Adding question " + question.name);
+    // console.log(question);
     
     // Set default values for questions
     if (visible === undefined) {
@@ -200,7 +205,6 @@ NSB.FormView = function(formContainerId){
 
     // Add each answer to the question
     _.each(question.answers, function (answer) {
-      
       // The triggerID is used to hide/show other question groups
       var triggerID = _.uniqueId(question.name);
       
@@ -243,9 +247,9 @@ NSB.FormView = function(formContainerId){
     
     // After adding each response, we need to make sure that jquery mobile
     // knows to render each form element.
-    console.log(form);
+    //console.log(form);
     form.trigger("create");
-    console.log(form);
+    //console.log(form);
   }
   
   
