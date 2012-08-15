@@ -6,143 +6,174 @@ NSB.test = {
             { 
               "value" : "single-building",
               "text" : "One building"
-              //"questions" : [
-              //  { "name" : "retail-type",
-              //    "text" : "What type of retail?",
-              //    "answers" : [
-              //      { "value" : "best",
-              //        "text" : "the best type of retail",
-              //        "questions" : [
-              //          { "name": "good-level",
-              //            "value" : "good-level",
-              //            "text" : "How good?",
-              //            "answers" : [
-              //              { "value" : "3",
-              //                "text" : "excellent"
-              //              },
-              //              { "value" : "2",
-              //                "text" : "quite good"
-              //              },
-              //              { "value" : "1",
-              //                "text" : "pretty good"
-              //              }
-              //            ]
-              //          }
-              //        ]
-              //      },
-              //      { "value" : "worst",
-              //        "text" : "the worst type of retail"
-              //      }
-              //    ]
-              //  }
-              //]
             },
             { 
-              "name" : "multiple-buildings",
+              "value" : "multiple-buildings",
               "text" : "Multiple Buildings"
             },
             { 
-              "name" : "parking",
+              "value" : "parking",
               "text" : "A parking lot"
             },
             { 
-              "name" : "A park",
-              "text" : "An empty lot"
+              "value" : "A park",
+              "text" : "An empty lot",
+              "questions": [
+                {
+                  "name": "lot",
+                  "text": "What kind of lot is it?",
+                  "answers": [
+                    {
+                      "value": "unimproved",
+                      "text": "Unimproved (no paving or structures)"
+                    },
+                    {
+                      "value": "improved",
+                      "text": "Improved (paving or structures)"
+                    },
+                    {
+                      "value": "sidelot",
+                      "text": "A fenced side lot"
+                    }
+                  ]
+                }
+              ]
             }
         ]
-      }, // End use
+      }, // End site
       
-      { "name" : "use",
-        "text" : "What is the property used for",
-        "answers": [
-          {
-            "value": "retail",
-            "text": "Retail"
-          },
-          {
-            "value": "service",
-            "text": "Service"
-          },
-          {
-            "value": "restaurant",
-            "text": "Restaurant or Bar"
-          },
-          {
-            "value": "office",
-            "text": "Office"
-          },
-          {
-            "value": "industrial",
-            "text": "Industrial"
-          },
-          {
-            "value": "religious",
-            "text": "Religious"
-          },
-          {
-            "value": "unknown",
-            "text": "Unknown"
-          }
-        ]
-      },
+     // { 
+     //   "name" : "use",
+     //   "text" : "What is the property used for",
+     //   "answers": [
+     //     {
+     //       "value": "retail",
+     //       "text": "Retail"
+     //     },
+     //     {
+     //       "value": "service",
+     //       "text": "Service"
+     //     },
+     //     {
+     //       "value": "restaurant",
+     //       "text": "Restaurant or Bar"
+     //     },
+     //     {
+     //       "value": "office",
+     //       "text": "Office"
+     //     },
+     //     {
+     //       "value": "industrial",
+     //       "text": "Industrial"
+     //     },
+     //     {
+     //       "value": "religious",
+     //       "text": "Religious"
+     //     },
+     //     {
+     //       "value": "unknown",
+     //       "text": "Unknown"
+     //     }
+     //   ]
+     // },
       
-      { "name": "occupancy",
+      { 
+        "name": "occupancy",
         "text": "Is it occupied?",
         "answers": [
           {
-            "name": "occupied",
+            "value": "occupied",
             "text": "Occupied"
           },
           {
-            "name": "probably-occupied",
+            "value": "probably-occupied",
             "text": "Probably occupied"
           },
           {
-            "name": "probably-vacant",
+            "value": "probably-vacant",
             "text": "Probably vacant"
           },
           {
-            "name": "vacant-abandoned",
+            "value": "vacant-abandoned",
             "text": "Vacant, abandoned"
           }
         ]
-      },
+      },      
       
       {
         "name": "condition",
         "text": "What condition is it in?",
         "answers": [
           {
-            "name": "good",
+            "value": "good",
             "text": "Good"
           },
           {
-            "name": "fair",
+            "value": "fair",
             "text": "Fair"
           },
           {
-            "name": "poor",
+            "value": "poor",
             "text": "Poor"
           },
           {
-            "name": "demolish",
+            "value": "demolish",
             "text": "Demolish"
           }
         ]
       }, // end condition
       
       {
-        "name": "",
+        "name": "fire",
+        "text": "Fire Damage",
+        "answers": [
+          {
+            "value": "no fire damage",
+            "text": "No fire damage"
+          },
+          {
+            "value": "some fire damage",
+            "text": "Some fire damage"
+          },
+          {
+            "value": "heavy fire damage",
+            "text": "Heavy fire damage (burnt out wall or roof)"
+          }
+        ]
+      },
+      
+      {
+        "name": "boarded",
         "text": "",
         "answers": [
           {
-            "name": "vod",
+            "value": "boarded up",
+            "text": "Is the property fully boarded up?"
+          }
+        ]
+      },
+      
+      {
+        "name": "lawn",
+        "text": "",
+        "answers": [
+          {
+            "value": "unkept lawn",
+            "text": "Does the lawn need substantial mowing or clearing?"
+          }
+        ]
+      },
+      
+
+      {
+        "name": "vod",
+        "text": "",
+        "answers": [
+          {
+            "value": "vod",
             "text": "Vacant, open, and dangerous"
           }
         ]
       } // end vod
-      
-      
-      
   ]
 };

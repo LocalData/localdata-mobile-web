@@ -18,6 +18,7 @@ NSB.MapView = function(mapContainerId){
     'weight': 1.5,
     'color': 'white'
   };
+  
   var selectedStyle = {
     'opacity': 1,
     'fillOpacity': 0,
