@@ -1,7 +1,7 @@
 body {
   padding: 0;
   margin: 0;
-  background:#eee;
+  background:#3f5b88;
   font-family:Lucida Grande, sans-serif;
   font-size:14px; 
   font-family: 'Crete Round', serif
@@ -27,7 +27,7 @@ small {
 
 #home .ui-page {
   padding:20px;
-  background:#ddd url(../img/streetscape_blur-01.jpg) no-repeat center -100px;
+  background:#3f5b88;
 }
 
 .ui-content {

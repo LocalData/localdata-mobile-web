@@ -13,12 +13,8 @@ NSB.FormView = function(formContainerId){
     $.subscribe("objectSelected", setSelectedObjectInfo);  
     
     // Render the form 
-    $.each(NSB.test.questions, function (index, question) {
-      // console.log("Adding question");
-      // console.log(question);
-      addQuestion(question);
-    });
-    
+    // NSB.API.getForm(renderForm);
+    renderForm(NSB.test);
     // Add a function to serialize the form for submission to the API
     // usage: form.serializeObject();
     form.serializeObject = function() {
@@ -37,6 +33,14 @@ NSB.FormView = function(formContainerId){
         return o;
     };
     
+  };
+  
+  var renderForm = function (form){
+    $.each(form.questions, function (index, question) {
+      // console.log("Adding question");
+      // console.log(question);
+      addQuestion(question);
+    });    
   };
   
   // Update the form with information about the selected object.
@@ -89,7 +93,7 @@ NSB.FormView = function(formContainerId){
           "collector":NSB.collectorName
         }, 
         "geo_info": {
-          "centroid":[centroidLat, centroidLng], 
+          "centroid":[centroidLng, centroidLat], 
           "geometry": NSB.selectedObject.geometry,
           "humanReadableName": NSB.selectedObject.humanReadableName, 
           parcel_id: NSB.selectedObject.id // Soon to be deprecated

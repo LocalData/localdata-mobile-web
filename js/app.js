@@ -32,6 +32,7 @@ var NSB = {
       
       NSB.map = new NSB.MapView('map-div');
       NSB.f = new NSB.FormView('#form');
+      
     }); 
   },
   

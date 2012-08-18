@@ -281,8 +281,9 @@ NSB.MapView = function(mapContainerId){
     // Get the objects in the bounds
     // And add them to the map   
     NSB.API.getResponsesInBounds(map.getBounds(), function(results) {
+      console.log(results);
       $.each(results, function(key, elt) {
-        p = new L.LatLng(elt.geo_info.centroid[0],elt.geo_info.centroid[1]);
+        p = new L.LatLng(elt.geo_info.centroid[0], elt.geo_info.centroid[1]);
         id = elt.parcel_id;
         addDoneMarker(p, id);
       });
