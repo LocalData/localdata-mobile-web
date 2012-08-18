@@ -18,6 +18,29 @@ NSB.API = new function() {
     return NSB.settings.api.geo + '/parcels/bounds?lowerleft=' + southwest.lat + "," + southwest.lng + "&topright=" + northeast.lat + "," + northeast.lng;
   };
   
+  this.getForm = function(callback) {
+    url = this.getSurveyURL() + "/forms";
+    $.getJSON(url, function(data){
+      
+      // Get only the mobile forms
+      var mobileForms = _.filter(data.forms, function(form) {
+        if (_.has(form, 'type')) {
+          if (form.type === 'mobile'){
+            return true;
+          }
+        }
+        return false; 
+      });
+      
+      // Sort by date
+      var sortedForms = _.sortBy(mobileForms, "created");
+      
+      // Get only the most recent
+      callback(_.last(sortedForms));
+    });
+  };
+  
+  
   // Given a Leaflet latlng object, return a JSON object that describes the 
   // parcel.
   this.getObjectDataAtPoint = function(latlng, callback) {
