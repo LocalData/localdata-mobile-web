@@ -1,7 +1,7 @@
 OUTPUT=publish
 
 RECESS = recess
-UGLIFY = uglifyjs
+UGLIFY = node_modules/uglify-js/bin/uglifyjs
 S3CMD = s3cmd
 
 S3DIR = mobile-test
