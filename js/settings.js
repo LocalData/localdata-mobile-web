@@ -1,11 +1,11 @@
 NSB.settings = {
   // ID of the current survey
-  surveyid: 'c6fc1a00-e27f-11e1-9391-a91f94405155', //'23206450-a0ac-11e1-ae6a-a17fba15c6fd', // WSU
+  surveyid: 'ece0db00-e0bf-11e1-9ba7-ebbad6f489a5', // 'c6fc1a00-e27f-11e1-9391-a91f94405155', //'', // UNI
   
   // URLs of services used to store, retrieve survey data
   api: {
-    baseurl: 'http://localhost:3000', // 'http://surveydet.herokuapp.com', // no trailing slash
-    geo: 'http://parcelserver.herokuapp.com',
+    baseurl: 'http://localhost:3000/api', //'http://localhost:3000', // 'http://surveydet.herokuapp.com', // no trailing slash
+    geo: 'http://parcelserver.herokuapp.com'
   },
   
   // Information about where to find map tiles.
