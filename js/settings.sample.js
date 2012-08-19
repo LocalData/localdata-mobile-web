@@ -1,25 +1,16 @@
-var settings = {
-  bing_key: "",
+NSB.settings = {
+  // ID of the current survey
+  surveyid: '',
   
-};
-
-var BASEURL = ''; // no trailing slash
-var GEOAPI = '';
-var SURVEYID = '';
-
-var maps = {
-  'san francisco': {
-    'json': 'http://a.tiles.mapbox.com/v3/matthdev.soma.jsonp',
-    'interaction': 'setFormParcelSF' // Name of the function that gets parcel info
+  // URLs of services used to store, retrieve survey data
+  api: {
+    baseurl: '',
+    geo: ''
   },
-  'detroit': {
-    'json': 'http://a.tiles.mapbox.com/v3/matthdet.detroit.jsonp',
-    'interaction': 'setFormParcelDET'
-  }
+  
+  // Keys for external services
+  // In the future, we should move these out to a separate, untracked file
+  // Right now, the danger is low. 
+  bing_key: ''
 };
-var locale = "san francisco"; // our current set of parcels. 
-locale = "detroit";
-
-// Legacy:
-var CARTO_ACCOUNT = '';
 
