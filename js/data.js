@@ -9,54 +9,44 @@ NSB.test = {
           "text": "Yes",
           "questions": [
             {
-              "name": "under-construction",
-              "text": "",
-              "answers": [{
+              "name": "structure-properties",
+              "text": "Do any of the following apply?",
+              "type": "checkbox",
+              "answers": [
+                {
+                  "name": "under-construction",
                   "value": "yes",
                   "text": "Property is under construction"
-              }]
-            },
-            {
-              "name": "fire-damage",
-              "text": "",
-              "answers": [{
+                },
+                {
+                  "name": "fire-damage",
                   "value": "yes",
                   "text": "The structure appears to be fire-damaged"
-              }]
-            },
-            {
-              "name": "vod",
-              "text": "",
-              "answers": [{
+                },
+                {
+                  "name": "vod",
                   "value": "yes",
                   "text": "The structure appears to be vacant, open, and dangerous"
-              }]
-            },
-            
-            {
-              "name": "boarding-needed",
-              "text": "",
-              "answers": [{
+                },
+                {
+                  "name": "boarding-needed",
                   "value": "yes",
                   "text": "The structure needs to be boarded"
-              }]
-            },
-            {
-              "name": "grass-needs-cut",
-              "text": "",
-              "answers": [{
+                },
+                {
+                  "name": "grass-needs-cut",
                   "value": "yes",
                   "text": "The grass needs to be cut"
-              }]
-            },
-            {
-              "name": "dumping",
-              "text": "",
-              "answers": [{
+                },
+                {
+                  "name": "dumping",
                   "value": "yes",
                   "text": "The lot needs to be cleared of dumped materials or debris piles"
-              }]
+                }
+              ]
             },
+            
+            
             {
               "name": "use",
               "text": "What is the structure's use type?",
@@ -183,7 +173,27 @@ NSB.test = {
                         {
                           "name": "use-grocery",
                           "value": "use-grocery",
-                          "text": "Grocery"
+                          "text": "Grocery",
+                          "questions": [
+                            {
+                              "name": "use-grocery-detail",
+                              "text": "Detailed grocery use",
+                              "type": "checkbox",
+                              "answers": [
+                                {
+                                  "name": "grocery-full-service",
+                                  "value": "yes",
+                                  "text": "Full service grocery"
+                                },
+                                {
+                                  "name": "grocery-quick",
+                                  "value": "yes",
+                                  "text": "Quick marty"
+                                }                                
+                              ]
+                            }
+                          ]
+                          
                         },
                         {
                           "name": "use-retail",
@@ -212,9 +222,9 @@ NSB.test = {
                       "name": "asset-close",
                       "value": "asset-close",
                       "text": "Is the property in close proximity to any major community assets?",
-                      "questions": [
+                      "type": "text",
+                      "answers": [
                         {
-                          "type": "text",
                           "name": "nearby-asset",
                           "value": "",
                           "text": "What is the name of the community asset?"
@@ -348,31 +358,38 @@ NSB.test = {
           "text": "No",
           "questions": [
             {
-              "name": "unmaintained",
-              "value":"yes",
-              "text": "Unmaintained site"
-            },
-            {
-              "name": "dumping",
-              "value":"yes",
-              "text": "Illegal dumping on site"
-            },
-            {
-              "name": "parking-or-storage",
-              "value":"yes",
-              "text": "Parking or storage on site"
-            },
-            {
-              "name": "park",
-              "value":"yes",
-              "text": "Site is a park"
-            }       
+              "name": "no-structure",
+              "text": "Are any of the following true?",
+              "type": "checkbox",
+              "answers": [
+                {
+                  "name": "unmaintained",
+                  "value":"yes",
+                  "text": "Unmaintained site"
+                },
+                {
+                  "name": "dumping",
+                  "value":"yes",
+                  "text": "Illegal dumping on site"
+                },
+                {
+                  "name": "parking-or-storage",
+                  "value":"yes",
+                  "text": "Parking or storage on site"
+                },
+                {
+                  "name": "park",
+                  "value":"yes",
+                  "text": "Site is a park"
+                }       
+              ]
+            }
           ]
         }
       ]
     }
   ]
-};
+}
 
 //NSB.test = {
 //  "questions": [
