@@ -1,20 +1,17 @@
 NSB.FormView = function(formContainerId){
   var form = $(formContainerId + ' form');
   var formQuestions = $('#questions'); 
+  var repeatCounter = {};
   
   this.init = function(){
     console.log("Initialize form");
-    
-    // Set the URLs on all forms
-    url = NSB.API.getSurveyURL() + form.attr('action'); 
-    form.attr('action', url);    
     
     // Listen for objectedSelected, triggered when items on the map are tapped
     $.subscribe("objectSelected", setSelectedObjectInfo);  
     
     // Render the form 
-    // NSB.API.getForm(renderForm);
-    renderForm(NSB.test);
+    NSB.API.getForm(renderForm);
+    
     // Add a function to serialize the form for submission to the API
     // usage: form.serializeObject();
     form.serializeObject = function() {
@@ -34,15 +31,8 @@ NSB.FormView = function(formContainerId){
     };
     
   };
-  
-  var renderForm = function (form){
-    $.each(form.questions, function (index, question) {
-      // console.log("Adding question");
-      // console.log(question);
-      addQuestion(question);
-    });    
-  };
-  
+    
+
   // Update the form with information about the selected object.
   // Then, display the form.
   var setSelectedObjectInfo = function(e) {
@@ -72,7 +62,8 @@ NSB.FormView = function(formContainerId){
     
     // Stop form from submitting normally
     event.preventDefault(); 
-    url = $(this).attr('action'); 
+    
+    var url = NSB.API.getSurveyURL() + form.attr('action'); 
           
     // Serialize the form
     serialized = form.serializeObject();
@@ -172,12 +163,36 @@ NSB.FormView = function(formContainerId){
   };
   
   
+  // Render the form ........................................................
+  /* 
+   * Keep track of how many times we've seen a question with a given name
+   * Return a suffix if we've seen it more than once times
+   */ 
+  var renderForm = function() {
+    console.log("Form data:");
+    console.log(NSB.settings.formData);
+    $.each(NSB.settings.formData.questions, function (index, question) {
+      console.log("Adding question");
+      console.log(question);
+      addQuestion(question);
+    });    
+    form.trigger("create");
+
+  };
+  
+  function suffix(name) {
+    if(_.has(repeatCounter, name)) {
+      repeatCounter[name] += 1;
+      return "-" + repeatCounter[name].toString();
+    }
+    
+    repeatCounter[name] = 1; 
+    return "";
+  };
+    
   // Render the form. 
   // ================
   function addQuestion(question, visible, parentID, triggerID) {
-    // console.log("Adding question " + question.name);
-    // console.log(question);
-    
     // Set default values for questions
     if (visible === undefined) {
       visible = true;
@@ -191,7 +206,7 @@ NSB.FormView = function(formContainerId){
 
     // Give the question an ID based on its name
     var id = _.uniqueId(question.name);
-    
+
     // Collected the data needed to render the question 
     var data = {
       text: question.text,
@@ -199,34 +214,64 @@ NSB.FormView = function(formContainerId){
       parentID: parentID,
       triggerID: triggerID
     };
-
+    
     // Render the question block template
     var $question = $(_.template($('#question').html(), data));
     if (!visible) {
       $question.hide();
     }
     formQuestions.append($question);
-
+    
+    var suffixed_name = question.name + suffix(question.name);
+    
     // Add each answer to the question
     _.each(question.answers, function (answer) {
       // The triggerID is used to hide/show other question groups
       var triggerID = _.uniqueId(question.name);
+
+      // TODO: checkbox questions should be consistent with other answer groups
+      if(question.type === "checkbox") {
+        suffixed_name = answer.name + suffix(answer.name);
+        triggerID = _.uniqueId(answer.name);
+        id = _.uniqueId(answer.name);
+      };
       
       // Set the data used to render the answer
       var data = {
-        questionName: question.name,
+        questionName: suffixed_name,
         id: triggerID,
         value: answer.value,
         text: answer.text
       };
-      
+
       // Render the answer and append it to the fieldset.
       var $answer;
+      
+      // If there is more than one answer, this could be multiple choice
+      // or a radio group.
       if (question.answers.length > 1) {
-        $answer = $(_.template($('#answer-radio').html(), data));
+        
+        if(question.type === "checkbox") {
+          $answer = $(_.template($('#answer-checkbox').html(), data));
+        }else {
+          $answer = $(_.template($('#answer-radio').html(), data));
+        }
       }else {
-        $answer = $(_.template($('#answer-checkbox').html(), data));
+        if(question.type === "text") {
+          $answer = $(_.template($('#answer-text').html(), data));
+        }else {
+          $answer = $(_.template($('#answer-checkbox').html(), data));
+        }
       }
+      // Commercial: parent = use9, data-trigger: use23
+      // Residential: parent = use9, trigger = use10
+      
+      // if(answer.title != undefined) {
+      //   console.log("TITLE!------");
+      //   var $title = $(_.template($('#title').html(), {title: answer.title} ));
+      //   $question.append($title);
+      // }
+      
       $question.append($answer);
 
       // Add the click handler
@@ -234,10 +279,17 @@ NSB.FormView = function(formContainerId){
         // Hide all of the conditional questions, recursively.
         hideSubQ(id);
 
-        // Show the conditional questions for this response.
-        $('.control-group[data-trigger=' + triggerID + ']').each(function (i) {
-          $(this).show();
-        });
+        if($(this).prop("checked")) {
+          // Show the conditional questions for this response.
+          $('.control-group[data-trigger=' + triggerID + ']').each(function (i) {
+            $(this).show();
+          });
+        }else {
+          $('.control-group[data-trigger=' + triggerID + ']').each(function (i) {
+            $(this).hide();
+          });
+        };
+        
       });
 
       // If there are conditional questions, add them.
@@ -246,15 +298,32 @@ NSB.FormView = function(formContainerId){
         _.each(answer.questions, function (subq) {
           addQuestion(subq, false, id, triggerID);
         });
-      }
+        
+        // If we can repeat these answers, let's do that.
+        if(answer.repeating === true) {
+          $repeat_button = $(_.template($('#repeat-button').html(), data));
+          formQuestions.append($repeat_button);
+          
+          // If we click the repeat button, add the questions again
+          $repeat_button.click(function handleClick(e) {
+            e.preventDefault();
+            
+            _.each(answer.questions, function (subq) {
+              addQuestion(subq, true, id, triggerID);
+            });
+            
+            form.trigger("create");
+            //$("#" + id).trigger("create");
+            
+          });
+          // $(appendTo).append($repeat_button);
+        };
+        
+      }; // end check for sub-answers
+      
     });
-    
-    // After adding each response, we need to make sure that jquery mobile
-    // knows to render each form element.
-    //console.log(form);
-    form.trigger("create");
-    //console.log(form);
-  }
+  };
+  
   
   
   // Option group stuff 
@@ -265,10 +334,14 @@ NSB.FormView = function(formContainerId){
     $('.control-group[data-parent=' + parent + ']').each(function (i) {
       var $el = $(this);
       $el.hide();
-
+      
       // Uncheck the answers
       $('input[type=radio]', $el).each(function () {
-        $(this).attr('checked', false);
+        $(this).attr('checked', false).checkboxradio("refresh");
+      });
+
+      $('input[type=checkbox]', $el).each(function () {
+        $(this).attr('checked', false).checkboxradio("refresh");
       });
 
       // Handle conditional questions.
@@ -286,74 +359,6 @@ NSB.FormView = function(formContainerId){
     var count = parseInt($('#use-count').attr('value'), 10);
     count = count - 1;
     $('#use-count').attr('value', count);
-  });
-
-  // When the add-another button is clicked, clone the group
-  $(".add-another").click(function(){  
-    
-    // Get the parent & make a copy of the template
-    var parent = $(this).parent().parent();
-    var append_after = parent.find('.opt-group').last();
-    var container = $("#template-use .opt-group");
-    var clone = container.clone(true); 
-    
-    // Set the number of times clicked
-    var count = parseInt($('#use-count').attr('value'), 10);
-    count = count + 1;
-    $('#use-count').attr('value', count);
-    console.log("count: " + $('#use-count').attr('value'));
-    
-    // Set IDs and name on form elements to match the count
-    clone.find('input').each(function(index) {
-      // First, remove old counts
-      $(this).attr('id', strip_count($(this).attr('id')));
-      $(this).attr('name', strip_count($(this).attr('name')));
-    
-      // Set counts
-      $(this).attr('id', $(this).attr('id') + "-" + count);
-      $(this).attr('name', $(this).attr('name') + "-" + count);
-    
-    });
-    
-    clone.find('.use-id').text(count);
-    
-    // Number the fieldsets
-    clone.find('fieldset').each(function(index) {
-      console.log("Updating fieldset");
-      console.log($(this));
-      console.log($(this).attr('id'));
-    
-      // remove old count
-      $(this).attr('id', strip_count($(this).attr('id')));
-           
-      // then, addd new count
-      $(this).attr('id', $(this).attr('id') + "-" + count);
-    });
-    
-    // Number the labels
-    clone.find('label').each(function(index) {
-      $(this).attr('for', strip_count($(this).attr('for')));
-    
-      //$(this).attr('for', $(this).attr('for').split("-").slice(0, -1).join('-'));
-      $(this).attr('for', $(this).attr('for') + "-" + count);
-    });
-    
-    // Show the clone (the template is hidden by default)
-    clone.show();
-    clone.trigger("create");
-    
-    // Force jquery mobile to render the form elements
-    clone.find('input').each(function(index,elt){
-      $(this).removeAttr('data-role');
-      $(this).trigger("create");
-    });
-    
-    // Add the clone to the page
-    console.log("Append after");
-    console.log(append_after);
-    console.log(clone);
-    append_after.after(clone);
-    clone.trigger("create");
   });
 
 
