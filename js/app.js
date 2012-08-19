@@ -10,6 +10,9 @@ var NSB = {
   init: function() {  
     console.log("Initialize NSB");
     
+    // Get the survey, slug, etv.
+    NSB.API.getSurveyFromSlug();
+    
     // Set the collector name, if we already know it.
     if ($.cookie('collectorName') != null){
       $("#collector_name").val($.cookie('collectorName'));
