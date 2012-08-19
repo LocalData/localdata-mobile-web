@@ -1,4 +1,19 @@
 NSB.API = new function() {
+  
+  this.getSurveyFromSlug = function() {
+    var slug = window.location.hash.slice(1);
+    
+    var url = NSB.settings.api.baseurl +  "/slugs/" + slug;
+    console.log("I'm using this URL to get ")
+    console.log(url);
+    
+    // TODO: Display a nice error if the survey wans't found.
+    $.getJSON(url, function(data) {
+      console.log(data.survey);
+      NSB.settings.surveyid = data.survey;
+    });
+  };
+  
   /*
    * Generates the URL to retrieve results for a given parcel
    */
@@ -19,7 +34,11 @@ NSB.API = new function() {
   };
   
   this.getForm = function(callback) {
-    url = this.getSurveyURL() + "/forms";
+    console.log("Getting form data");
+    var url = this.getSurveyURL() + "/forms";
+    
+    console.log(url);
+
     $.getJSON(url, function(data){
       
       // Get only the mobile forms
@@ -31,12 +50,17 @@ NSB.API = new function() {
         }
         return false; 
       });
+      NSB.settings.formData = mobileForms[0];
       
-      // Sort by date
-      var sortedForms = _.sortBy(mobileForms, "created");
+      console.log("Form data");
+      console.log(data);
       
-      // Get only the most recent
-      callback(_.last(sortedForms));
+      
+      console.log("Mobile forms");
+      console.log(mobileForms);
+      
+      // Endpoint should give the most recent form first.
+      callback();
     });
   };
   
