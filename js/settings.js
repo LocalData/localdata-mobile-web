@@ -1,6 +1,6 @@
 NSB.settings = {
-  // ID of the current survey
-  surveyid: 'ece0db00-e0bf-11e1-9ba7-ebbad6f489a5', // 'c6fc1a00-e27f-11e1-9391-a91f94405155', //'', // UNI
+  // ID of the current survey -- set on init.
+  surveyid: '', 
   
   // URLs of services used to store, retrieve survey data
   api: {
