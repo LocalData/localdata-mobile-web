@@ -24,7 +24,9 @@ L.TileLayer.Bing = L.TileLayer.extend({
   
   supportedTypes: ['Road', 'Aerial', 'AerialWithLabels'],
   
-  attributionTemplate: '<br><span>{copyrights}' +
+  attributionTemplate: '<span style="display:inline-block">' +
+       '<a target="_blank" href="http://www.bing.com/maps/">' +
+       '<img src="{logo}" /></a><br><span>{copyrights}' +
        '<a style="white-space: nowrap" target="_blank" '+
        'href="http://www.microsoft.com/maps/product/terms.html">' +
        'Terms of Use</a></span></span>',
@@ -53,7 +55,7 @@ L.TileLayer.Bing = L.TileLayer.extend({
         url = "http://dev.virtualearth.net/REST/v1/Imagery/Metadata/" +
               this._mapType + L.Util.getParamString(params),
         script = document.createElement("script");
-    console.log(url);
+        
     script.type = "text/javascript";
     script.src = url;
     script.id = this._callbackId;
@@ -63,7 +65,6 @@ L.TileLayer.Bing = L.TileLayer.extend({
   _onMetadataLoaded: function() {},
   
   onAdd: function(map, insertAtTheBottom) {
-    insertAtTheBottom = true; // force the map to be at the bottom
     if (!this.metadata) {
       this._onMetadataLoaded = L.Util.bind(function() {
         L.TileLayer.prototype.onAdd.call(this, map, insertAtTheBottom);
@@ -106,11 +107,9 @@ L.TileLayer.Bing = L.TileLayer.extend({
         quadDigits.push(digit);
     }
 
-    var tileurl = this._url
+		return this._url
 				.replace('{subdomain}', subdomains[(xy.x + xy.y) % subdomains.length])
-				.replace('{quadkey}', quadDigits.join(""));
-		console.log(tileurl);
-		return tileurl;		
+				.replace('{quadkey}', quadDigits.join(""));		
   },
   
   _updateAttribution: function() {

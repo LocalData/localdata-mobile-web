@@ -1,8 +1,10 @@
 OUTPUT=publish
 
 RECESS = recess
-UGLIFY =  ./node_modules/uglify-js/bin/uglifyjs
+UGLIFY = node_modules/uglify-js/bin/uglifyjs
 S3CMD = s3cmd
+
+S3DIR = mobile-test
 
 CSS_FILES = $(wildcard css/*.css css/**/*.css)
 JS_FILES = $(wildcard js/*.js)
@@ -40,13 +42,10 @@ $(OUTPUT)/js/%.js: js/%.js
 copy:
 	mkdir -p $(OUTPUT)
 	cp *.html $(OUTPUT)/
-	mkdir -p $(OUTPUT)/dialogs
-	cp dialogs/*.html $(OUTPUT)/dialogs/
 	mkdir -p $(OUTPUT)/img
 	cp -r img/* $(OUTPUT)/img/
-	mkdir -p $(OUTPUT)/js/vendor
-	cp -r js/vendor/* $(OUTPUT)/js/vendor/
-	cp -r wax $(OUTPUT)/wax
+	mkdir -p $(OUTPUT)/js/lib
+	cp -r js/lib/* $(OUTPUT)/js/lib/
 
 build: $(OUTPUT) minify copy
 .PHONY: build
@@ -57,13 +56,9 @@ clean:
 
 .PHONY: deploy
 deploy:
+	# Use the dev settings
+	cp $(OUTPUT)/js/settings.remote.js $(OUTPUT)/js/settings.js
+
 	# The trailing slash on the local directory is important, so that we sync the
-	# contents of the directory and not the directory itself.
-	# Default: mobile-test
-	# ifeq ($(strip $(remote)),)
-	#   @echo "You need to specify the remote directory path, eg make deploy remote=mobile-test"
-	# else
-	#   $(S3CMD) sync $(OUTPUT)/ s3://locald/web/$(remote)/
-	# endif
-  $(S3CMD) sync $(OUTPUT)/ s3://locald/web/mobile-test/
-  
+	# contents of the directory and not the directory itself.  
+	$(S3CMD) sync $(OUTPUT)/ s3://locald/web/$(S3DIR)/
