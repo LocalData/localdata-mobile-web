@@ -10,7 +10,7 @@ NSB.API = new function() {
     // TODO: Display a nice error if the survey wans't found.
     $.getJSON(url, function(data) {
       console.log(data.survey);
-      NSB.settings.surveyid = data.survey;
+      NSB.settings.surveyId = data.survey;
     });
   };
   
@@ -18,11 +18,11 @@ NSB.API = new function() {
    * Generates the URL to retrieve results for a given parcel
    */
   this.getSurveyURL = function() {
-    return NSB.settings.api.baseurl + "/surveys/" + NSB.settings.surveyid;
+    return NSB.settings.api.baseurl + "/surveys/" + NSB.settings.surveyId;
   };
   
   this.getParcelDataURL = function(parcel_id) {
-    return NSB.settings.api.baseurl + '/surveys/' + NSB.settings.surveyid + '/parcels/' + parcel_id + '/responses';
+    return NSB.settings.api.baseurl + '/surveys/' + NSB.settings.surveyId + '/parcels/' + parcel_id + '/responses';
   };
   
   this.getGeoPointInfoURL = function(lat, lng) {
@@ -54,7 +54,6 @@ NSB.API = new function() {
       
       console.log("Form data");
       console.log(data);
-      
       
       console.log("Mobile forms");
       console.log(mobileForms);
