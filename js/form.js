@@ -192,7 +192,7 @@ NSB.FormView = function(formContainerId){
     
   // Render the form. 
   // ================
-  function addQuestion(question, visible, parentID, triggerID) {
+  function addQuestion(question, visible, parentID, triggerID, appendBefore) {
     // Set default values for questions
     if (visible === undefined) {
       visible = true;
@@ -208,7 +208,7 @@ NSB.FormView = function(formContainerId){
     var id = _.uniqueId(question.name);
 
     // Collected the data needed to render the question 
-    var data = {
+    var questionData = {
       text: question.text,
       id: id,
       parentID: parentID,
@@ -216,11 +216,16 @@ NSB.FormView = function(formContainerId){
     };
     
     // Render the question block template
-    var $question = $(_.template($('#question').html(), data));
+    var $question = $(_.template($('#question').html(), questionData));
     if (!visible) {
       $question.hide();
     }
-    formQuestions.append($question);
+    
+    if (appendBefore !== undefined) {
+      $(appendBefore).before($question);
+    }else {
+      formQuestions.append($question);
+    }
     
     var suffixed_name = question.name + suffix(question.name);
     
@@ -232,8 +237,8 @@ NSB.FormView = function(formContainerId){
       // TODO: checkbox questions should be consistent with other answer groups
       if(question.type === "checkbox") {
         suffixed_name = answer.name + suffix(answer.name);
-        triggerID = _.uniqueId(answer.name);
-        id = _.uniqueId(answer.name);
+        triggerID = suffixed_name; //_.uniqueId(answer.name);
+        id = suffixed_name; //_.uniqueId(answer.name);
       };
       
       // Set the data used to render the answer
@@ -263,9 +268,8 @@ NSB.FormView = function(formContainerId){
           $answer = $(_.template($('#answer-checkbox').html(), data));
         }
       }
-      // Commercial: parent = use9, data-trigger: use23
-      // Residential: parent = use9, trigger = use10
       
+      // TODO: Titles for question groups
       // if(answer.title != undefined) {
       //   console.log("TITLE!------");
       //   var $title = $(_.template($('#title').html(), {title: answer.title} ));
@@ -276,6 +280,7 @@ NSB.FormView = function(formContainerId){
 
       // Add the click handler
       $answer.click(function handleClick(e) {
+        console.log("Hiding " + id);
         // Hide all of the conditional questions, recursively.
         hideSubQ(id);
 
@@ -284,10 +289,19 @@ NSB.FormView = function(formContainerId){
           $('.control-group[data-trigger=' + triggerID + ']').each(function (i) {
             $(this).show();
           });
+          
+          $('.repeating-button[data-trigger=' + id + ']').each(function (i) {            
+            $(this).show();
+          });
         }else {
-          $('.control-group[data-trigger=' + triggerID + ']').each(function (i) {
+          $('.control-group[data-trigger=' + triggerID + ']').each(function (i) {            
             $(this).hide();
           });
+          
+          $('.repeating-button[data-trigger=' + id + ']').each(function (i) {
+            $(this).hide();
+          });
+          
         };
         
       });
@@ -295,29 +309,48 @@ NSB.FormView = function(formContainerId){
       // If there are conditional questions, add them.
       // They are hidden by default.
       if (answer.questions !== undefined) {
-        _.each(answer.questions, function (subq) {
-          addQuestion(subq, false, id, triggerID);
-        });
+        var repeatButton;
         
-        // If we can repeat these answers, let's do that.
-        if(answer.repeating === true) {
-          $repeat_button = $(_.template($('#repeat-button').html(), data));
-          formQuestions.append($repeat_button);
+                
+        // If uses can repeat those conditional questions: 
+        if(answer.repeatQuestions !== undefined) {
+          $repeatButton = $(_.template($('#repeat-button').html(), {
+            parentID: id,
+            triggerID: id
+          }));
+          formQuestions.append($repeatButton);
+          // $repeatButton.hide();
           
           // If we click the repeat button, add the questions again
-          $repeat_button.click(function handleClick(e) {
+          $repeatButton.click(function handleClick(e) {
             e.preventDefault();
-            
+
+            // Append the questions to this answer again! 
             _.each(answer.questions, function (subq) {
-              addQuestion(subq, true, id, triggerID);
+              console.log("Lots ... going on -- get it??");
+              addQuestion(subq, true, id, triggerID, $repeatButton);
             });
             
             form.trigger("create");
-            //$("#" + id).trigger("create");
-            
           });
-          // $(appendTo).append($repeat_button);
-        };
+          
+          _.each(answer.questions, function (subq) {
+            // Add the sub questions before the repeatButton
+            addQuestion(subq, false, id, triggerID, $repeatButton);
+          });
+          
+          
+        }else {
+          _.each(answer.questions, function (subq) {
+            // Add the sub questions before the repeatButton
+            if(appendBefore !== undefined){
+              addQuestion(subq, false, id, triggerID, appendBefore);
+            }else {
+              addQuestion(subq, false, id, triggerID);
+            }
+          });
+          
+        }; // end repeating answers
         
       }; // end check for sub-answers
       
@@ -346,6 +379,11 @@ NSB.FormView = function(formContainerId){
 
       // Handle conditional questions.
       hideSubQ($el.attr('id'));
+    });
+    
+    $('.repeating-button[data-parent=' + parent + ']').each(function (i) {
+      var $el = $(this);
+      $el.hide();
     });
   }
   
