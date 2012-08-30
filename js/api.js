@@ -52,9 +52,6 @@ NSB.API = new function() {
       });
       NSB.settings.formData = mobileForms[0];
       
-      console.log("Form data");
-      console.log(data);
-      
       console.log("Mobile forms");
       console.log(mobileForms);
       

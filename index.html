@@ -101,7 +101,7 @@
         </script>
 
         <script type="text/template" id="answer-checkbox">
-          <input type="checkbox" name="<%= questionName %>" id="<%= id %>" value="<%= value %>">
+          <input type="checkbox" name="<%= questionName %>" id="<%= id %>" value="<%= value %>" data-theme="<%= theme %>">
           <label for="<%= id %>"><%= text %></label>
         </script>
 
@@ -109,6 +109,12 @@
           <label for="<%= id %>"><%= text %></label>
           <input type="text" name="<%= questionName %>" id="<%= id %>" value="<%= value %>">
         </script>
+        
+        <script type="text/template" id="answer-texarea">
+          <label for="<%= id %>"><%= text %></label>
+          <input type="text" name="<%= questionName %>" id="<%= id %>" value="<%= value %>">
+        </script>
+        
 
         <script type="text/template" id="repeat-button">
           <a style="display:none;" class="repeating-button button" href="#" data-icon="plus" data-role="button" data-inline="true" data-parent="<%= parentID %>" data-trigger="<%= triggerID %>">Add another</a>

@@ -193,7 +193,6 @@ NSB.FormView = function(formContainerId){
   // Render the form. 
   // ================
   function addQuestion(question, visible, parentID, triggerID, appendBefore) {
-    console.log("Adding a question");
     // Set default values for questions
     if (visible === undefined) {
       visible = true;
@@ -269,6 +268,7 @@ NSB.FormView = function(formContainerId){
       var data = {
         questionName: suffixed_name,
         id: triggerID,
+        theme: (answer.theme || "c"),
         value: answer.value,
         text: answer.text
       };

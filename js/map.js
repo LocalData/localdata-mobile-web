@@ -30,39 +30,14 @@ NSB.MapView = function(mapContainerId){
     console.log("Initialize map");
     map = new L.Map(mapContainerId, {minZoom:13, maxZoom:18});
     
-    // Add the parcel layer; will be rendered later
     map.addLayer(parcelsLayerGroup);
-
-    // Add the layer of done markers; will be populated later
     map.addLayer(doneMarkersLayer);
     
-    // Add a bing layer to the map
     bing = new L.BingLayer(NSB.settings.bing_key, 'AerialWithLabels', {maxZoom:21});
     map.addLayer(bing);
     
-    // Listen for events
     $.subscribe("successfulSubmit", getResponsesInMap);    
     
-    // Map interactions 
-    // ================
-    // map.on('click', function(e) {
-    //   console.log("Map clicked");
-    //   
-    //   // // Get the data for a point when it's clicked
-    //   // NSB.API.getObjectDataAtPoint(e.latlng, function(data){
-    //   //   selectedObjectJSON = data;
-    //   //   selectedCentroid = new L.LatLng(selectedObjectJSON.centroid.coordinates[1], selectedObjectJSON.centroid.coordinates[0]);      
-    //   //   
-    //   //   highlightObject(data);
-    //   //   NSB.selectedObject = {};
-    //   //   NSB.selectedObject.id = data.parcelId;
-    //   //   NSB.selectedObject.humanReadableName = data.address;
-    //   //   
-    //   //   $.publish("objectSelected");
-    //   // });
-    // });
-
-    // MoveEnd handler
     // Show which parcels have responses when the map is moved.
     map.on('moveend', function(e) {
       try {
@@ -76,7 +51,6 @@ NSB.MapView = function(mapContainerId){
     map.on('locationfound', onLocationFound);
     map.on('locationerror', onLocationError);
 
-    // Center the map 
     map.locate({setView: true, maxZoom: 18});
 
     // Mark a location on the map. 
@@ -96,8 +70,7 @@ NSB.MapView = function(mapContainerId){
     }
   
 
-    // Map tools 
-    // =========
+    // Map tools .............................................................
     
     // Handle searching for addresses
     $("#address-search-toggle").click(function(){
@@ -117,11 +90,8 @@ NSB.MapView = function(mapContainerId){
   }; // end init
   
   
-  // Map information for consumers 
-  // =============================
+  // Map information used by other parts of the app ..........................
   
-  // Get the selected centroid.
-  // Pretty simple! 
   this.getSelectedCentroid = function() {
     return NSB.selectedObject.centroid;
   };
@@ -135,8 +105,7 @@ NSB.MapView = function(mapContainerId){
   };
   
 
-  // Icons 
-  // =====
+  // Icons ...................................................................
   var CheckIcon = L.Icon.extend({
     options: {
       className: 'CheckIcon',
@@ -150,9 +119,7 @@ NSB.MapView = function(mapContainerId){
   });  
   
   
-  // Move the map 
-  // ============
-  
+  // Move the map ............................................................
   // Attempt to center the map on an address using Google's geocoder.
   // This should probably live in APIs. 
   var goToAddress = function(address) {
@@ -165,8 +132,7 @@ NSB.MapView = function(mapContainerId){
   };
     
     
-  // Handle selecting objects 
-  // ========================
+  // Handle selecting objects ................................................
   
   // Render parcels that are currently visible in the map
   // Gets geodata from our api
@@ -181,6 +147,9 @@ NSB.MapView = function(mapContainerId){
     
     // TODO: If we have too many objects, let's delete them
     console.log(parcelsLayerGroup);
+    if(_.isEmpty(parcelIdsOnTheMap)) {
+      $.mobile.showPageLoadingMsg();
+    };
     
     // Get parcel data in the bounds
     NSB.API.getObjectsInBounds(map.getBounds(), function(results) {
@@ -228,7 +197,10 @@ NSB.MapView = function(mapContainerId){
           parcelsLayerGroup.addLayer(geojsonLayer);
           parcelIdsOnTheMap[elt.parcelId] = geojsonLayer;
         };
-      });
+      }); // done getting parcels
+      // Hide the spinner
+      $.mobile.hidePageLoadingMsg();
+      
     });
   };
   

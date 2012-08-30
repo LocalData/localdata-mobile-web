@@ -184,3 +184,7 @@ input[type="submit"] {
   margin-bottom:1em;
   font-size:1.3em;
 }
+
+.info p strong {
+  font-weight:bold;
+}
