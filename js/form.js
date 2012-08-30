@@ -43,6 +43,8 @@ NSB.FormView = function(formContainerId){
     
     if(!$('#form').is(":visible")) {
         $('#form').slideToggle();
+        console.log("Let's show it!");
+        console.log($("#form"));
     }
     if($('#startpoint').is(":visible")) {
       $('#startpoint').slideToggle();
@@ -164,22 +166,20 @@ NSB.FormView = function(formContainerId){
   
   
   // Render the form ........................................................
-  /* 
-   * Keep track of how many times we've seen a question with a given name
-   * Return a suffix if we've seen it more than once times
-   */ 
   var renderForm = function() {
     console.log("Form data:");
     console.log(NSB.settings.formData);
     $.each(NSB.settings.formData.questions, function (index, question) {
-      console.log("Adding question");
-      console.log(question);
       addQuestion(question);
     });    
     form.trigger("create");
 
   };
-  
+
+  /* 
+   * Keep track of how many times we've seen a question with a given name
+   * Return a suffix if we've seen it more than once times
+   */ 
   function suffix(name) {
     if(_.has(repeatCounter, name)) {
       repeatCounter[name] += 1;
@@ -193,6 +193,7 @@ NSB.FormView = function(formContainerId){
   // Render the form. 
   // ================
   function addQuestion(question, visible, parentID, triggerID, appendBefore) {
+    console.log("Adding a question");
     // Set default values for questions
     if (visible === undefined) {
       visible = true;
@@ -210,6 +211,7 @@ NSB.FormView = function(formContainerId){
     // Collected the data needed to render the question 
     var questionData = {
       text: question.text,
+      info: question.info, 
       id: id,
       parentID: parentID,
       triggerID: triggerID
@@ -228,6 +230,28 @@ NSB.FormView = function(formContainerId){
     }
     
     var suffixed_name = question.name + suffix(question.name);
+    
+    // Infoboxes (aka help text for questions)
+    if(question.info !== undefined) {
+      $question.find(".show-info").click(function(e) {
+        var toShow = $(this).attr("data-trigger");
+        console.log($("#" + toShow));
+        $("#" + toShow).slideToggle('slow');
+      });
+      
+      $question.find(".box-close").click(function(e) {
+        var $toHide = $(this).parent();
+        $toHide.slideUp('slow');
+      });      
+    };
+    
+    // TODO: Titles for question groups
+    // if(answer.title != undefined) {
+    //   console.log("TITLE!------");
+    //   var $title = $(_.template($('#title').html(), {title: answer.title} ));
+    //   $question.append($title);
+    // }
+    
     
     // Add each answer to the question
     _.each(question.answers, function (answer) {
@@ -269,18 +293,10 @@ NSB.FormView = function(formContainerId){
         }
       }
       
-      // TODO: Titles for question groups
-      // if(answer.title != undefined) {
-      //   console.log("TITLE!------");
-      //   var $title = $(_.template($('#title').html(), {title: answer.title} ));
-      //   $question.append($title);
-      // }
-      
       $question.append($answer);
 
       // Add the click handler
       $answer.click(function handleClick(e) {
-        console.log("Hiding " + id);
         // Hide all of the conditional questions, recursively.
         hideSubQ(id);
 
@@ -327,7 +343,6 @@ NSB.FormView = function(formContainerId){
 
             // Append the questions to this answer again! 
             _.each(answer.questions, function (subq) {
-              console.log("Lots ... going on -- get it??");
               addQuestion(subq, true, id, triggerID, $repeatButton);
             });
             

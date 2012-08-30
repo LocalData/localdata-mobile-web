@@ -2,9 +2,8 @@ body {
   padding: 0;
   margin: 0;
   background:#3f5b88;
-  font-family:Lucida Grande, sans-serif;
   font-size:14px; 
-  font-family: 'Crete Round', serif
+  font-family: Helvetica, Arial, 'Open Sans', Helvetica, Arial, sans-serif
 }
 
 html, body {
@@ -22,7 +21,7 @@ small {
 .ui-page  {
   /* This is a jquery mobile container */
   background:#eee;
-  font-family: 'Crete Round', serif;
+  font-family: Helvetica, Arial, 'Open Sans', sans-serif;
 }
 
 #home .ui-page {
@@ -47,10 +46,18 @@ h2,
   padding:1em;
 }
 
+#startpoint h2 {
+  padding-top:0;
+  margin-top:0;
+}
 
 #startpoint,
 #startpoint h2,
 #tools {
+  padding-bottom:0;
+}
+
+h2 {
   padding-bottom:0;
 }
 
@@ -95,8 +102,8 @@ h2,
 
 h1 {
   font-size:.9em;
-  font-weight:normal;
-  font-family: 'Crete Round', serif;
+  font-weight: bold;
+  font-family: Helvetica, Arial, 'Open Sans', sans-serif;
 }
 
 #home h1 {
@@ -157,4 +164,23 @@ input[type="submit"] {
   border-top:2px solid #ddd;
   border-bottom:2px solid #ddd;
   margin-bottom:10px;
+}
+
+.info {
+  color:#fff;
+  text-shadow:none;
+  background-color:#75b29a;
+  z-index:1000;
+  padding:25px;
+  left:0;
+  margin:0;
+  border:1px solid #589c81;
+  border-top-right-radius:10px;
+  border-bottom:5px solid #589c81;
+  display:none;
+}
+
+.info p {
+  margin-bottom:1em;
+  font-size:1.3em;
 }

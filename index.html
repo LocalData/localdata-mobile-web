@@ -27,7 +27,9 @@
     <script src='js/data.js' type='text/javascript'></script>
     
     <!-- Styles -->
-    <link href='http://fonts.googleapis.com/css?family=Crete+Round' rel='stylesheet' type='text/css'>
+<!--
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+-->
     <link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0-rc.2/jquery.mobile-1.1.0-rc.2.min.css">
     <style type="text/css" media="screen">
       @import url(css/reset.css);
@@ -83,6 +85,13 @@
         <script type="text/template" id="question">
         <fieldset data-role="controlgroup" class="control-group" id="<%= id %>" data-parent="<%= parentID %>" data-trigger="<%= triggerID %>">
           <legend class="control-legend"><%= text %></legend>
+          <% if(info !== undefined) { %>
+            <a href="" class="show-info" data-role="button" data-inline="true" data-icon="info" data-trigger="info-<%= id %>">More info</a>
+            <div id="info-<%= id %>" class="info">
+              <%= info %>
+              <a href="" data-role="button" data-icon="check" data-inline="true" class="box-close">Got it!</a>
+            </div>
+          <% }; %>
         </fieldset>
         </script>
 
