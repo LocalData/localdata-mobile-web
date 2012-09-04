@@ -25,12 +25,13 @@ NSB.API = new function() {
     return NSB.settings.api.baseurl + '/surveys/' + NSB.settings.surveyId + '/parcels/' + parcel_id + '/responses';
   };
   
-  this.getGeoPointInfoURL = function(lat, lng) {
-    return NSB.settings.api.geo + '/parcels/parcel?lat=' + lat + '&lng=' + lng;
-  };
+  // Deprecated
+  // this.getGeoPointInfoURL = function(lat, lng) {
+  //   return NSB.settings.api.geo + '/parcels/parcel?lat=' + lat + '&lng=' + lng;
+  // };
   
   this.getGeoBoundsObjectsURL = function(southwest, northeast) {
-    return NSB.settings.api.geo + '/parcels/bounds?lowerleft=' + southwest.lat + "," + southwest.lng + "&topright=" + northeast.lat + "," + northeast.lng;
+    return NSB.settings.api.geo + '/parcels?bbox=' + southwest.lng + "," + southwest.lat + "," + northeast.lng + "," + northeast.lat;
   };
   
   this.getForm = function(callback) {
@@ -61,22 +62,23 @@ NSB.API = new function() {
   };
   
   
+  // DEPRECATED -- everything goes through the KML. 
   // Given a Leaflet latlng object, return a JSON object that describes the 
   // parcel.
-  this.getObjectDataAtPoint = function(latlng, callback) {
-    console.log("Waiting for PostGIS data");
-    var lat = latlng.lat;
-    var lng = latlng.lng; 
-    
-    var url = this.getGeoPointInfoURL(lat, lng);
-    
-    $.getJSON(url, function(data){
-      // Process the results. Strip whitespace. Convert the polygon to geoJSON
-      // TODO: This will need to be genercized (id column, addres, etc.)
-      console.log("Got PostGIS data");
-      callback(NSB.API.parseObjectData(data));
-    }, this);
-  };
+  // this.getObjectDataAtPoint = function(latlng, callback) {
+  //   console.log("Waiting for PostGIS data");
+  //   var lat = latlng.lat;
+  //   var lng = latlng.lng; 
+  //   
+  //   var url = this.getGeoPointInfoURL(lat, lng);
+  //   
+  //   $.getJSON(url, function(data){
+  //     // Process the results. Strip whitespace. Convert the polygon to geoJSON
+  //     // TODO: This will need to be genercized (id column, addres, etc.)
+  //     console.log("Got PostGIS data");
+  //     callback(NSB.API.parseObjectData(data));
+  //   }, this);
+  // };
   
   // Deal with the formatting of the geodata API.
   // In the future, this will be more genericized. 
@@ -158,8 +160,8 @@ NSB.API = new function() {
     lngDiff = ne.lng - sw.lng;
     latDiff = ne.lat - sw.lat;
     
-    lngMod = lngDiff;
-    latMod = latDiff;
+    lngMod = lngDiff / 2;
+    latMod = latDiff / 2;
     
     var newSW = new L.LatLng(sw.lat - latMod, sw.lng - lngMod);
     var newNE = new L.LatLng(ne.lat + latMod, ne.lng + lngMod);

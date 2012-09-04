@@ -5,7 +5,7 @@ NSB.settings = {
   // URLs of services used to store, retrieve survey data
   api: {
     baseurl: 'http://localhost:3000/api', //'http://localhost:3000', // 'http://surveydet.herokuapp.com', // no trailing slash
-    geo: 'http://parcelserver.herokuapp.com'
+    geo: 'http://localhost:3000/api'
   },
     
   // Keys for external services
