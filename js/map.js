@@ -81,7 +81,7 @@ NSB.MapView = function(mapContainerId){
     }
   
 
-    // Map tools .............................................................
+    // Map tools ...............................................................
     
     // Handle searching for addresses
     $("#address-search-toggle").click(function(){
