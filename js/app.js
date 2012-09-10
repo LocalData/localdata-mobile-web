@@ -14,7 +14,7 @@ var NSB = {
     NSB.API.getSurveyFromSlug();
     
     // Set the collector name, if we already know it.
-    if ($.cookie('collectorName') != null){
+    if ($.cookie('collectorName') !== null){
       $("#collector_name").val($.cookie('collectorName'));
     }
     
@@ -22,7 +22,7 @@ var NSB = {
       console.log("Setting collector name");
       
       NSB.collectorName = $("#collector_name").val();      
-      $("#startpoint h2").html("Welcome, " + NSB.collectorName + "<br>Select a parcel to begin");
+      $("#startpoint h2").html("Welcome, " + NSB.collectorName + "<br>Tap a parcel to begin");
       $(".collector").val(NSB.collectorName);
       
       // Set a cookie with the collector's name
@@ -53,50 +53,15 @@ $(document).ready(function(){
  * Trim function: strips whitespace from a string. 
  * Use: " dog".trim() === "dog" //true
  */
-if(typeof(String.prototype.trim) === "undefined")
-{
-    String.prototype.trim = function() 
-    {
-        return String(this).replace(/^\s+|\s+$/g, '');
-    };
+if(typeof(String.prototype.trim) === "undefined") {
+  String.prototype.trim = function() {
+    return String(this).replace(/^\s+|\s+$/g, '');
+  };
 }
 
-
-
-/* DOCUMENT READY ==========================================================*/
-
-///* 
-// * Main set of event listeners
-// */
-//$(document).ready(function(){  
-//    
-//  /* 
-//   * Show additional questions based on selected options.
-//   */
-//   $('[id^="options-use"] input').change(function(){    
-//     console.log("Hiding options");
-//     console.log(this);    
-//
-//     // First, find the options groups in the field, and hide + clear them.
-//     var opt_group = $(this).closest('.opt-group');
-//     opt_group.find('.options').each(function(index){
-//       // Hide every options group
-//       $(this).hide();
-//
-//       // Clear out selected options so we don't accidentally submit them
-//       $(this).find('input').each(function(index){
-//         $(this).attr('checked', false).checkboxradio('refresh',true);
-//       });
-//     });
-//
-//     // show selected option group
-//     var group_to_show = "#options-" + $(this).attr('id');
-//     var parent = $(this).attr('id');
-//     $(group_to_show).slideToggle();
-//     console.log("Showing options group " + group_to_show);
-//   });
-//   
-//  
-//  
-//}); // end onready
+if(typeof(String.prototype.titleCase) === "undefined") {
+  String.prototype.titleCase = function() { 
+     return this.toLowerCase().replace(/^.|\s\S/g, function(a) { return a.toUpperCase(); });
+  };
+}
   

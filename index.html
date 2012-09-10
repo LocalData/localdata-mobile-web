@@ -14,8 +14,7 @@
     <script src='js/lib/jquery.cookie.js' type="text/javascript"></script>
     <script src='js/lib/jquery.tinypubsub.js' type="text/javascript"></script>
     <script src='js/lib/underscore.js' type='text/javascript'></script>
-    <script src='js/lib/wax/ext/leaflet.js' type='text/javascript'></script>
-    <script src='js/lib/wax/dist/wax.leaf.js' type='text/javascript'></script>
+    <script src='js/lib/leaflet/leaflet-src.js' type='text/javascript'></script>
     <script src='js/lib/tilelayer.bing.pull.js' type='text/javascript'></script>
     
     <!-- App JS -->
@@ -35,7 +34,7 @@
       @import url(css/reset.css);
       @import url(css/mobile.css);      
     </style>
-    <link href='js/lib/wax/ext/leaflet.css' rel='stylesheet' type='text/css'>
+    <link href='js/lib/leaflet/leaflet.css' rel='stylesheet' type='text/css'>
     
     
     <!--
@@ -56,20 +55,21 @@
   </div><!-- end home -->
     
   <div class="container" id="survey-container">
-    <div id='map-div' style="height:250px;"></div>
-    <div id="startpoint">
-        <h2>Select a parcel to begin.</h2>
-    </div> 
-    <div id="thanks">
-        <h2>Thank you! Select another parcel to continue.</h2>
-    </div>
     <div id="tools">
-      <a href='#' id='address-search-toggle' data-icon="search" data-role="button" data-inline="true" >Search for an address</a>
+      <a href='#' id='address-search-toggle' data-icon="search" data-role="button" data-inline="true" >Address</a>
       <a href='#' id='geolocate' data-icon="star" data-role="button" data-inline="true" >Locate me</a>
     </div>
     <div id="address-search">
       <input type="text" name="address-input" id="address-input" style="width:70%" value="" data-mini="true" placeholder="Address">
       <input id="address-submit" type="submit" data-icon="arrow-r" data-iconpos="right" data-inline="true" data-theme="e" value="Find address">
+    </div>
+
+    <div id='map-div' style="height:250px;"></div>
+    <div id="startpoint">
+        <h2>Tap a parcel to begin.</h2>
+    </div> 
+    <div id="thanks">
+        <h2>Thank you! Tap another parcel to continue.</h2>
     </div>
     
     <div id="form">

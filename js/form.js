@@ -29,22 +29,21 @@ NSB.FormView = function(formContainerId){
         });
         return o;
     };
-    
   };
-    
 
   // Update the form with information about the selected object.
   // Then, display the form.
   var setSelectedObjectInfo = function(e) {
     console.log("Showing the form");
-        
-    // $('.parcel_id').val(NSB.selectedObject.id);
-    $('h2 .parcel_id').text(NSB.selectedObject.humanReadableName);
+    var $addressDOM = $('h2 .parcel_id');
+
+    $addressDOM.fadeOut(400, function() {
+      $addressDOM.text(NSB.selectedObject.humanReadableName.titleCase());
+      $addressDOM.fadeIn(400);
+    });
     
     if(!$('#form').is(":visible")) {
         $('#form').slideToggle();
-        console.log("Let's show it!");
-        console.log($("#form"));
     }
     if($('#startpoint').is(":visible")) {
       $('#startpoint').slideToggle();
@@ -55,8 +54,7 @@ NSB.FormView = function(formContainerId){
   };
 
 
-  // Form submission 
-  // ===============
+  // Form submission ........................................................................
   
   // Handle the parcel survey form being submitted
   form.submit(function(event) {
@@ -105,14 +103,14 @@ NSB.FormView = function(formContainerId){
     // TODO: This will need to use Prashant's browser-safe POSTing
     var jqxhr = $.post(url, responses, function() {
         console.log("Form successfully posted");
-      },
-      "text").error(function(){ 
-      var result = "";
-      for (var key in jqxhr) {
-        result += key + ": " + jqxhr[key] + "\n";
-      }
-      console.log("error: " + result);
-    }).success(function(){
+      },"text").error(function(){ 
+        var key;
+        var result = "";
+        for (key in jqxhr) {
+          result += key + ": " + jqxhr[key] + "\n";
+        }
+        console.log("error: " + result);
+      }).success(function(){
       successfulSubmit();
     });
   });
@@ -162,7 +160,7 @@ NSB.FormView = function(formContainerId){
 
     // Reset count of template groups
     $('#use-count').attr('value', 1);
-  };
+  }
   
   
   // Render the form ........................................................
@@ -173,7 +171,6 @@ NSB.FormView = function(formContainerId){
       addQuestion(question);
     });    
     form.trigger("create");
-
   };
 
   /* 
@@ -188,7 +185,7 @@ NSB.FormView = function(formContainerId){
     
     repeatCounter[name] = 1; 
     return "";
-  };
+  }
     
   // Render the form. 
   // ================
@@ -242,7 +239,7 @@ NSB.FormView = function(formContainerId){
         var $toHide = $(this).parent();
         $toHide.slideUp('slow');
       });      
-    };
+    }
     
     // TODO: Titles for question groups
     // if(answer.title != undefined) {
@@ -262,7 +259,7 @@ NSB.FormView = function(formContainerId){
         suffixed_name = answer.name + suffix(answer.name);
         triggerID = suffixed_name; //_.uniqueId(answer.name);
         id = suffixed_name; //_.uniqueId(answer.name);
-      };
+      }
       
       // Set the data used to render the answer
       var data = {
@@ -318,14 +315,14 @@ NSB.FormView = function(formContainerId){
             $(this).hide();
           });
           
-        };
+        }
         
       });
 
       // If there are conditional questions, add them.
       // They are hidden by default.
       if (answer.questions !== undefined) {
-        var repeatButton;
+        var $repeatButton;
         
                 
         // If uses can repeat those conditional questions: 
@@ -365,12 +362,12 @@ NSB.FormView = function(formContainerId){
             }
           });
           
-        }; // end repeating answers
+        } // end repeating answers
         
-      }; // end check for sub-answers
+      } // end check for sub-answers
       
     });
-  };
+  }
   
   
   

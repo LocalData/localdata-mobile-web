@@ -12,28 +12,34 @@ NSB.MapView = function(mapContainerId){
   var selectedCentroid = null;
   var selectedObjectJSON = null;
   
+
+  /* Styles for parcel outlines */
   var defaultStyle = {
     'opacity': 1,
     'fillOpacity': 0,
-    'weight': 1.5,
-    'color': 'white'
+    'weight': 3,
+    'color': 'white',
+    'dashArray': '5,5'
   };
   
   var selectedStyle = {
     'opacity': 1,
-    'fillOpacity': 0,
-    'weight': 1.5,
-    'color': 'red'
+    'fillOpacity': 0.25,
+    'weight': 3,
+    'color': 'yellow',
+    'fillColor': 'yellow',
+    'dashArray': '1'
+
   };
   
   this.init = function() {
     console.log("Initialize map");
-    map = new L.Map(mapContainerId, {minZoom:13, maxZoom:18});
+    map = new L.Map(mapContainerId, {minZoom:13, maxZoom:21});
     
     map.addLayer(parcelsLayerGroup);
     map.addLayer(doneMarkersLayer);
     
-    bing = new L.BingLayer(NSB.settings.bing_key, 'AerialWithLabels', {maxZoom:21});
+    var bing = new L.BingLayer(NSB.settings.bing_key, {maxZoom:21, type:"AerialWithLabels"});
     map.addLayer(bing);
     
     $.subscribe("successfulSubmit", getResponsesInMap);    
@@ -51,18 +57,23 @@ NSB.MapView = function(mapContainerId){
     map.on('locationfound', onLocationFound);
     map.on('locationerror', onLocationError);
 
-    map.locate({setView: true, maxZoom: 18});
+    map.locate({setView: true, maxZoom: 19});
 
     // Mark a location on the map. 
     // Primarily used with browser-based geolocation (aka "where am I?")
     function onLocationFound(e) {
+      // Remove the old circle if we have one
+      if (circle !== undefined) {
+        map.removeLayer(circle);
+      };
+
       // Add the accuracy circle to the map
     	var radius = e.accuracy / 2;
     	circle = new L.Circle(e.latlng, radius);
     	map.addLayer(circle);
 
-    	getResponsesInMap();
-    	renderParcelsInBounds();
+      getResponsesInMap();
+      renderParcelsInBounds();
     }
 
     function onLocationError(e) {
@@ -74,7 +85,6 @@ NSB.MapView = function(mapContainerId){
     
     // Handle searching for addresses
     $("#address-search-toggle").click(function(){
-      console.log("Toggling address search");
       $("#address-search").slideToggle();
       $("#address-search-prompt").slideToggle();
     });
@@ -84,7 +94,7 @@ NSB.MapView = function(mapContainerId){
     });
     
     $("#geolocate").click(function(){
-       map.locate({setView: true, maxZoom: 18});
+       map.locate({setView: true, maxZoom: 19});
     });
         
   }; // end init
@@ -123,11 +133,23 @@ NSB.MapView = function(mapContainerId){
   // Attempt to center the map on an address using Google's geocoder.
   // This should probably live in APIs. 
   var goToAddress = function(address) {
-    console.log("Coding an address");
     NSB.API.codeAddress(address, function(latlng){
-      var marker = new L.Marker(latlng);
-      map.addLayer(marker);
-      map.setView(latlng, 18);
+      if (circle !== undefined) {
+        map.removeLayer(circle);
+      };
+
+      // Add the accuracy circle to the map
+      var radius = 4;
+      circle = new L.Circle(latlng, radius);
+      map.addLayer(circle);
+      map.setView(latlng, 19);
+
+      // Scroll to the top so users can 
+      window.scrollTo(0,0);
+      $("#address-search").slideToggle();
+      $("#address-search-prompt").slideToggle();
+
+
     });
   };
     
@@ -159,29 +181,29 @@ NSB.MapView = function(mapContainerId){
         
         // We don't want to re-draw parcels that are already on the map
         // So we keep a hash map with the layers so we can unrender them
-        if (parcelIdsOnTheMap[elt.parcelId] == undefined){
+        if (parcelIdsOnTheMap[elt.parcelId] === undefined){
          
           // Make sure the format fits Leaflet's geoJSON expectations
-          elt['geometry'] = elt.polygon;
-          elt['type'] = "Feature";
+          elt.geometry = elt.polygon;
+          elt.type = "Feature";
 
           // Create a new geojson layer and style it. 
           var geojsonLayer = new L.GeoJSON();
-          geojsonLayer.addGeoJSON(elt);
+          geojsonLayer.addData(elt);
           geojsonLayer.setStyle(defaultStyle);
           
           geojsonLayer.on('click', function(e){ 
           
             // Deselect the previous layer, if any
-            if (selectedLayer != null) {
+            if (selectedLayer !== null) {
               selectedLayer.setStyle(defaultStyle);
-            };
+            }
             
             // Keep track of the selected object centrally
-            NSB.selectedObject.id = elt['parcelId'];
+            NSB.selectedObject.id = elt.parcelId;
             NSB.selectedObject.humanReadableName = elt['address'];
             NSB.selectedObject.centroid = elt['centroid'];
-            NSB.selectedObject.geometry = elt['geometry']; 
+            NSB.selectedObject.geometry = elt.geometry; 
             console.log(NSB.selectedObject);
             
             // Select the current layer

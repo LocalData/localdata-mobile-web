@@ -40,9 +40,7 @@ small {
 h2,
 #startpoint, 
 #thanks,
-#form fieldset,
-#address-search,
-#tools {
+#form fieldset {
   padding:1em;
 }
 
@@ -61,14 +59,12 @@ h2 {
   padding-bottom:0;
 }
 
-#tools {
-  padding:5px 30px 5px 30px;
-  background:transparent url(../img/shadow.png) repeat-x left top;
+#tools,
+#address-search {
+  background:#3f5b88;
+  padding:5px;
 }
 
-#address-search {
-  padding-left:30px;
-}
 
 #form {
   background:#fff;
