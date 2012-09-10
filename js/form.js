@@ -54,7 +54,7 @@ NSB.FormView = function(formContainerId){
   };
 
 
-  // Form submission ........................................................................
+  // Form submission ...........................................................
   
   // Handle the parcel survey form being submitted
   form.submit(function(event) {
@@ -163,7 +163,7 @@ NSB.FormView = function(formContainerId){
   }
   
   
-  // Render the form ........................................................
+  // Render the form ...........................................................
   var renderForm = function() {
     console.log("Form data:");
     console.log(NSB.settings.formData);
@@ -412,8 +412,7 @@ NSB.FormView = function(formContainerId){
   });
 
 
-  // Trigger form init 
-  // ==================
+  // Trigger form init .........................................................
   this.init();
   
 };
