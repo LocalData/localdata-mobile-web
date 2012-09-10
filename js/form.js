@@ -157,9 +157,6 @@ NSB.FormView = function(formContainerId){
 
     // Remove additional template groups (eg use options)
     $('form .template-group').remove();
-
-    // Reset count of template groups
-    $('#use-count').attr('value', 1);
   }
   
   
@@ -399,19 +396,6 @@ NSB.FormView = function(formContainerId){
     });
   }
   
-  // Remove an option group
-  $('.remove').click(function(){
-    var parent = $(this).closest('.opt-group');
-    parent.slideToggle('fast', function(){
-      parent.remove();
-    });
-        
-    var count = parseInt($('#use-count').attr('value'), 10);
-    count = count - 1;
-    $('#use-count').attr('value', count);
-  });
-
-
   // Trigger form init .........................................................
   this.init();
   
