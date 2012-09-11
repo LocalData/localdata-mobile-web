@@ -6,10 +6,7 @@ L.BingLayer = L.TileLayer.extend({
 	},
 
 	initialize: function(key, options) {
-		console.log(options);
 		L.Util.setOptions(this, options);
-
-		console.log(this);
 
 		this._key = key;
 		this._url = null;
@@ -31,7 +28,6 @@ L.BingLayer = L.TileLayer.extend({
 
 	getTileUrl: function(p, z) {
 		var z = this._getZoomForUrl();
-		console.log(z);
 		var subdomains = this.options.subdomains,
 			s = this.options.subdomains[(p.x + p.y) % subdomains.length];
 		return this._url.replace('{subdomain}', s)
