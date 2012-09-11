@@ -378,11 +378,7 @@ NSB.FormView = function(formContainerId){
   function hideSubQ(parent) {
     $('.control-group[data-parent=' + parent + ']').each(function (i) {
       var $el = $(this);
-      console.log("HIDING");
-      console.log($el);
       $el.hide();
-
-      console.log($el);
       
       // Uncheck the answers
       $('input[type=radio]', $el).each(function () {
