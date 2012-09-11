@@ -46,7 +46,7 @@ NSB.FormView = function(formContainerId){
         $('#form').slideToggle();
     }
     if($('#startpoint').is(":visible")) {
-      $('#startpoint').slideToggle();
+      $('#startpoint').hide();
     }
     if($('#thanks').is(":visible")) {
       $('#thanks').slideToggle();
@@ -138,8 +138,8 @@ NSB.FormView = function(formContainerId){
     resetForm();
   }
 
-  // Reset the form: clear checkboxes, remove added option groups, 
-  //  reset counts
+  // Reset the form: clear checkboxes, remove added option groups, hide 
+  // sub options.
   function resetForm() {
     console.log("Resetting form");
     
@@ -154,9 +154,12 @@ NSB.FormView = function(formContainerId){
         $(this).attr('checked', false).checkboxradio('refresh',true);
       } catch(e){}
     });
+    $('fieldset').each(function(index){
+      hideSubQ($(this).attr('id'));
+    });
 
-    // Remove additional template groups (eg use options)
-    $('form .template-group').remove();
+    // Remove additional repeating groups
+    $('.append-to').empty();
   }
   
   
@@ -184,9 +187,10 @@ NSB.FormView = function(formContainerId){
     return "";
   }
     
-  // Render the form. 
-  // ================
-  function addQuestion(question, visible, parentID, triggerID, appendBefore) {
+  /*
+   * Render questions
+   */
+  function addQuestion(question, visible, parentID, triggerID, appendTo) {
     // Set default values for questions
     if (visible === undefined) {
       visible = true;
@@ -216,8 +220,8 @@ NSB.FormView = function(formContainerId){
       $question.hide();
     }
     
-    if (appendBefore !== undefined) {
-      $(appendBefore).before($question);
+    if (appendTo !== undefined) {
+      $(appendTo).append($question);
     }else {
       formQuestions.append($question);
     }
@@ -244,7 +248,6 @@ NSB.FormView = function(formContainerId){
     //   var $title = $(_.template($('#title').html(), {title: answer.title} ));
     //   $question.append($title);
     // }
-    
     
     // Add each answer to the question
     _.each(question.answers, function (answer) {
@@ -311,7 +314,6 @@ NSB.FormView = function(formContainerId){
           $('.repeating-button[data-trigger=' + id + ']').each(function (i) {
             $(this).hide();
           });
-          
         }
         
       });
@@ -322,22 +324,24 @@ NSB.FormView = function(formContainerId){
         var $repeatButton;
         
                 
-        // If uses can repeat those conditional questions: 
+        // If users can repeat those conditional questions: 
         if(answer.repeatQuestions !== undefined) {
-          $repeatButton = $(_.template($('#repeat-button').html(), {
+          $repeatBox = $(_.template($('#repeat-button').html(), {
             parentID: id,
             triggerID: id
           }));
-          formQuestions.append($repeatButton);
-          // $repeatButton.hide();
-          
+          formQuestions.append($repeatBox);
+          var $repeatButton = $repeatBox.find('a');
+          var $appendTo = $repeatBox.find('.append-to');
+          console.log($appendTo);
+
           // If we click the repeat button, add the questions again
           $repeatButton.click(function handleClick(e) {
             e.preventDefault();
 
             // Append the questions to this answer again! 
             _.each(answer.questions, function (subq) {
-              addQuestion(subq, true, id, triggerID, $repeatButton);
+              addQuestion(subq, true, id, triggerID, $appendTo);
             });
             
             form.trigger("create");
@@ -345,15 +349,15 @@ NSB.FormView = function(formContainerId){
           
           _.each(answer.questions, function (subq) {
             // Add the sub questions before the repeatButton
-            addQuestion(subq, false, id, triggerID, $repeatButton);
+            addQuestion(subq, false, id, triggerID, $appendTo);
           });
           
           
         }else {
           _.each(answer.questions, function (subq) {
             // Add the sub questions before the repeatButton
-            if(appendBefore !== undefined){
-              addQuestion(subq, false, id, triggerID, appendBefore);
+            if(appendTo !== undefined){
+              addQuestion(subq, false, id, triggerID, appendTo);
             }else {
               addQuestion(subq, false, id, triggerID);
             }
@@ -368,14 +372,17 @@ NSB.FormView = function(formContainerId){
   
   
   
-  // Option group stuff 
-  // ======================================================
+  // Option group stuff ........................................................
   
   // Show / hide sub questions
   function hideSubQ(parent) {
     $('.control-group[data-parent=' + parent + ']').each(function (i) {
       var $el = $(this);
+      console.log("HIDING");
+      console.log($el);
       $el.hide();
+
+      console.log($el);
       
       // Uncheck the answers
       $('input[type=radio]', $el).each(function () {
