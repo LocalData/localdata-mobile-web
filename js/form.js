@@ -155,7 +155,7 @@ NSB.FormView = function(formContainerId){
       } catch(e){}
     });
     $('fieldset').each(function(index){
-      hideSubQ($(this).attr('id'));
+      hideAndClearSubQuestionsFor($(this).attr('id'));
     });
 
     // Remove additional repeating groups
@@ -284,8 +284,6 @@ NSB.FormView = function(formContainerId){
 
       // Render the answer and append it to the fieldset.
       var $answer;
-
-
       var referencesToAnswersForQuestion;
       
       // If there is more than one answer, this could be multiple choice
@@ -342,12 +340,13 @@ NSB.FormView = function(formContainerId){
       }
       var controlGroupElements = $('.control-group[data-trigger=' + triggerID + ']');
       var repeatingButtonElements = $('.repeating-button[data-trigger=' + triggerID + ']');
+
       input.click(function handleClick(e) {
         // Hide all of the conditional questions, recursively.
-        hideSubQ(id);
+        hideAndClearSubQuestionsFor(id);
 
+        // Show the conditional questions for this response.
         if($(this).prop("checked")) {
-          // Show the conditional questions for this response.
           $('.control-group[data-trigger=' + triggerID + ']').each(function (i) {
             $(this).show();
           });
@@ -355,15 +354,7 @@ NSB.FormView = function(formContainerId){
           $('.repeating-button[data-trigger=' + id + ']').each(function (i) {            
             $(this).show();
           });
-        }else {
-          $('.control-group[data-trigger=' + triggerID + ']').each(function (i) {            
-            $(this).hide();
-          });
-          
-          $('.repeating-button[data-trigger=' + id + ']').each(function (i) {
-            $(this).hide();
-          });
-        }
+        }        
       });
 
       // If there are conditional questions, add them.
@@ -421,43 +412,44 @@ NSB.FormView = function(formContainerId){
 
   // Option group stuff ........................................................
   
-  // Show / hide sub questions
-  function hideSubQ(parent) {
-    var cgroupQueue = window.NSB.questionsByParentId[parent];
-    var boxQueue = [];
+  // Show / hide sub questions for a given parent
+  function hideAndClearSubQuestionsFor(parent) {
 
-    function handleCGroup(cgroup) {
-      var $el = $(cgroup);
+    // Get the list of questions associated with that parent
+    var questionsToProcess = window.NSB.questionsByParentId[parent]; // was var controlGroupQueue
+    var answersToProcess = [];
+
+    function handleQuestion(question) {
+      var $el = $(question);
       $el.hide();
 
-      // Uncheck the answers
+      // Get the answers we'll need to reset later
       var id = $el.attr('id');
-      var boxAnswers = window.NSB.boxAnswersByQuestionId[id];
-      if (boxAnswers !== undefined) {
-        boxQueue = boxQueue.concat(boxAnswers);
+      var answersForQuestion = window.NSB.boxAnswersByQuestionId[id];
+      if (answersForQuestion !== undefined) {
+        answersToProcess = answersToProcess.concat(answersForQuestion);
       }
 
-
       // Handle conditional questions.
-      //cgroupQueue = cgroupQueue.concat($('.control-group[data-parent=' + $el.attr('id') + ']').toArray());
-      var children = window.NSB.questionsByParentId[$el.attr('id')];
-      if (children !== undefined) {
-        cgroupQueue = cgroupQueue.concat(children);
+      var subQuestions = window.NSB.questionsByParentId[$el.attr('id')];
+      if (subQuestions !== undefined) {
+        questionsToProcess = questionsToProcess.concat(subQuestions);
       }
     }
 
     var i = 0;
-    var cgroup;
-    while (cgroupQueue !== undefined && i < cgroupQueue.length) {
-      cgroup = cgroupQueue[i];
-      handleCGroup(cgroup);
+    var question;
+    while (questionsToProcess !== undefined && i < questionsToProcess.length) {
+      question = questionsToProcess[i];
+      handleQuestion(question);
       i += 1;
     }
 
+    // Uncheck all the things!
     var j;
-    var len = boxQueue.length;
-    for (j = 0; j < len; j += 1) {
-      boxQueue[j].attr('checked', false).checkboxradio("refresh");
+    var answersToProcessLength = answersToProcess.length;
+    for (j = 0; j < answersToProcessLength; j += 1) {
+      answersToProcess[j].attr('checked', false).checkboxradio("refresh");
     }
 
     $('.repeating-button[data-parent=' + parent + ']').hide();
