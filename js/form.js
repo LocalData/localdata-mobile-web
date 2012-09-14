@@ -286,7 +286,7 @@ NSB.FormView = function(formContainerId){
       var $answer;
 
 
-      var boxes;
+      var referencesToAnswersForQuestion;
       
       // If there is more than one answer, this could be multiple choice
       // or a radio group.
@@ -299,16 +299,16 @@ NSB.FormView = function(formContainerId){
         }
 
         // Store references to the questions for quick retrieval later
-        boxes = window.NSB.boxAnswersByQuestionId[questionID];
-        if (boxes === undefined) {
-          boxes = [];
-          window.NSB.boxAnswersByQuestionId[questionID] = boxes;
+        referencesToAnswersForQuestion = window.NSB.boxAnswersByQuestionId[questionID];
+        if (referencesToAnswersForQuestion === undefined) {
+          referencesToAnswersForQuestion = [];
+          window.NSB.boxAnswersByQuestionId[questionID] = referencesToAnswersForQuestion;
         }
         $answer.filter('input[type="radio"]').each(function (i, el) {
-          boxes.push($(el));
+          referencesToAnswersForQuestion.push($(el));
         });
         $answer.filter('input[type="checkbox"]').each(function (i, el) {
-          boxes.push($(el));
+          referencesToAnswersForQuestion.push($(el));
         });
 
       }else {
@@ -318,16 +318,16 @@ NSB.FormView = function(formContainerId){
           $answer = $(_.template($('#answer-checkbox').html(), data));
 
           // Store references to answers for quick retrieval later
-          boxes = window.NSB.boxAnswersByQuestionId[questionID];
-          if (boxes === undefined) {
-            boxes = [];
-            window.NSB.boxAnswersByQuestionId[questionID] = boxes;
+          referencesToAnswersForQuestion = window.NSB.boxAnswersByQuestionId[questionID];
+          if (referencesToAnswersForQuestion === undefined) {
+            referencesToAnswersForQuestion = [];
+            window.NSB.boxAnswersByQuestionId[questionID] = referencesToAnswersForQuestion;
           }
           $answer.filter('input[type="radio"]').each(function (i, el) {
-            boxes.push($(el));
+            referencesToAnswersForQuestion.push($(el));
           });
           $answer.filter('input[type="checkbox"]').each(function (i, el) {
-            boxes.push($(el));
+            referencesToAnswersForQuestion.push($(el));
           });
 
         }
