@@ -155,7 +155,7 @@ NSB.FormView = function(formContainerId){
       } catch(e){}
     });
     $('fieldset').each(function(index){
-      hideSubQ($(this).attr('id'));
+      hideAndClearSubQuestionsFor($(this).attr('id'));
     });
 
     // Remove additional repeating groups
@@ -216,12 +216,13 @@ NSB.FormView = function(formContainerId){
       triggerID: triggerID
     };
     
-    // Render the question block template
+    // Render the questions's fieldset
     var $question = $(_.template($('#question').html(), questionData));
     if (!visible) {
       $question.hide();
     }
-    
+
+    // 
     var siblings = window.NSB.questionsByParentId[parentID];
     if (siblings === undefined) {
       siblings = [];
@@ -229,6 +230,7 @@ NSB.FormView = function(formContainerId){
     }
     siblings.push($question); 
 
+    
     if (appendTo !== undefined) {
       $(appendTo).append($question);
     }else {
@@ -282,8 +284,8 @@ NSB.FormView = function(formContainerId){
 
       // Render the answer and append it to the fieldset.
       var $answer;
+      var referencesToAnswersForQuestion;
       
-      var boxes;
       // If there is more than one answer, this could be multiple choice
       // or a radio group.
       if (question.answers.length > 1) {
@@ -293,51 +295,58 @@ NSB.FormView = function(formContainerId){
         }else {
           $answer = $(_.template($('#answer-radio').html(), data));
         }
-        boxes = window.NSB.boxAnswersByQuestionId[questionID];
-        if (boxes === undefined) {
-          boxes = [];
-          window.NSB.boxAnswersByQuestionId[questionID] = boxes;
+
+        // Store references to the questions for quick retrieval later
+        referencesToAnswersForQuestion = window.NSB.boxAnswersByQuestionId[questionID];
+        if (referencesToAnswersForQuestion === undefined) {
+          referencesToAnswersForQuestion = [];
+          window.NSB.boxAnswersByQuestionId[questionID] = referencesToAnswersForQuestion;
         }
         $answer.filter('input[type="radio"]').each(function (i, el) {
-          boxes.push($(el));
+          referencesToAnswersForQuestion.push($(el));
         });
         $answer.filter('input[type="checkbox"]').each(function (i, el) {
-          boxes.push($(el));
+          referencesToAnswersForQuestion.push($(el));
         });
+
       }else {
         if(question.type === "text") {
           $answer = $(_.template($('#answer-text').html(), data));
         }else {
           $answer = $(_.template($('#answer-checkbox').html(), data));
-          boxes = window.NSB.boxAnswersByQuestionId[questionID];
-          if (boxes === undefined) {
-            boxes = [];
-            window.NSB.boxAnswersByQuestionId[questionID] = boxes;
+
+          // Store references to answers for quick retrieval later
+          referencesToAnswersForQuestion = window.NSB.boxAnswersByQuestionId[questionID];
+          if (referencesToAnswersForQuestion === undefined) {
+            referencesToAnswersForQuestion = [];
+            window.NSB.boxAnswersByQuestionId[questionID] = referencesToAnswersForQuestion;
           }
           $answer.filter('input[type="radio"]').each(function (i, el) {
-            boxes.push($(el));
+            referencesToAnswersForQuestion.push($(el));
           });
           $answer.filter('input[type="checkbox"]').each(function (i, el) {
-            boxes.push($(el));
+            referencesToAnswersForQuestion.push($(el));
           });
+
         }
       }
       
       $question.append($answer);
 
-      // Add the click handler
+      // Add the click handlers
       var input = $answer.parent().find('input#' + triggerID);
       if (input.length === 0) {
         input = $answer;
       }
       var controlGroupElements = $('.control-group[data-trigger=' + triggerID + ']');
       var repeatingButtonElements = $('.repeating-button[data-trigger=' + triggerID + ']');
+
       input.click(function handleClick(e) {
         // Hide all of the conditional questions, recursively.
-        hideSubQ(id);
+        hideAndClearSubQuestionsFor(id);
 
+        // Show the conditional questions for this response.
         if($(this).prop("checked")) {
-          // Show the conditional questions for this response.
           $('.control-group[data-trigger=' + triggerID + ']').each(function (i) {
             $(this).show();
           });
@@ -345,15 +354,7 @@ NSB.FormView = function(formContainerId){
           $('.repeating-button[data-trigger=' + id + ']').each(function (i) {            
             $(this).show();
           });
-        }else {
-          $('.control-group[data-trigger=' + triggerID + ']').each(function (i) {            
-            $(this).hide();
-          });
-          
-          $('.repeating-button[data-trigger=' + id + ']').each(function (i) {
-            $(this).hide();
-          });
-        }
+        }        
       });
 
       // If there are conditional questions, add them.
@@ -408,47 +409,47 @@ NSB.FormView = function(formContainerId){
     });
   }
   
-  
-  
+
   // Option group stuff ........................................................
   
-  // Show / hide sub questions
-  function hideSubQ(parent) {
-    var cgroupQueue = window.NSB.questionsByParentId[parent];
-    var boxQueue = [];
+  // Show / hide sub questions for a given parent
+  function hideAndClearSubQuestionsFor(parent) {
 
-    function handleCGroup(cgroup) {
-      var $el = $(cgroup);
+    // Get the list of questions associated with that parent
+    var questionsToProcess = window.NSB.questionsByParentId[parent]; // was var controlGroupQueue
+    var answersToProcess = [];
+
+    function handleQuestion(question) {
+      var $el = $(question);
       $el.hide();
 
-      // Uncheck the answers
+      // Get the answers we'll need to reset later
       var id = $el.attr('id');
-      var boxAnswers = window.NSB.boxAnswersByQuestionId[id];
-      if (boxAnswers !== undefined) {
-        boxQueue = boxQueue.concat(boxAnswers);
+      var answersForQuestion = window.NSB.boxAnswersByQuestionId[id];
+      if (answersForQuestion !== undefined) {
+        answersToProcess = answersToProcess.concat(answersForQuestion);
       }
 
-
       // Handle conditional questions.
-      //cgroupQueue = cgroupQueue.concat($('.control-group[data-parent=' + $el.attr('id') + ']').toArray());
-      var children = window.NSB.questionsByParentId[$el.attr('id')];
-      if (children !== undefined) {
-        cgroupQueue = cgroupQueue.concat(children);
+      var subQuestions = window.NSB.questionsByParentId[$el.attr('id')];
+      if (subQuestions !== undefined) {
+        questionsToProcess = questionsToProcess.concat(subQuestions);
       }
     }
 
     var i = 0;
-    var cgroup;
-    while (cgroupQueue !== undefined && i < cgroupQueue.length) {
-      cgroup = cgroupQueue[i];
-      handleCGroup(cgroup);
+    var question;
+    while (questionsToProcess !== undefined && i < questionsToProcess.length) {
+      question = questionsToProcess[i];
+      handleQuestion(question);
       i += 1;
     }
 
+    // Uncheck all the things!
     var j;
-    var len = boxQueue.length;
-    for (j = 0; j < len; j += 1) {
-      boxQueue[j].attr('checked', false).checkboxradio("refresh");
+    var answersToProcessLength = answersToProcess.length;
+    for (j = 0; j < answersToProcessLength; j += 1) {
+      answersToProcess[j].attr('checked', false).checkboxradio("refresh");
     }
 
     $('.repeating-button[data-parent=' + parent + ']').hide();
