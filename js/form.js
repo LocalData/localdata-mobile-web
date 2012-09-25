@@ -145,14 +145,16 @@ NSB.FormView = function(formContainerId){
     
     // Clear all checkboxes and radio buttons
     $('input:checkbox').each(function(index){
-      try {
-        $(this).attr('checked', false).checkboxradio('refresh',true);
-      } catch(e){}
+      var $this = $(this);
+      if ($this.attr('checked')) {
+        $this.attr('checked', false).checkboxradio('refresh');
+      }
     });
     $('input:radio').each(function(index){
-      try {
-        $(this).attr('checked', false).checkboxradio('refresh',true);
-      } catch(e){}
+      var $this = $(this);
+      if ($this.attr('checked')) {
+        $this.attr('checked', false).checkboxradio('refresh');
+      }
     });
     $('fieldset').each(function(index){
       hideAndClearSubQuestionsFor($(this).attr('id'));
@@ -192,6 +194,7 @@ NSB.FormView = function(formContainerId){
    */
   window.NSB.boxAnswersByQuestionId = {};
   window.NSB.questionsByParentId = {};
+  var templates;
   function addQuestion(question, visible, parentID, triggerID, appendTo) {
     // Set default values for questions
     if (visible === undefined) {
@@ -202,6 +205,17 @@ NSB.FormView = function(formContainerId){
     }
     if (triggerID === undefined) {
       triggerID = '';
+    }
+
+    // Load the templates
+    if (templates === undefined) {
+      templates = {
+        question: _.template($('#question').html()),
+        answerCheckbox: _.template($('#answer-checkbox').html()),
+        answerRadio: _.template($('#answer-radio').html()),
+        answerText: _.template($('#answer-text').html()),
+        repeatButton: _.template($('#repeat-button').html())
+      };
     }
 
     // Give the question an ID based on its name
@@ -217,7 +231,7 @@ NSB.FormView = function(formContainerId){
     };
     
     // Render the questions's fieldset
-    var $question = $(_.template($('#question').html(), questionData));
+    var $question = $(templates.question(questionData));
     if (!visible) {
       $question.hide();
     }
@@ -291,9 +305,9 @@ NSB.FormView = function(formContainerId){
       if (question.answers.length > 1) {
         
         if(question.type === "checkbox") {
-          $answer = $(_.template($('#answer-checkbox').html(), data));
+          $answer = $(templates.answerCheckbox(data));
         }else {
-          $answer = $(_.template($('#answer-radio').html(), data));
+          $answer = $(templates.answerRadio(data));
         }
 
         // Store references to the questions for quick retrieval later
@@ -311,9 +325,9 @@ NSB.FormView = function(formContainerId){
 
       }else {
         if(question.type === "text") {
-          $answer = $(_.template($('#answer-text').html(), data));
+          $answer = $(templates.answerText(data));
         }else {
-          $answer = $(_.template($('#answer-checkbox').html(), data));
+          $answer = $(templates.answerCheckbox(data));
 
           // Store references to answers for quick retrieval later
           referencesToAnswersForQuestion = window.NSB.boxAnswersByQuestionId[questionID];
@@ -338,8 +352,6 @@ NSB.FormView = function(formContainerId){
       if (input.length === 0) {
         input = $answer;
       }
-      var controlGroupElements = $('.control-group[data-trigger=' + triggerID + ']');
-      var repeatingButtonElements = $('.repeating-button[data-trigger=' + triggerID + ']');
 
       input.click(function handleClick(e) {
         // Hide all of the conditional questions, recursively.
@@ -360,17 +372,15 @@ NSB.FormView = function(formContainerId){
       // If there are conditional questions, add them.
       // They are hidden by default.
       if (answer.questions !== undefined) {
-        var $repeatButton;
-        
-                
         // If users can repeat those conditional questions: 
         if(answer.repeatQuestions !== undefined) {
-          $repeatBox = $(_.template($('#repeat-button').html(), {
+          var $repeatButton;
+          var $repeatBox = $(templates.repeatButton({
             parentID: id,
             triggerID: id
           }));
           formQuestions.append($repeatBox);
-          var $repeatButton = $repeatBox.find('a');
+          $repeatButton = $repeatBox.find('a');
           var $appendTo = $repeatBox.find('.append-to');
           console.log($appendTo);
 
@@ -449,7 +459,9 @@ NSB.FormView = function(formContainerId){
     var j;
     var answersToProcessLength = answersToProcess.length;
     for (j = 0; j < answersToProcessLength; j += 1) {
-      answersToProcess[j].attr('checked', false).checkboxradio("refresh");
+      if (answersToProcess[j].attr('checked')) {
+        answersToProcess[j].attr('checked', false).checkboxradio("refresh");
+      }
     }
 
     $('.repeating-button[data-parent=' + parent + ']').hide();
