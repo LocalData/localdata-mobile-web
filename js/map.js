@@ -8,6 +8,7 @@ define(function (require) {
   var _ = require('lib/underscore');
   var settings = require('settings');
   var api = require('api');
+  var L = require('lib/leaflet');
 
   return function (app, mapContainerId) {
 

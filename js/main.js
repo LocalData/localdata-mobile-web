@@ -22,20 +22,22 @@
 
 require.config({
   paths: { 
-    jquery: 'lib/jquery'
+    jquery: 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery',
+    'lib/leaflet': 'lib/leaflet/leaflet'
   },
   shim: {
     'lib/underscore': {
       exports: '_'
     },
-    'jquery.mobile': ['jquery'],
-    'jquery.cookie': ['jquery'],
-    'jquery.tinypubsub': ['jquery']
+    'lib/leaflet': {
+      exports: 'L'
+    },
+    'lib/tilelayer.bing.pull': ['lib/leaflet']
   }
 });
 
-require(['jquery', 'app', 'lib/jquery.mobile', 'lib/jquery.cookie', 'lib/jquery.tinypubsub'],
-        function ($, app, jqm, jqc, jqtps) {
+require(['jquery', 'app', 'lib/jquery.mobile', 'lib/jquery.cookie', 'lib/jquery.tinypubsub', 'lib/leaflet', 'lib/tilelayer.bing.pull'],
+        function ($, app, jqm, jqc, jqtps, L, tLBing) {
   'use strict';
 
   $(document).ready(function () {

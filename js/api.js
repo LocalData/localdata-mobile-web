@@ -7,6 +7,7 @@ define(function (require) {
   var settings = require('settings');
   var _ = require('lib/underscore');
   var $ = require('jquery');
+  var L = require('lib/leaflet');
 
   var api = {};
 

@@ -4,7 +4,7 @@
  * copied at https://gist.github.com/3133355
  * Copyright (c) 2011 "Cowboy" Ben Alman; Licensed MIT, GPL */
 
-(function($) {
+define(['jquery'], function ($) {
 
   var o = $({});
 
@@ -20,4 +20,4 @@
     o.trigger.apply(o, arguments);
   };
 
-}(jQuery));
+});
