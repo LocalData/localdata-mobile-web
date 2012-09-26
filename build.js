@@ -2,7 +2,8 @@
   name: 'main',
   paths: { 
     jquery: 'empty:',
-    'lib/leaflet': 'lib/leaflet/leaflet'
+    'lib/leaflet': 'lib/leaflet/leaflet',
+    settings: 'settings.remote'
   },
   shim: {
     'lib/underscore': {

@@ -59,9 +59,6 @@ clean:
 
 .PHONY: deploy
 deploy:
-	# Use the dev settings
-	cp $(OUTPUT)/js/settings.remote.js $(OUTPUT)/js/settings.js
-
 	# The trailing slash on the local directory is important, so that we sync the
 	# contents of the directory and not the directory itself.  
 	$(S3CMD) sync $(OUTPUT)/ s3://locald/web/$(S3DIR)/
