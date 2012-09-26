@@ -188,7 +188,26 @@ NSB.FormView = function(formContainerId){
     repeatCounter[name] = 1; 
     return "";
   }
-    
+
+  function makeClickHandler(id, triggerID) {
+    return function handleClick(e) {
+      // Hide all of the conditional questions, recursively.
+      hideAndClearSubQuestionsFor(id);
+
+      // Show the conditional questions for this response.
+      if($(this).prop("checked")) {
+        $('.control-group[data-trigger=' + triggerID + ']').each(function (i) {
+          $(this).show();
+        });
+
+        $('.repeating-button[data-trigger=' + id + ']').each(function (i) {            
+          $(this).show();
+        });
+      }        
+    };
+  }
+
+  
   /*
    * Render questions
    */
@@ -353,21 +372,7 @@ NSB.FormView = function(formContainerId){
         input = $answer;
       }
 
-      input.click(function handleClick(e) {
-        // Hide all of the conditional questions, recursively.
-        hideAndClearSubQuestionsFor(id);
-
-        // Show the conditional questions for this response.
-        if($(this).prop("checked")) {
-          $('.control-group[data-trigger=' + triggerID + ']').each(function (i) {
-            $(this).show();
-          });
-          
-          $('.repeating-button[data-trigger=' + id + ']').each(function (i) {            
-            $(this).show();
-          });
-        }        
-      });
+      input.click(makeClickHandler(id, triggerID));
 
       // If there are conditional questions, add them.
       // They are hidden by default.
