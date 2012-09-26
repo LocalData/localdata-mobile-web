@@ -3,6 +3,7 @@ OUTPUT=publish
 RECESS = recess
 UGLIFY = node_modules/uglify-js/bin/uglifyjs
 S3CMD = s3cmd
+RJS = node_modules/requirejs/bin/r.js
 
 S3DIR = mobile-test
 
@@ -26,7 +27,8 @@ JS_MINIFIED = $(patsubst %.js,$(OUTPUT)/%.js,$(JS_FILES))
 
 minify-css: $(OUTPUT)/css $(CSS_FILES) $(CSS_MINIFIED)
 
-minify-js: $(OUTPUT)/js $(JS_FILES) $(JS_MINIFIED)
+minify-js:
+	$(RJS) -o build.js out=$(OUTPUT)/js/main.js
 
 $(OUTPUT)/css/%.css: css/%.css
 	@echo 'Minifying $<'
@@ -44,8 +46,9 @@ copy:
 	cp *.html $(OUTPUT)/
 	mkdir -p $(OUTPUT)/img
 	cp -r img/* $(OUTPUT)/img/
-	mkdir -p $(OUTPUT)/js/lib
-	cp -r js/lib/* $(OUTPUT)/js/lib/
+	mkdir -p $(OUTPUT)/js/lib/leaflet
+	cp -r js/lib/leaflet/* $(OUTPUT)/js/lib/leaflet/
+	cp js/require.js $(OUTPUT)/js/require.js
 
 build: $(OUTPUT) minify copy
 .PHONY: build
