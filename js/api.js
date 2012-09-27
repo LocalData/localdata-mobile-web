@@ -1,42 +1,53 @@
-NSB.API = new function() {
-  
-  this.getSurveyFromSlug = function() {
+/*jslint nomen: true */
+/*globals define: true */
+
+define(function (require) {
+  'use strict';
+
+  var settings = require('settings');
+  var _ = require('lib/underscore');
+  var $ = require('jquery');
+  var L = require('lib/leaflet');
+
+  var api = {};
+
+  api.getSurveyFromSlug = function() {
     var slug = window.location.hash.slice(1);
     
-    var url = NSB.settings.api.baseurl +  "/slugs/" + slug;
-    console.log("I'm using this URL to get ")
+    var url = settings.api.baseurl +  "/slugs/" + slug;
+    console.log("I'm using this URL to get ");
     console.log(url);
     
     // TODO: Display a nice error if the survey wans't found.
     $.getJSON(url, function(data) {
       console.log(data.survey);
-      NSB.settings.surveyId = data.survey;
+      settings.surveyId = data.survey;
     });
   };
   
   /*
    * Generates the URL to retrieve results for a given parcel
    */
-  this.getSurveyURL = function() {
-    return NSB.settings.api.baseurl + "/surveys/" + NSB.settings.surveyId;
+  api.getSurveyURL = function() {
+    return settings.api.baseurl + "/surveys/" + settings.surveyId;
   };
   
-  this.getParcelDataURL = function(parcel_id) {
-    return NSB.settings.api.baseurl + '/surveys/' + NSB.settings.surveyId + '/parcels/' + parcel_id + '/responses';
+  api.getParcelDataURL = function(parcel_id) {
+    return settings.api.baseurl + '/surveys/' + settings.surveyId + '/parcels/' + parcel_id + '/responses';
   };
   
   // Deprecated
-  // this.getGeoPointInfoURL = function(lat, lng) {
-  //   return NSB.settings.api.geo + '/parcels/parcel?lat=' + lat + '&lng=' + lng;
+  // api.getGeoPointInfoURL = function(lat, lng) {
+  //   return settings.api.geo + '/parcels/parcel?lat=' + lat + '&lng=' + lng;
   // };
   
-  this.getGeoBoundsObjectsURL = function(southwest, northeast) {
-    return NSB.settings.api.geo + '/parcels?bbox=' + southwest.lng + "," + southwest.lat + "," + northeast.lng + "," + northeast.lat;
+  api.getGeoBoundsObjectsURL = function(southwest, northeast) {
+    return settings.api.geo + '/parcels?bbox=' + southwest.lng + "," + southwest.lat + "," + northeast.lng + "," + northeast.lat;
   };
   
-  this.getForm = function(callback) {
+  api.getForm = function(callback) {
     console.log("Getting form data");
-    var url = this.getSurveyURL() + "/forms";
+    var url = api.getSurveyURL() + "/forms";
     
     console.log(url);
 
@@ -51,7 +62,7 @@ NSB.API = new function() {
         }
         return false; 
       });
-      NSB.settings.formData = mobileForms[0];
+      settings.formData = mobileForms[0];
       
       console.log("Mobile forms");
       console.log(mobileForms);
@@ -65,26 +76,26 @@ NSB.API = new function() {
   // DEPRECATED -- everything goes through the KML. 
   // Given a Leaflet latlng object, return a JSON object that describes the 
   // parcel.
-  // this.getObjectDataAtPoint = function(latlng, callback) {
+  // api.getObjectDataAtPoint = function(latlng, callback) {
   //   console.log("Waiting for PostGIS data");
   //   var lat = latlng.lat;
   //   var lng = latlng.lng; 
   //   
-  //   var url = this.getGeoPointInfoURL(lat, lng);
+  //   var url = api.getGeoPointInfoURL(lat, lng);
   //   
   //   $.getJSON(url, function(data){
   //     // Process the results. Strip whitespace. Convert the polygon to geoJSON
   //     // TODO: This will need to be genercized (id column, addres, etc.)
   //     console.log("Got PostGIS data");
-  //     callback(NSB.API.parseObjectData(data));
-  //   }, this);
+  //     callback(API.parseObjectData(data));
+  //   }, api);
   // };
   
   // Deal with the formatting of the geodata API.
   // In the future, this will be more genericized. 
   // parcel_id => object_id
   // address => object_location
-  this.parseObjectData = function(data) {
+  api.parseObjectData = function(data) {
     return {
       parcelId: data.parcelId, 
       address: data.address,
@@ -97,11 +108,11 @@ NSB.API = new function() {
   // Add "Detroit" to the end.
   // Return the first result as a lat-lng for convenience.
   // Or Null if Bing is being a jerk / we're dumb. 
-  this.codeAddress = function(address, callback) {
+  api.codeAddress = function(address, callback) {
     console.log("Coding an address");
     console.log(address);
     var detroitAddress = address + " Detroit, MI"; // for ease of geocoding
-    var geocodeEndpoint = "http://dev.virtualearth.net/REST/v1/Locations/" + detroitAddress + "?o=json&key=" + NSB.settings.bing_key + "&jsonp=?";
+    var geocodeEndpoint = "http://dev.virtualearth.net/REST/v1/Locations/" + detroitAddress + "?o=json&key=" + settings.bing_key + "&jsonp=?";
 
     $.getJSON(geocodeEndpoint, function(data){
       if(data.resourceSets.length > 0){
@@ -115,13 +126,13 @@ NSB.API = new function() {
   // Take a map bounds object
   // Find the objects in the bounds
   // Feed those objects to the callback
-  this.getResponsesInBounds = function(bounds, callback) {
+  api.getResponsesInBounds = function(bounds, callback) {
     var southwest = bounds.getSouthWest();
     var northeast = bounds.getNorthEast();
     
     // Given the bounds, generate a URL to ge the responses from the API.
-    serializedBounds = southwest.lat + "," + southwest.lng + "," + northeast.lat + "," + northeast.lng;
-    var url = NSB.API.getSurveyURL() + "/responses/in/" + serializedBounds;
+    var serializedBounds = southwest.lat + "," + southwest.lng + "," + northeast.lat + "," + northeast.lng;
+    var url = api.getSurveyURL() + "/responses/in/" + serializedBounds;
 
     // Give the callback the responses.
     $.getJSON(url, function(data){
@@ -131,37 +142,17 @@ NSB.API = new function() {
     });
   };
   
-  // Take a map bounds object
-  // Find the parcels in the bounds
-  // Feed those objects to the callback
-  this.getObjectsInBounds = function(bounds, callback) {
-    bufferedBounds = addBuffer(bounds);
-    var southwest = bufferedBounds.getSouthWest();
-    var northeast = bufferedBounds.getNorthEast();
-    
-    // Given the bounds, generate a URL to ge the responses from the API.
-    var url = this.getGeoBoundsObjectsURL(southwest, northeast);
-    console.log(url);
-
-    // Give the callback the responses.
-    $.getJSON(url, function(data){
-      if(data) {
-        callback(data);
-      };
-    });
-  };
-    
   // Add a 100% buffer to a bounds object.
   // Makes parcels render faster when the map is moved
   var addBuffer = function(bounds) {    
-    sw = bounds.getSouthWest();
-    ne = bounds.getNorthEast();
+    var sw = bounds.getSouthWest();
+    var ne = bounds.getNorthEast();
     
-    lngDiff = ne.lng - sw.lng;
-    latDiff = ne.lat - sw.lat;
+    var lngDiff = ne.lng - sw.lng;
+    var latDiff = ne.lat - sw.lat;
     
-    lngMod = lngDiff / 2;
-    latMod = latDiff / 2;
+    var lngMod = lngDiff / 2;
+    var latMod = latDiff / 2;
     
     var newSW = new L.LatLng(sw.lat - latMod, sw.lng - lngMod);
     var newNE = new L.LatLng(ne.lat + latMod, ne.lng + lngMod);
@@ -169,4 +160,25 @@ NSB.API = new function() {
     return new L.LatLngBounds(newSW, newNE);
   };
   
-};
+  // Take a map bounds object
+  // Find the parcels in the bounds
+  // Feed those objects to the callback
+  api.getObjectsInBounds = function(bounds, callback) {
+    var bufferedBounds = addBuffer(bounds);
+    var southwest = bufferedBounds.getSouthWest();
+    var northeast = bufferedBounds.getNorthEast();
+    
+    // Given the bounds, generate a URL to ge the responses from the API.
+    var url = api.getGeoBoundsObjectsURL(southwest, northeast);
+    console.log(url);
+
+    // Give the callback the responses.
+    $.getJSON(url, function(data){
+      if(data) {
+        callback(data);
+      }
+    });
+  };
+    
+  return api;
+});
