@@ -145,17 +145,19 @@ NSB.FormView = function(formContainerId){
     
     // Clear all checkboxes and radio buttons
     $('input:checkbox').each(function(index){
-      try {
-        $(this).attr('checked', false).checkboxradio('refresh',true);
-      } catch(e){}
+      var $this = $(this);
+      if ($this.attr('checked')) {
+        $this.attr('checked', false).checkboxradio('refresh');
+      }
     });
     $('input:radio').each(function(index){
-      try {
-        $(this).attr('checked', false).checkboxradio('refresh',true);
-      } catch(e){}
+      var $this = $(this);
+      if ($this.attr('checked')) {
+        $this.attr('checked', false).checkboxradio('refresh');
+      }
     });
     $('fieldset').each(function(index){
-      hideSubQ($(this).attr('id'));
+      hideAndClearSubQuestionsFor($(this).attr('id'));
     });
 
     // Remove additional repeating groups
@@ -186,10 +188,32 @@ NSB.FormView = function(formContainerId){
     repeatCounter[name] = 1; 
     return "";
   }
-    
+
+  function makeClickHandler(id, triggerID) {
+    return function handleClick(e) {
+      // Hide all of the conditional questions, recursively.
+      hideAndClearSubQuestionsFor(id);
+
+      // Show the conditional questions for this response.
+      if($(this).prop("checked")) {
+        $('.control-group[data-trigger=' + triggerID + ']').each(function (i) {
+          $(this).show();
+        });
+
+        $('.repeating-button[data-trigger=' + id + ']').each(function (i) {            
+          $(this).show();
+        });
+      }        
+    };
+  }
+
+  
   /*
    * Render questions
    */
+  window.NSB.boxAnswersByQuestionId = {};
+  window.NSB.questionsByParentId = {};
+  var templates;
   function addQuestion(question, visible, parentID, triggerID, appendTo) {
     // Set default values for questions
     if (visible === undefined) {
@@ -200,6 +224,17 @@ NSB.FormView = function(formContainerId){
     }
     if (triggerID === undefined) {
       triggerID = '';
+    }
+
+    // Load the templates
+    if (templates === undefined) {
+      templates = {
+        question: _.template($('#question').html()),
+        answerCheckbox: _.template($('#answer-checkbox').html()),
+        answerRadio: _.template($('#answer-radio').html()),
+        answerText: _.template($('#answer-text').html()),
+        repeatButton: _.template($('#repeat-button').html())
+      };
     }
 
     // Give the question an ID based on its name
@@ -214,11 +249,20 @@ NSB.FormView = function(formContainerId){
       triggerID: triggerID
     };
     
-    // Render the question block template
-    var $question = $(_.template($('#question').html(), questionData));
+    // Render the questions's fieldset
+    var $question = $(templates.question(questionData));
     if (!visible) {
       $question.hide();
     }
+
+    // 
+    var siblings = window.NSB.questionsByParentId[parentID];
+    if (siblings === undefined) {
+      siblings = [];
+      window.NSB.questionsByParentId[parentID] = siblings;
+    }
+    siblings.push($question); 
+
     
     if (appendTo !== undefined) {
       $(appendTo).append($question);
@@ -249,6 +293,7 @@ NSB.FormView = function(formContainerId){
     //   $question.append($title);
     // }
     
+    var questionID = id;
     // Add each answer to the question
     _.each(question.answers, function (answer) {
       // The triggerID is used to hide/show other question groups
@@ -272,66 +317,75 @@ NSB.FormView = function(formContainerId){
 
       // Render the answer and append it to the fieldset.
       var $answer;
+      var referencesToAnswersForQuestion;
       
       // If there is more than one answer, this could be multiple choice
       // or a radio group.
       if (question.answers.length > 1) {
         
         if(question.type === "checkbox") {
-          $answer = $(_.template($('#answer-checkbox').html(), data));
+          $answer = $(templates.answerCheckbox(data));
         }else {
-          $answer = $(_.template($('#answer-radio').html(), data));
+          $answer = $(templates.answerRadio(data));
         }
+
+        // Store references to the questions for quick retrieval later
+        referencesToAnswersForQuestion = window.NSB.boxAnswersByQuestionId[questionID];
+        if (referencesToAnswersForQuestion === undefined) {
+          referencesToAnswersForQuestion = [];
+          window.NSB.boxAnswersByQuestionId[questionID] = referencesToAnswersForQuestion;
+        }
+        $answer.filter('input[type="radio"]').each(function (i, el) {
+          referencesToAnswersForQuestion.push($(el));
+        });
+        $answer.filter('input[type="checkbox"]').each(function (i, el) {
+          referencesToAnswersForQuestion.push($(el));
+        });
+
       }else {
         if(question.type === "text") {
-          $answer = $(_.template($('#answer-text').html(), data));
+          $answer = $(templates.answerText(data));
         }else {
-          $answer = $(_.template($('#answer-checkbox').html(), data));
+          $answer = $(templates.answerCheckbox(data));
+
+          // Store references to answers for quick retrieval later
+          referencesToAnswersForQuestion = window.NSB.boxAnswersByQuestionId[questionID];
+          if (referencesToAnswersForQuestion === undefined) {
+            referencesToAnswersForQuestion = [];
+            window.NSB.boxAnswersByQuestionId[questionID] = referencesToAnswersForQuestion;
+          }
+          $answer.filter('input[type="radio"]').each(function (i, el) {
+            referencesToAnswersForQuestion.push($(el));
+          });
+          $answer.filter('input[type="checkbox"]').each(function (i, el) {
+            referencesToAnswersForQuestion.push($(el));
+          });
+
         }
       }
       
       $question.append($answer);
 
-      // Add the click handler
-      $answer.click(function handleClick(e) {
-        // Hide all of the conditional questions, recursively.
-        hideSubQ(id);
+      // Add the click handlers
+      var input = $answer.parent().find('input#' + triggerID);
+      if (input.length === 0) {
+        input = $answer;
+      }
 
-        if($(this).prop("checked")) {
-          // Show the conditional questions for this response.
-          $('.control-group[data-trigger=' + triggerID + ']').each(function (i) {
-            $(this).show();
-          });
-          
-          $('.repeating-button[data-trigger=' + id + ']').each(function (i) {            
-            $(this).show();
-          });
-        }else {
-          $('.control-group[data-trigger=' + triggerID + ']').each(function (i) {            
-            $(this).hide();
-          });
-          
-          $('.repeating-button[data-trigger=' + id + ']').each(function (i) {
-            $(this).hide();
-          });
-        }
-        
-      });
+      input.click(makeClickHandler(id, triggerID));
 
       // If there are conditional questions, add them.
       // They are hidden by default.
       if (answer.questions !== undefined) {
-        var $repeatButton;
-        
-                
         // If users can repeat those conditional questions: 
         if(answer.repeatQuestions !== undefined) {
-          $repeatBox = $(_.template($('#repeat-button').html(), {
+          var $repeatButton;
+          var $repeatBox = $(templates.repeatButton({
             parentID: id,
             triggerID: id
           }));
           formQuestions.append($repeatBox);
-          var $repeatButton = $repeatBox.find('a');
+          $repeatButton = $repeatBox.find('a');
           var $appendTo = $repeatBox.find('.append-to');
           console.log($appendTo);
 
@@ -370,33 +424,52 @@ NSB.FormView = function(formContainerId){
     });
   }
   
-  
-  
+
   // Option group stuff ........................................................
   
-  // Show / hide sub questions
-  function hideSubQ(parent) {
-    $('.control-group[data-parent=' + parent + ']').each(function (i) {
-      var $el = $(this);
-      $el.hide();
-      
-      // Uncheck the answers
-      $('input[type=radio]', $el).each(function () {
-        $(this).attr('checked', false).checkboxradio("refresh");
-      });
+  // Show / hide sub questions for a given parent
+  function hideAndClearSubQuestionsFor(parent) {
 
-      $('input[type=checkbox]', $el).each(function () {
-        $(this).attr('checked', false).checkboxradio("refresh");
-      });
+    // Get the list of questions associated with that parent
+    var questionsToProcess = window.NSB.questionsByParentId[parent]; // was var controlGroupQueue
+    var answersToProcess = [];
+
+    function handleQuestion(question) {
+      var $el = $(question);
+      $el.hide();
+
+      // Get the answers we'll need to reset later
+      var id = $el.attr('id');
+      var answersForQuestion = window.NSB.boxAnswersByQuestionId[id];
+      if (answersForQuestion !== undefined) {
+        answersToProcess = answersToProcess.concat(answersForQuestion);
+      }
 
       // Handle conditional questions.
-      hideSubQ($el.attr('id'));
-    });
-    
-    $('.repeating-button[data-parent=' + parent + ']').each(function (i) {
-      var $el = $(this);
-      $el.hide();
-    });
+      var subQuestions = window.NSB.questionsByParentId[$el.attr('id')];
+      if (subQuestions !== undefined) {
+        questionsToProcess = questionsToProcess.concat(subQuestions);
+      }
+    }
+
+    var i = 0;
+    var question;
+    while (questionsToProcess !== undefined && i < questionsToProcess.length) {
+      question = questionsToProcess[i];
+      handleQuestion(question);
+      i += 1;
+    }
+
+    // Uncheck all the things!
+    var j;
+    var answersToProcessLength = answersToProcess.length;
+    for (j = 0; j < answersToProcessLength; j += 1) {
+      if (answersToProcess[j].attr('checked')) {
+        answersToProcess[j].attr('checked', false).checkboxradio("refresh");
+      }
+    }
+
+    $('.repeating-button[data-parent=' + parent + ']').hide();
   }
   
   // Trigger form init .........................................................
