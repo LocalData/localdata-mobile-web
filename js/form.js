@@ -65,7 +65,7 @@ define(function (require) {
     };
 
 
-    // Form submission ...........................................................
+    // Form submission .........................................................
 
     // Handle the parcel survey form being submitted
     form.submit(function(event) {

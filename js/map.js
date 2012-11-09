@@ -14,6 +14,7 @@ define(function (require) {
 
     var map, marker, circle;
     var markers = {};
+    var numObjectsOnMap = 0;
     var parcelIdsOnTheMap = {};
     var parcelsLayerGroup = new L.LayerGroup();
     var doneMarkersLayer = new L.LayerGroup();
@@ -179,8 +180,18 @@ define(function (require) {
         return;
       }
 
-      // TODO: If we have too many objects, let's delete them
-      console.log(parcelsLayerGroup);
+      // If we have too many objects, let's delete them
+      // Keeps the app responsive
+      console.log(numObjectsOnMap);
+      if(numObjectsOnMap > 250) {
+        parcelsLayerGroup.clearLayers();
+        // TODO - does setting this to an empty object 
+        // result in good garbage collection? Or do we have references to 
+        // layers still floating around?
+        parcelIdsOnTheMap = {};
+        numObjectsOnMap = 0;
+      }
+
       if(_.isEmpty(parcelIdsOnTheMap)) {
         $.mobile.showPageLoadingMsg();
       };
@@ -204,6 +215,7 @@ define(function (require) {
             geojsonLayer.addData(elt);
             geojsonLayer.setStyle(defaultStyle);
 
+            // Handle clicks on the layer
             geojsonLayer.on('click', function(e){ 
 
               // Deselect the previous layer, if any
@@ -230,6 +242,8 @@ define(function (require) {
             // Add the layer to the layergroup and the hashmap
             parcelsLayerGroup.addLayer(geojsonLayer);
             parcelIdsOnTheMap[elt.parcelId] = geojsonLayer;
+            numObjectsOnMap++;
+
           };
         }); // done getting parcels
         // Hide the spinner
