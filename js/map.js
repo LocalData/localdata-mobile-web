@@ -20,6 +20,8 @@ define(function (require) {
     var doneMarkersLayer = new L.LayerGroup();
     var pointMarkersLayer = new L.LayerGroup();
 
+    var crosshairLayer;
+
     var selectedLayer = null;
     var selectedPolygon = null;
     var selectedCentroid = null;
@@ -52,8 +54,13 @@ define(function (require) {
       map.addLayer(parcelsLayerGroup);
       map.addLayer(doneMarkersLayer);
 
+      // Add bing maps
       var bing = new L.BingLayer(settings.bing_key, {maxZoom:21, type:"AerialWithLabels"});
       map.addLayer(bing);
+
+      // Add a crosshair over null island
+      crosshairLayer = L.marker([0,0], {icon: CrosshairIcon});
+      map.addLayer(crosshairLayer);
 
       $.subscribe("successfulSubmit", getResponsesInMap);    
 
@@ -62,7 +69,13 @@ define(function (require) {
         try {
           getResponsesInMap();
           renderParcelsInBounds();
-        } catch(e){}
+        } catch(e){};
+
+      });
+
+      // Move the crosshairs as the map moves
+      map.on('move', function(e){
+        crosshairLayer.setLatLng(map.getCenter());
       });
 
       // Location handlers
@@ -140,6 +153,16 @@ define(function (require) {
         popupAnchor: new L.Point(8, 8)
       }
     });  
+
+    var CrosshairIcon = L.icon({
+        className: 'CrosshairIcon',
+        iconUrl: 'img/icons/crosshair.png',
+        shadowUrl: 'img/icons/crosshair.png',
+        iconSize: new L.Point(141, 141),
+        shadowSize: new L.Point(141, 141),
+        iconAnchor: new L.Point(71, 71),
+        popupAnchor: new L.Point(71, 71)
+    });
 
 
     // Move the map ............................................................

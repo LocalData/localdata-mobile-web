@@ -8,8 +8,8 @@ define(function (require) {
     
     // URLs of services used to store, retrieve survey data
     api: {
-      baseurl: 'http://surveyapidev.herokuapp.com/api', //'http://localhost:3000', // 'http://surveydet.herokuapp.com', // no trailing slash
-      geo: 'http://surveyapidev.herokuapp.com/api'
+      baseurl: '/api', //'http://localhost:3000', // 'http://surveydet.herokuapp.com', // no trailing slash
+      geo: '/api'
     },
       
     // Keys for external services
