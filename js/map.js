@@ -166,9 +166,6 @@ define(function (require) {
       });
     };
 
-
-    // Handle selecting objects ................................................
-
     // Render parcels that are currently visible in the map
     // Gets geodata from our api
     var renderParcelsInBounds = function() {
@@ -181,9 +178,9 @@ define(function (require) {
       }
 
       // If we have too many objects, let's delete them
-      // Keeps the app responsive
+      // This keep the app responsive
       console.log(numObjectsOnMap);
-      if(numObjectsOnMap > 250) {
+      if(numObjectsOnMap > 175) {
         parcelsLayerGroup.clearLayers();
         // TODO - does setting this to an empty object 
         // result in good garbage collection? Or do we have references to 
