@@ -22,6 +22,14 @@ define(function (require) {
     $.getJSON(url, function(data) {
       console.log(data.survey);
       settings.surveyId = data.survey;
+
+      // Actually get the survey metadata
+      var surveyUrl = api.getSurveyURL();
+      $.getJSON(surveyUrl, function(survey){
+        settings.survey = survey;
+        console.log(settings.survey);
+      });
+
     });
   };
   
@@ -71,25 +79,7 @@ define(function (require) {
       callback();
     });
   };
-  
-  
-  // DEPRECATED -- everything goes through the KML. 
-  // Given a Leaflet latlng object, return a JSON object that describes the 
-  // parcel.
-  // api.getObjectDataAtPoint = function(latlng, callback) {
-  //   console.log("Waiting for PostGIS data");
-  //   var lat = latlng.lat;
-  //   var lng = latlng.lng; 
-  //   
-  //   var url = api.getGeoPointInfoURL(lat, lng);
-  //   
-  //   $.getJSON(url, function(data){
-  //     // Process the results. Strip whitespace. Convert the polygon to geoJSON
-  //     // TODO: This will need to be genercized (id column, addres, etc.)
-  //     console.log("Got PostGIS data");
-  //     callback(API.parseObjectData(data));
-  //   }, api);
-  // };
+
   
   // Deal with the formatting of the geodata API.
   // In the future, this will be more genericized. 
@@ -119,7 +109,7 @@ define(function (require) {
         var point = data.resourceSets[0].resources[0].point;
         var latlng = new L.LatLng(point.coordinates[0], point.coordinates[1]);
         callback(latlng);
-      };
+      }
     });    
   };
   
@@ -138,7 +128,7 @@ define(function (require) {
     $.getJSON(url, function(data){
       if(data.responses) {
         callback(data.responses);
-      };
+      }
     });
   };
   
