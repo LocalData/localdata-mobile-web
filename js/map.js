@@ -172,7 +172,7 @@ define(function (require) {
           map.removeLayer(newPoint);
         }
 
-        var latlng = [map.getCenter().lat, map.getCenter().lng];
+        var latlng = [map.getCenter().lng, map.getCenter().lat];
 
         // Keep track of the selected object centrally
         app.selectedObject.id = '';
@@ -348,8 +348,10 @@ define(function (require) {
 
     // Adds a checkbox marker to the given point
     var addDoneMarker = function(latlng, id) {
+
+      console.log("Adding done marker");
       // Only add markers if they aren't already on the map.
-      if (markers[id] == undefined){
+      if (markers[id] == undefined  || id === ''){
         var doneIcon = new CheckIcon();
         var doneMarker = new L.Marker(latlng, {icon: doneIcon});
         doneMarkersLayer.addLayer(doneMarker);
