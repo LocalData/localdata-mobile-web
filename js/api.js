@@ -100,7 +100,7 @@ define(function (require) {
   api.codeAddress = function(address, callback) {
     console.log("Coding an address");
     console.log(address);
-    var detroitAddress = address + " Detroit, MI"; // for ease of geocoding
+    var detroitAddress = address // + " Detroit, MI"; // for ease of geocoding
     var geocodeEndpoint = "http://dev.virtualearth.net/REST/v1/Locations/" + detroitAddress + "?o=json&key=" + settings.bing_key + "&jsonp=?";
 
     $.getJSON(geocodeEndpoint, function(data){
