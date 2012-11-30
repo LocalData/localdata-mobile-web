@@ -20,13 +20,12 @@ define(function (require) {
     
     // TODO: Display a nice error if the survey wans't found.
     $.getJSON(url, function(data) {
-      console.log(data.survey);
       settings.surveyId = data.survey;
 
       // Actually get the survey metadata
       var surveyUrl = api.getSurveyURL();
       $.getJSON(surveyUrl, function(survey){
-        settings.survey = survey;
+        settings.survey = survey.survey;
         console.log(settings.survey);
       });
 

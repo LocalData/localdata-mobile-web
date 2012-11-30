@@ -21,14 +21,50 @@ define(function (require) {
     var pointMarkersLayer = new L.LayerGroup();
 
     var crosshairLayer;
+    var pointObjectLayer;
 
+    var newPoint = null;
     var selectedLayer = null;
     var selectedPolygon = null;
     var selectedCentroid = null;
     var selectedObjectJSON = null;
 
 
-    /* Styles for parcel outlines */
+    // Icons ...................................................................
+    var CheckIcon = L.Icon.extend({
+      options: {
+        className: 'CheckIcon',
+        iconUrl: 'img/icons/check-16.png',
+        shadowUrl: 'img/icons/check-16.png',
+        iconSize: new L.Point(16, 16),
+        shadowSize: new L.Point(16, 16),
+        iconAnchor: new L.Point(8, 8),
+        popupAnchor: new L.Point(8, 8)
+      }
+    });  
+
+    var PlaceIcon = L.icon({
+      className: 'PlaceIcon',
+      iconUrl: 'img/icons/plus-24.png',
+      shadowUrl: 'img/icons/plus-24.png',
+      iconSize: new L.Point(25, 25),
+      shadowSize: new L.Point(25, 25),
+      iconAnchor: new L.Point(13, 13),
+      popupAnchor: new L.Point(13, 13)
+    });  
+
+    var CrosshairIcon = L.icon({
+      className: 'CrosshairIcon',
+      iconUrl: 'img/icons/crosshair.png',
+      shadowUrl: 'img/icons/crosshair.png',
+      iconSize: new L.Point(141, 141),
+      shadowSize: new L.Point(141, 141),
+      iconAnchor: new L.Point(71, 71),
+      popupAnchor: new L.Point(71, 71)
+    });
+
+
+    // Styles for parcel outlines ..............................................
     var defaultStyle = {
       'opacity': 1,
       'fillOpacity': 0,
@@ -44,11 +80,11 @@ define(function (require) {
       'color': 'yellow',
       'fillColor': 'yellow',
       'dashArray': '1'
-
     };
 
     this.init = function() {
       console.log("Initialize map");
+      console.log(settings.survey);
       map = new L.Map(mapContainerId, {minZoom:13, maxZoom:21});
 
       map.addLayer(parcelsLayerGroup);
@@ -123,6 +159,33 @@ define(function (require) {
         map.locate({setView: true, maxZoom: 19});
       });
 
+      // Add a point to the map and open up the survey
+      $("#point").click(function() {
+        // Deselect the previous layer, if any
+        if (newPoint !== null) {
+          map.removeLayer(newPoint);
+        }
+
+        var latlng = [map.getCenter().lat, map.getCenter().lng];
+
+        // Keep track of the selected object centrally
+        app.selectedObject.id = '';
+        app.selectedObject.humanReadableName = "Custom location";
+        app.selectedObject.centroid = { coordinates: latlng };
+        console.log(app.selectedObject);
+
+        // Select the current layer
+
+        newPoint = L.marker(latlng, {icon: PlaceIcon});
+        map.addLayer(newPoint);
+
+        // selectedLayer.setStyle(selectedStyle);
+
+        // Let other parts of the app know that we've selected something.
+        $.publish("objectSelected");
+
+      });
+
     }; // end init
 
 
@@ -141,28 +204,6 @@ define(function (require) {
     };
 
 
-    // Icons ...................................................................
-    var CheckIcon = L.Icon.extend({
-      options: {
-        className: 'CheckIcon',
-        iconUrl: 'img/icons/check-16.png',
-        shadowUrl: 'img/icons/check-16.png',
-        iconSize: new L.Point(16, 16),
-        shadowSize: new L.Point(16, 16),
-        iconAnchor: new L.Point(8, 8),
-        popupAnchor: new L.Point(8, 8)
-      }
-    });  
-
-    var CrosshairIcon = L.icon({
-        className: 'CrosshairIcon',
-        iconUrl: 'img/icons/crosshair.png',
-        shadowUrl: 'img/icons/crosshair.png',
-        iconSize: new L.Point(141, 141),
-        shadowSize: new L.Point(141, 141),
-        iconAnchor: new L.Point(71, 71),
-        popupAnchor: new L.Point(71, 71)
-    });
 
 
     // Move the map ............................................................
