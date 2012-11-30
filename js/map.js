@@ -94,9 +94,19 @@ define(function (require) {
       var bing = new L.BingLayer(settings.bing_key, {maxZoom:21, type:"AerialWithLabels"});
       map.addLayer(bing);
 
-      // Add a crosshair over null island
-      crosshairLayer = L.marker([0,0], {icon: CrosshairIcon});
-      map.addLayer(crosshairLayer);
+
+      // If this is a point-based survey, add a crosshair over null island 
+      if(settings.survey.type === "point") {
+        crosshairLayer = L.marker([0,0], {icon: CrosshairIcon});
+        map.addLayer(crosshairLayer);
+
+        // Move the crosshairs as the map moves
+        map.on('move', function(e){
+          crosshairLayer.setLatLng(map.getCenter());
+        });
+
+        $("#point").show();
+      }
 
       $.subscribe("successfulSubmit", getResponsesInMap);    
 
@@ -109,10 +119,6 @@ define(function (require) {
 
       });
 
-      // Move the crosshairs as the map moves
-      map.on('move', function(e){
-        crosshairLayer.setLatLng(map.getCenter());
-      });
 
       // Location handlers
       // Used for centering the map when we're using geolocation.
@@ -278,6 +284,8 @@ define(function (require) {
 
             // Handle clicks on the layer
             geojsonLayer.on('click', function(e){ 
+
+              console.log("Layer clicked!");
 
               // Deselect the previous layer, if any
               if (selectedLayer !== null) {
