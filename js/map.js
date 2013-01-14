@@ -210,8 +210,6 @@ define(function (require) {
     };
 
 
-
-
     // Move the map ............................................................
     // Attempt to center the map on an address using Google's geocoder.
     // This should probably live in APIs. 
@@ -240,6 +238,11 @@ define(function (require) {
     // Gets geodata from our api
     var renderParcelsInBounds = function() {
       console.log("Rendering parcels in bounds");
+
+      // Don't load and render a basemap if the survey is point-based
+      if (settings.survey.type === "point") {
+        return;
+      };
 
       // Don't add any parcels if the zoom is really far out. 
       var zoom = map.getZoom();
