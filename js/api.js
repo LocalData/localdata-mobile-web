@@ -100,8 +100,11 @@ define(function (require) {
   api.codeAddress = function(address, callback) {
     console.log("Coding an address");
     console.log(address);
-    var detroitAddress = address  + " Rockford, Ill"; // for ease of geocoding
-    var geocodeEndpoint = "http://dev.virtualearth.net/REST/v1/Locations/" + detroitAddress + "?o=json&key=" + settings.bing_key + "&jsonp=?";
+
+    // TODO: Append a locale to the address to make searching easier.
+    // Can we get the locale from the geolocation feature?
+    var addressWithLocale = address; 
+    var geocodeEndpoint = "http://dev.virtualearth.net/REST/v1/Locations/" + addressWithLocale + "?o=json&key=" + settings.bing_key + "&jsonp=?";
 
     $.getJSON(geocodeEndpoint, function(data){
       if(data.resourceSets.length > 0){
@@ -123,8 +126,6 @@ define(function (require) {
     var serializedBounds = southwest.lat + "," + southwest.lng + "," + northeast.lat + "," + northeast.lng;
     var url = api.getSurveyURL() + "/responses/in/" + serializedBounds;
 
-    console.log(url);
-    
     // Give the callback the responses.
     $.getJSON(url, function(data){
       if(data.responses) {
