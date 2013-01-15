@@ -270,10 +270,10 @@ define(function (require) {
       // Decide which function we use to get the base layer
       var options = {};
       var getParcelFunction = api.getObjectsInBounds;
-      if(_.has(settings.survey, "dataSource")) {
-        if (settings.survey.dataSource === 'ArcGIS Server') {
+      if(_.has(settings.survey, 'geoObjectSource')) {
+        if (settings.survey.geoObjectSource.type === 'ArcGIS Server') {
           getParcelFunction = api.getObjectsInBoundsFromESRI;
-          options = settings.survey.dataSource;
+          options = settings.survey.geoObjectSource;
         }
       }
 
