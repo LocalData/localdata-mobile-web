@@ -240,10 +240,10 @@ define(function (require) {
     var renderParcelsInBounds = function() {
       console.log('Map: getting & rendering parcels in bounds');
 
-      // Don't load and render a basemap if the survey is point-based
-      if (settings.survey.type === 'point') {
-        return;
-      }
+      //Don't load and render a basemap if the survey is point-based
+      // if (settings.survey.type === 'point') {
+      //   return;
+      // }
 
       // Don't add any parcels if the zoom is really far out. 
       var zoom = map.getZoom();
@@ -268,7 +268,10 @@ define(function (require) {
       }
 
       // Get parcel data in the bounds
-      api.getObjectsInBounds(map.getBounds(), function(results) {
+      // TODO: Testing ESRI
+      // api.getObjectsInBounds(map.getBounds(), function(results) {
+      console.log('made it this far');
+      api.getObjectsInBoundsFromESRI(map.getBounds(), function(results) {
         console.log('Received parcel data');
 
         $.each(results, function(key, elt) {    
@@ -278,7 +281,10 @@ define(function (require) {
           if (parcelIdsOnTheMap[elt.parcelId] === undefined){
 
             // Make sure the format fits Leaflet's geoJSON expectations
-            elt.geometry = elt.polygon;
+            if(!elt.geometry){
+              elt.geometry = elt.polygon;
+            }
+            
             elt.type = 'Feature';
 
             // Create a new geojson layer and style it. 

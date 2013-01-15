@@ -14,7 +14,7 @@ define(function (require) {
   api.getSurveyFromSlug = function() {
     var slug = window.location.hash.slice(1);
     
-    var url = settings.api.baseurl +  "/slugs/" + slug;
+    var url = settings.api.baseurl +  '/slugs/' + slug;
     console.log("I'm using this URL to get ");
     console.log(url);
     
@@ -36,7 +36,7 @@ define(function (require) {
    * Generates the URL to retrieve results for a given parcel
    */
   api.getSurveyURL = function() {
-    return settings.api.baseurl + "/surveys/" + settings.surveyId;
+    return settings.api.baseurl + '/surveys/' + settings.surveyId;
   };
   
   api.getParcelDataURL = function(parcel_id) {
@@ -49,12 +49,12 @@ define(function (require) {
   // };
   
   api.getGeoBoundsObjectsURL = function(southwest, northeast) {
-    return settings.api.geo + '/parcels?bbox=' + southwest.lng + "," + southwest.lat + "," + northeast.lng + "," + northeast.lat;
+    return settings.api.geo + '/parcels?bbox=' + southwest.lng + ',' + southwest.lat + ',' + northeast.lng + ',' + northeast.lat;
   };
   
   api.getForm = function(callback) {
-    console.log("Getting form data");
-    var url = api.getSurveyURL() + "/forms";
+    console.log('Getting form data');
+    var url = api.getSurveyURL() + '/forms';
     
     console.log(url);
 
@@ -71,7 +71,7 @@ define(function (require) {
       });
       settings.formData = mobileForms[0];
       
-      console.log("Mobile forms");
+      console.log('Mobile forms');
       console.log(mobileForms);
       
       // Endpoint should give the most recent form first.
@@ -94,17 +94,17 @@ define(function (require) {
   };
   
   // Take an address string. 
-  // Add "Detroit" to the end.
+  // Add 'Detroit' to the end.
   // Return the first result as a lat-lng for convenience.
   // Or Null if Bing is being a jerk / we're dumb. 
   api.codeAddress = function(address, callback) {
-    console.log("Coding an address");
+    console.log('Coding an address');
     console.log(address);
 
     // TODO: Append a locale to the address to make searching easier.
     // Can we get the locale from the geolocation feature?
     var addressWithLocale = address; 
-    var geocodeEndpoint = "http://dev.virtualearth.net/REST/v1/Locations/" + addressWithLocale + "?o=json&key=" + settings.bing_key + "&jsonp=?";
+    var geocodeEndpoint = 'http://dev.virtualearth.net/REST/v1/Locations/' + addressWithLocale + '?o=json&key=' + settings.bing_key + '&jsonp=?';
 
     $.getJSON(geocodeEndpoint, function(data){
       if(data.resourceSets.length > 0){
@@ -123,8 +123,8 @@ define(function (require) {
     var northeast = bounds.getNorthEast();
     
     // Given the bounds, generate a URL to ge the responses from the API.
-    var serializedBounds = southwest.lat + "," + southwest.lng + "," + northeast.lat + "," + northeast.lng;
-    var url = api.getSurveyURL() + "/responses/in/" + serializedBounds;
+    var serializedBounds = southwest.lat + ',' + southwest.lng + ',' + northeast.lat + ',' + northeast.lng;
+    var url = api.getSurveyURL() + '/responses/in/' + serializedBounds;
 
     // Give the callback the responses.
     $.getJSON(url, function(data){
@@ -170,6 +170,125 @@ define(function (require) {
         callback(data);
       }
     });
+  };
+
+
+  // ESRI stuff
+
+  // Generate a query URL
+  // A sample URL might look like this:
+  //  http://ags.wingis.org/ArcGIS/rest/services/1_Parcels/MapServer/1/query?
+  //  geometryType=esriGeometryEnvelope
+  //  &geometry=-89.097769,42.271545,-89.092362,42.274038
+  //  &f=json&outFields=*&inSR=4326
+  //
+  // @param {Object} bounds A bounds object from Leaflet
+  // @param {Object} options Options for the query. Must include: 
+  //    endpoint: the URL of the needed Arc Server collection
+  //    name: an array of keys that, when concatenated, name each location
+  //      (eg, 'house number' + 'street name')
+  //    id: the primary ID for each location (eg, parcel ID)
+  api.generateArcQueryURL = function(bounds, options) {
+    var url = options.endpoint;
+
+    // Set the requested fields
+    var outFields = _.reduce(options.name, function(memo, field){ return memo + ',' + field; }, options.id);
+    url += 'query?' + 'outFields=' + outFields;
+
+    // Add the geometry query
+    // Given the bounds, generate a URL to ge the responses from the API.
+    var southwest = bounds.getSouthWest();
+    var northeast = bounds.getNorthEast();
+    var serializedBounds = southwest.lng + ',' + southwest.lat + ',' + northeast.lng + ',' + northeast.lat;
+
+    url += '&geometryType=esriGeometryEnvelope';
+    url += '&geometry=' + serializedBounds;
+
+    // We want JSON back
+    url += '&f=json';
+
+    // Make sure the server know's we're sending EPSG 4326
+    // And that we want to get the same back
+    url += '&inSR=4326';
+    url += '&outSR=4326';
+
+    // And finally, set a callback:
+    url += '&callback=?';
+
+    console.log(url);
+    return url;
+  };
+
+  // Generate a human readable name for a feature.
+  // Concatenates attributes together.
+  // 
+  // @param {Object} attributes A set of attributes from an ArcServer feature
+  // @param {Object} options A set of options with attribute "name", a list of
+  //    1+ string keys
+  api.generateNameFromAttributes = function(attributes, options) {
+    var address = _.reduce(options.name, function(memo, key) {
+      if(attributes[key]) {
+        memo = memo + ' ' + attributes[key];
+      }
+      return memo;
+    }, "");
+    return address;
+  };
+
+  // Generate GeoJSON from ESRI's ringworld
+  // 
+  // @param {Array} geometry A list of features from a geoserver
+  api.generateGeoJSONFromESRIGeometry = function(geometry) {
+    var multiPolygon = {
+      type: 'MultiPolygon',
+      coordinates: []
+    };
+
+    _.each(geometry.rings, function(ring) {
+      multiPolygon.coordinates.push([ring]);
+    });
+
+    return multiPolygon;
+  };
+
+  // Given a map boundary, get the objects in the bounds from the given 
+  //  ESRI server.
+  // 
+  // @param {Object} bounds, a leaflet bounds object
+  // @param {Function} callback With one parameter, results, a list of result 
+  //    objects as defined in map.js
+  api.getObjectsInBoundsFromESRI = function(bounds, callback) {
+    var options;
+    var processedResults;
+    var url;
+
+    options = {
+      type: 'ArcGIS Server',
+      endpoint: 'http://ags.wingis.org/ArcGIS/rest/services/1_Parcels/MapServer/1/',
+      name: ['LOPHouseNumber', 'LOPHouseNbrSuffix', 'LOPPrefixDirectional', 'LOPStreetName', 'LopStreetSuffix'],
+      id: 'PrimaryPIN'
+    };
+
+    // Give the callback the responses.
+    url = api.generateArcQueryURL(bounds, options);
+    $.getJSON(url, function(data){
+      if(data) {
+        processedResults = _.reduce(data.features, function(memo, feature) {
+          var attributes = feature.attributes;
+
+          var processedFeature = {};
+          processedFeature.parcelId = attributes[options.id];
+          processedFeature.address = api.generateNameFromAttributes(attributes, options);
+          processedFeature.geometry = api.generateGeoJSONFromESRIGeometry(feature.geometry);
+          memo.push(processedFeature);
+
+          return memo;
+        }, []);
+
+        callback(processedResults);
+      }
+    });
+
   };
     
   return api;
