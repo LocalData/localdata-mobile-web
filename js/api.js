@@ -115,9 +115,10 @@ define(function (require) {
     });    
   };
   
-  // Take a map bounds object
-  // Find the objects in the bounds
-  // Feed those objects to the callback
+  // Get responses to the survey recorded in the given bounds
+  //
+  // @param {Object} bounds A leaflet map bounds object
+  // @param {Function} callback Expects a list of features & attributes 
   api.getResponsesInBounds = function(bounds, callback) {
     var southwest = bounds.getSouthWest();
     var northeast = bounds.getNorthEast();
@@ -152,17 +153,18 @@ define(function (require) {
     return new L.LatLngBounds(newSW, newNE);
   };
   
-  // Take a map bounds object
-  // Find the parcels in the bounds
-  // Feed those objects to the callback
-  api.getObjectsInBounds = function(bounds, callback) {
+  // Query the GeoAPI for features in the given bounds  
+  // 
+  // @param {Object} bounds A leaflet map bounds object
+  // @param {Object} options Not currently used; here for consistency
+  // @param {Function} callback Expects a list of features & attributes 
+  api.getObjectsInBounds = function(bounds, options, callback) {
     var bufferedBounds = addBuffer(bounds);
     var southwest = bufferedBounds.getSouthWest();
     var northeast = bufferedBounds.getNorthEast();
     
     // Given the bounds, generate a URL to ge the responses from the API.
     var url = api.getGeoBoundsObjectsURL(southwest, northeast);
-    console.log(url);
 
     // Give the callback the responses.
     $.getJSON(url, function(data){
@@ -235,7 +237,7 @@ define(function (require) {
     return address;
   };
 
-  // Generate GeoJSON from ESRI's ringworld
+  // Generate GeoJSON from ESRI's JSON data format
   // 
   // @param {Array} geometry A list of features from a geoserver
   api.generateGeoJSONFromESRIGeometry = function(geometry) {
@@ -257,17 +259,9 @@ define(function (require) {
   // @param {Object} bounds, a leaflet bounds object
   // @param {Function} callback With one parameter, results, a list of result 
   //    objects as defined in map.js
-  api.getObjectsInBoundsFromESRI = function(bounds, callback) {
-    var options;
+  api.getObjectsInBoundsFromESRI = function(bounds, options, callback) {
     var processedResults;
     var url;
-
-    options = {
-      type: 'ArcGIS Server',
-      endpoint: 'http://ags.wingis.org/ArcGIS/rest/services/1_Parcels/MapServer/1/',
-      name: ['LOPHouseNumber', 'LOPHouseNbrSuffix', 'LOPPrefixDirectional', 'LOPStreetName', 'LopStreetSuffix'],
-      id: 'PrimaryPIN'
-    };
 
     // Give the callback the responses.
     url = api.generateArcQueryURL(bounds, options);
