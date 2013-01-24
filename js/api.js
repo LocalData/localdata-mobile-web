@@ -67,7 +67,7 @@ define(function (require) {
             return true;
           }
         }
-        return false; 
+        return false;
       });
       settings.formData = mobileForms[0];
       
@@ -81,19 +81,19 @@ define(function (require) {
 
   
   // Deal with the formatting of the geodata API.
-  // In the future, this will be more genericized. 
+  // In the future, this will be more genericized.
   // parcel_id => object_id
   // address => object_location
   api.parseObjectData = function(data) {
     return {
-      parcelId: data.parcelId, 
+      parcelId: data.parcelId,
       address: data.address,
       polygon: data.polygon,
       centroid: data.centroid
     };
   };
   
-  // Take an address string. 
+  // Take an address string.
   // Add 'Detroit' to the end.
   // Return the first result as a lat-lng for convenience.
   // Or Null if Bing is being a jerk / we're dumb. 
@@ -103,7 +103,7 @@ define(function (require) {
 
     // TODO: Append a locale to the address to make searching easier.
     // Can we get the locale from the geolocation feature?
-    var addressWithLocale = address; 
+    var addressWithLocale = address;
     var geocodeEndpoint = 'http://dev.virtualearth.net/REST/v1/Locations/' + addressWithLocale + '?o=json&key=' + settings.bing_key + '&jsonp=?';
 
     $.getJSON(geocodeEndpoint, function(data){
@@ -112,13 +112,13 @@ define(function (require) {
         var latlng = new L.LatLng(point.coordinates[0], point.coordinates[1]);
         callback(latlng);
       }
-    });    
+    });
   };
   
   // Get responses to the survey recorded in the given bounds
   //
   // @param {Object} bounds A leaflet map bounds object
-  // @param {Function} callback Expects a list of features & attributes 
+  // @param {Function} callback Expects a list of features & attributes
   api.getResponsesInBounds = function(bounds, callback) {
     var southwest = bounds.getSouthWest();
     var northeast = bounds.getNorthEast();
@@ -137,7 +137,7 @@ define(function (require) {
   
   // Add a 100% buffer to a bounds object.
   // Makes parcels render faster when the map is moved
-  var addBuffer = function(bounds) {    
+  var addBuffer = function(bounds) {
     var sw = bounds.getSouthWest();
     var ne = bounds.getNorthEast();
     
@@ -153,11 +153,11 @@ define(function (require) {
     return new L.LatLngBounds(newSW, newNE);
   };
   
-  // Query the GeoAPI for features in the given bounds  
-  // 
+  // Query the GeoAPI for features in the given bounds
+  //
   // @param {Object} bounds A leaflet map bounds object
   // @param {Object} options Not currently used; here for consistency
-  // @param {Function} callback Expects a list of features & attributes 
+  // @param {Function} callback Expects a list of features & attributes
   api.getObjectsInBounds = function(bounds, options, callback) {
     var bufferedBounds = addBuffer(bounds);
     var southwest = bufferedBounds.getSouthWest();
@@ -231,7 +231,7 @@ define(function (require) {
 
   // Generate a human readable name for a feature.
   // Concatenates attributes together.
-  // 
+  //
   // @param {Object} attributes A set of attributes from an ArcServer feature
   // @param {Object} options A set of options with attribute "name", a list of
   //    1+ string keys
@@ -246,7 +246,7 @@ define(function (require) {
   };
 
   // Generate GeoJSON from ESRI's JSON data format
-  // 
+  //
   // @param {Array} geometry A list of features from a geoserver
   api.generateGeoJSONFromESRIGeometry = function(geometry) {
     var multiPolygon = {
@@ -261,11 +261,11 @@ define(function (require) {
     return multiPolygon;
   };
 
-  // Given a map boundary, get the objects in the bounds from the given 
+  // Given a map boundary, get the objects in the bounds from the given
   //  ESRI server.
-  // 
+  //
   // @param {Object} bounds, a leaflet bounds object
-  // @param {Function} callback With one parameter, results, a list of result 
+  // @param {Function} callback With one parameter, results, a list of result
   //    objects as defined in map.js
   api.getObjectsInBoundsFromESRI = function(bounds, options, callback) {
     var processedResults;
