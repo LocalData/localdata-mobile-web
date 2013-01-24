@@ -83,7 +83,7 @@ define(function (require) {
     };
 
     this.init = function() {
-      console.log("Initialize map");
+      console.log('Initialize map');
       console.log(settings.survey);
       map = new L.Map(mapContainerId, {minZoom:13, maxZoom:21});
 
@@ -91,12 +91,12 @@ define(function (require) {
       map.addLayer(doneMarkersLayer);
 
       // Add bing maps
-      var bing = new L.BingLayer(settings.bing_key, {maxZoom:21, type:"AerialWithLabels"});
+      var bing = new L.BingLayer(settings.bing_key, {maxZoom:21, type:'AerialWithLabels'});
       map.addLayer(bing);
 
 
       // If this is a point-based survey, add a crosshair over null island 
-      if(settings.survey.type === "point") {
+      if(settings.survey.type === 'point') {
         crosshairLayer = L.marker([0,0], {icon: CrosshairIcon});
         map.addLayer(crosshairLayer);
 
@@ -105,18 +105,19 @@ define(function (require) {
           crosshairLayer.setLatLng(map.getCenter());
         });
 
-        $("#point").show();
+        $('#point').show();
       }
 
-      $.subscribe("successfulSubmit", getResponsesInMap);    
+      $.subscribe('successfulSubmit', getResponsesInMap);    
 
       // Show which parcels have responses when the map is moved.
-      map.on('moveend', function(e) {
+      map.on('moveend', function(event) {
         try {
           getResponsesInMap();
           renderParcelsInBounds();
-        } catch(e){};
+        } catch(exception){
 
+        }
       });
 
 
@@ -128,12 +129,12 @@ define(function (require) {
       map.locate({setView: true, maxZoom: 19});
 
       // Mark a location on the map. 
-      // Primarily used with browser-based geolocation (aka "where am I?")
+      // Primarily used with browser-based geolocation (aka 'where am I?')
       function onLocationFound(e) {
         // Remove the old circle if we have one
         if (circle !== undefined) {
           map.removeLayer(circle);
-        };
+        }
 
         // Add the accuracy circle to the map
         var radius = e.accuracy / 2;
@@ -152,21 +153,21 @@ define(function (require) {
       // Map tools ...............................................................
 
       // Handle searching for addresses
-      $("#address-search-toggle").click(function(){
-        $("#address-search").slideToggle();
-        $("#address-search-prompt").slideToggle();
+      $('#address-search-toggle').click(function(){
+        $('#address-search').slideToggle();
+        $('#address-search-prompt').slideToggle();
       });
 
-      $("#address-submit").click(function(){
-        goToAddress($("#address-input").val());
+      $('#address-submit').click(function(){
+        goToAddress($('#address-input').val());
       });
 
-      $("#geolocate").click(function(){
+      $('#geolocate').click(function(){
         map.locate({setView: true, maxZoom: 19});
       });
 
       // Add a point to the map and open up the survey
-      $("#point").click(function() {
+      $('#point').click(function() {
         // Deselect the previous layer, if any
         if (newPoint !== null) {
           map.removeLayer(newPoint);
@@ -176,7 +177,7 @@ define(function (require) {
 
         // Keep track of the selected object centrally
         app.selectedObject.id = '';
-        app.selectedObject.humanReadableName = "Custom location";
+        app.selectedObject.humanReadableName = 'Custom location';
         app.selectedObject.centroid = { coordinates: latlng };
         console.log(app.selectedObject);
 
@@ -188,7 +189,7 @@ define(function (require) {
         // selectedLayer.setStyle(selectedStyle);
 
         // Let other parts of the app know that we've selected something.
-        $.publish("objectSelected");
+        $.publish('objectSelected');
 
       });
 
@@ -203,9 +204,9 @@ define(function (require) {
 
     // Return the bounds of the map as a string
     this.getMapBounds = function() {
-      var bounds = "";
+      var bounds = '';
       bounds += map.getBounds().getNorthWest().toString();
-      bounds += " " + map.getBounds().getSouthEast().toString();  
+      bounds += ' ' + map.getBounds().getSouthEast().toString();  
       return bounds;
     };
 
@@ -227,8 +228,8 @@ define(function (require) {
 
         // Scroll to the top so users can 
         window.scrollTo(0,0);
-        $("#address-search").slideToggle();
-        $("#address-search-prompt").slideToggle();
+        $('#address-search').slideToggle();
+        $('#address-search-prompt').slideToggle();
 
 
       });
@@ -237,13 +238,13 @@ define(function (require) {
     // Render parcels that are currently visible in the map
     // Gets geodata from our api
     var renderParcelsInBounds = function() {
-      console.log("Rendering parcels in bounds");
+      console.log('Map: getting & rendering parcels in bounds');
 
       // Don't load and render a basemap if the survey is point-based
-      if (settings.survey.type === "point") {
+      if (settings.survey.type === 'point') {
         return;
-      };
-
+      }
+ 
       // Don't add any parcels if the zoom is really far out. 
       var zoom = map.getZoom();
       if(zoom < 17) {
@@ -264,59 +265,70 @@ define(function (require) {
 
       if(_.isEmpty(parcelIdsOnTheMap)) {
         $.mobile.showPageLoadingMsg();
-      };
+      }
 
-      // Get parcel data in the bounds
-      api.getObjectsInBounds(map.getBounds(), function(results) {
-        console.log("Received parcel data");
+      // Decide which function we use to get the base layer
+      var options = {};
+      var getParcelFunction = api.getObjectsInBounds;
+      if(_.has(settings.survey, 'geoObjectSource')) {
+        if (settings.survey.geoObjectSource.type === 'ArcGIS Server') {
+          getParcelFunction = api.getObjectsInBoundsFromESRI;
+          options = settings.survey.geoObjectSource;
+        }
+      }
 
-        $.each(results, function(key, elt) {    
+      // Get data for the base layer given the current bounds
+      // And then render it in the bounds of the map
+      getParcelFunction(map.getBounds(), options, function(results) {
+        console.log('Received parcel data');
+
+        _.each(results, function(elt) {    
 
           // We don't want to re-draw parcels that are already on the map
           // So we keep a hash map with the layers so we can unrender them
-          if (parcelIdsOnTheMap[elt.parcelId] === undefined){
+          if (parcelIdsOnTheMap[elt.parcelId] !== undefined){
+            return;
+          }
 
-            // Make sure the format fits Leaflet's geoJSON expectations
+          // Make sure the format fits Leaflet's geoJSON expectations
+          if(!elt.geometry){
             elt.geometry = elt.polygon;
-            elt.type = "Feature";
+          }
+          
+          elt.type = 'Feature';
 
-            // Create a new geojson layer and style it. 
-            var geojsonLayer = new L.GeoJSON();
-            geojsonLayer.addData(elt);
-            geojsonLayer.setStyle(defaultStyle);
+          // Create a new geojson layer and style it. 
+          var geojsonLayer = new L.GeoJSON();
+          geojsonLayer.addData(elt);
+          geojsonLayer.setStyle(defaultStyle);
 
-            // Handle clicks on the layer
-            geojsonLayer.on('click', function(e){ 
+          // Handle clicks on the layer
+          geojsonLayer.on('click', function(e){ 
 
-              console.log("Layer clicked!");
+            // Deselect the previous layer, if any
+            if (selectedLayer !== null) {
+              selectedLayer.setStyle(defaultStyle);
+            }
 
-              // Deselect the previous layer, if any
-              if (selectedLayer !== null) {
-                selectedLayer.setStyle(defaultStyle);
-              }
+            // Keep track of the selected object centrally
+            app.selectedObject.id = elt.parcelId;
+            app.selectedObject.humanReadableName = elt.address;
+            app.selectedObject.centroid = elt.centroid;
+            app.selectedObject.geometry = elt.geometry; 
 
-              // Keep track of the selected object centrally
-              app.selectedObject.id = elt.parcelId;
-              app.selectedObject.humanReadableName = elt['address'];
-              app.selectedObject.centroid = elt['centroid'];
-              app.selectedObject.geometry = elt.geometry; 
-              console.log(app.selectedObject);
+            // Select the current layer
+            selectedLayer = e.layer;
+            selectedLayer.setStyle(selectedStyle);
 
-              // Select the current layer
-              selectedLayer = e.layer;
-              selectedLayer.setStyle(selectedStyle);
+            // Let other parts of the app know that we've selected something.
+            $.publish('objectSelected');
+          });
 
-              // Let other parts of the app know that we've selected something.
-              $.publish("objectSelected");
+          // Add the layer to the layergroup and the hashmap
+          parcelsLayerGroup.addLayer(geojsonLayer);
+          parcelIdsOnTheMap[elt.parcelId] = geojsonLayer;
+          numObjectsOnMap += 1;
 
-            });
-
-            // Add the layer to the layergroup and the hashmap
-            parcelsLayerGroup.addLayer(geojsonLayer);
-            parcelIdsOnTheMap[elt.parcelId] = geojsonLayer;
-            numObjectsOnMap++;
-
-          };
         }); // done getting parcels
         // Hide the spinner
         $.mobile.hidePageLoadingMsg();
@@ -325,21 +337,28 @@ define(function (require) {
     };
 
     // Outline the given polygon
+    //
+    // @param {Object} selectedObjectJSON A reference to the object to be hihlighted
     // expects polygon to be {coordinates: [[x,y], [x,y], ...] }
     var highlightObject = function(selectedObjectJSON) {
+      var i;
+      var options;
+      var point;
+      var polypoints = [];  
+
       polygonJSON = selectedObjectJSON.polygon;
 
       // Remove existing highlighting 
       if(selectedPolygon) {
         map.removeLayer(selectedPolygon);
-      };
+      }
 
       // Add the new polygon
-      var polypoints = new Array();  
-      for (var i = polygonJSON.coordinates[0].length - 1; i >= 0; i--){
+      for (i = polygonJSON.coordinates[0].length - 1; i >= 0; i--){
         point = new L.LatLng(polygonJSON.coordinates[0][i][1], polygonJSON.coordinates[0][i][0]);
         polypoints.push(point);
-      };
+      }
+
       options = {
         color: 'red',
         fillColor: 'transparent',
@@ -352,19 +371,19 @@ define(function (require) {
     // Adds a checkbox marker to the given point
     var addDoneMarker = function(latlng, id) {
 
-      console.log("Adding done marker");
+      console.log('Adding done marker');
       // Only add markers if they aren't already on the map.
       if (markers[id] == undefined  || id === ''){
         var doneIcon = new CheckIcon();
         var doneMarker = new L.Marker(latlng, {icon: doneIcon});
         doneMarkersLayer.addLayer(doneMarker);
         markers[id] = doneMarker;
-      };
+      }
     };
 
     // Get all the responses in a map 
     var getResponsesInMap = function(){  
-      console.log("Getting responses in the map");
+      console.log('Getting responses in the map');
 
       // Don't add any markers if the zoom is really far out. 
       var zoom = map.getZoom();
