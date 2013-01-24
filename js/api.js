@@ -165,8 +165,8 @@ define(function (require) {
     
     // Given the bounds, generate a URL to ge the responses from the API.
     var url = api.getGeoBoundsObjectsURL(southwest, northeast);
-
-    // Give the callback the responses.
+    console.log(url);
+    // Give the callback tohe responses.
     $.getJSON(url, function(data){
       if(data) {
         callback(data);

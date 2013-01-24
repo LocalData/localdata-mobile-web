@@ -41,7 +41,7 @@ define(function (require) {
         iconAnchor: new L.Point(8, 8),
         popupAnchor: new L.Point(8, 8)
       }
-    });  
+    });
 
     var PlaceIcon = L.icon({
       className: 'PlaceIcon',
@@ -51,7 +51,7 @@ define(function (require) {
       shadowSize: new L.Point(25, 25),
       iconAnchor: new L.Point(13, 13),
       popupAnchor: new L.Point(13, 13)
-    });  
+    });
 
     var CrosshairIcon = L.icon({
       className: 'CrosshairIcon',
@@ -95,7 +95,7 @@ define(function (require) {
       map.addLayer(bing);
 
 
-      // If this is a point-based survey, add a crosshair over null island 
+      // If this is a point-based survey, add a crosshair over null island
       if(settings.survey.type === 'point') {
         crosshairLayer = L.marker([0,0], {icon: CrosshairIcon});
         map.addLayer(crosshairLayer);
@@ -105,10 +105,10 @@ define(function (require) {
           crosshairLayer.setLatLng(map.getCenter());
         });
 
-        $('#point').show();
+        $('#addPoint').show();
       }
 
-      $.subscribe('successfulSubmit', getResponsesInMap);    
+      $.subscribe('successfulSubmit', getResponsesInMap);
 
       // Show which parcels have responses when the map is moved.
       map.on('moveend', function(event) {
@@ -116,7 +116,7 @@ define(function (require) {
           getResponsesInMap();
           renderParcelsInBounds();
         } catch(exception){
-
+          // TODO
         }
       });
 
@@ -128,7 +128,7 @@ define(function (require) {
 
       map.locate({setView: true, maxZoom: 19});
 
-      // Mark a location on the map. 
+      // Mark a location on the map.
       // Primarily used with browser-based geolocation (aka 'where am I?')
       function onLocationFound(e) {
         // Remove the old circle if we have one
@@ -146,6 +146,7 @@ define(function (require) {
       }
 
       function onLocationError(e) {
+        // TODO: handle this better
         alert(e.message);
       }
 
@@ -167,26 +168,26 @@ define(function (require) {
       });
 
       // Add a point to the map and open up the survey
-      $('#point').click(function() {
+      $('#addPoint').click(function() {
         // Deselect the previous layer, if any
         if (newPoint !== null) {
           map.removeLayer(newPoint);
         }
 
-        var latlng = [map.getCenter().lng, map.getCenter().lat];
+        // Add the point at the center of the map
+        // Two formats :-\
+        var lnglat = [map.getCenter().lng, map.getCenter().lat];
+        var latlng  = new L.LatLng(map.getCenter().lat, map.getCenter().lng);
 
         // Keep track of the selected object centrally
         app.selectedObject.id = '';
         app.selectedObject.humanReadableName = 'Custom location';
-        app.selectedObject.centroid = { coordinates: latlng };
+        app.selectedObject.centroid = { coordinates: lnglat };
         console.log(app.selectedObject);
 
-        // Select the current layer
-
+        // Create a marker on the map
         newPoint = L.marker(latlng, {icon: PlaceIcon});
         map.addLayer(newPoint);
-
-        // selectedLayer.setStyle(selectedStyle);
 
         // Let other parts of the app know that we've selected something.
         $.publish('objectSelected');

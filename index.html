@@ -11,20 +11,13 @@
     <script data-main="js/main" src="js/require.js"></script>
     
     <!-- Styles -->
-<!--
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
--->
     <link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0-rc.2/jquery.mobile-1.1.0-rc.2.min.css">
     <style type="text/css" media="screen">
       @import url(css/reset.css);
       @import url(css/mobile.css);      
     </style>
     <link href='js/lib/leaflet/leaflet.css' rel='stylesheet' type='text/css'>
-    
-    
-    <!--
-        <script src="http://localhost:8080/target/target-script-min.js#anonymous"></script>
-    -->
+
 
 </head>
 
@@ -43,7 +36,6 @@
     <div id="tools">
       <a href='#' id='address-search-toggle' data-icon="search" data-role="button" data-inline="true" >Address</a>
       <a href='#' id='geolocate' data-icon="star" data-role="button" data-inline="true" >Locate me</a>
-      <a href='#' id='point' data-icon="plus" data-role="button" data-inline="true" data-iconpos="notext" style="display:none"></a>
     </div>
     <div id="address-search">
       <input type="text" name="address-input" id="address-input" style="width:70%" value="" data-mini="true" placeholder="Address">
@@ -56,6 +48,9 @@
     </div> 
     <div id="thanks">
         <h2>Thank you! Select another location to continue.</h2>
+    </div>
+    <div class="add-point-container">
+      <a href='#' id='addPoint' data-icon="plus" data-role="button" data-inline="true" style="display:none">Add a point here</a>
     </div>
     
     <div id="form">

@@ -1,8 +1,8 @@
 /*jslint nomen: true */
 /*globals define: true */
 
-/* 
- * Basic app functionality for the mobile survey. 
+/*
+ * Basic app functionality for the mobile survey.
  */
 
 define(function (require) {
@@ -10,17 +10,16 @@ define(function (require) {
 
   var $ = require('jquery');
   var api = require('api');
+  var settings = require('settings');
   var FormView = require('form');
   var MapView = require('map');
 
   var app = {
-    /* 
-     * Show the survey & hide the front page after the sign-in form has been 
+    /*
+     * Show the survey & hide the front page after the sign-in form has been
      * submitted
      */
     init: function () {
-      console.log("Initialize NSB");
-
       // Get the survey, slug, etv.
       api.getSurveyFromSlug();
 
@@ -30,11 +29,17 @@ define(function (require) {
       }
 
       $("#collector-name-submit").click(function(event) {
-        console.log("Setting collector name");
+        app.collectorName = $("#collector_name").val();
 
-        app.collectorName = $("#collector_name").val();      
-        $("#startpoint h2").html("Welcome, " + app.collectorName + "<br>Tap a parcel to begin");
-        $(".collector").val(app.collectorName);
+        if (settings.survey.type === 'point') {
+          $("#startpoint h2").html("Welcome, " + app.collectorName);
+          $(".add-point-container").show();
+          $(".collector").val(app.collectorName);
+        }
+        if (settings.survey.type !== 'point') {
+          $("#startpoint h2").html("Welcome, " + app.collectorName + "<br>Tap a place on the map to begin");
+          $(".collector").val(app.collectorName);
+        }
 
         // Set a cookie with the collector's name
         $.cookie("collectorName", app.collectorName, { path: '/' });
@@ -47,7 +52,7 @@ define(function (require) {
         app.map = new MapView(app, 'map-div');
         app.f = new FormView(app, '#form');
 
-      }); 
+      });
     },
 
     // We'll use this to keep track of the object currently selected in the app

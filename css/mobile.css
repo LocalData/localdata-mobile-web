@@ -40,6 +40,7 @@ small {
 h2,
 #startpoint, 
 #thanks,
+.add-point-container,
 #form fieldset {
   padding:1em;
 }
@@ -88,6 +89,9 @@ h2 {
   border-bottom:2px solid #ddd;
 }
 
+.add-point-container {
+  display:none;
+}
 
 #head {
   height:20px;

@@ -72,14 +72,14 @@ define(function (require) {
       console.log("Submitting survey results");
 
       // Stop form from submitting normally
-      event.preventDefault(); 
+      event.preventDefault();
 
-      var url = api.getSurveyURL() + form.attr('action'); 
+      var url = api.getSurveyURL() + form.attr('action');
 
       // Serialize the form
       var serialized = form.serializeObject();
 
-      // Get some info about the centroid as floats. 
+      // Get some info about the centroid as floats.
       var selectedCentroid = app.selectedObject.centroid;
       console.log(selectedCentroid);
       var centroidLat = parseFloat(selectedCentroid.coordinates[0]);
@@ -88,18 +88,18 @@ define(function (require) {
       console.log("Selected object ID");
       console.log(app.selectedObject.id);
 
-      // Construct a response in the format we need it.  
+      // Construct a response in the format we need it.
       var responses = {responses: [{
         "source": {
-          "type":"mobile", 
+          "type":"mobile",
           "collector":app.collectorName
-        }, 
+        },
         "geo_info": {
-          "centroid":[centroidLng, centroidLat], 
+          "centroid":[centroidLng, centroidLat],
           "geometry": app.selectedObject.geometry,
-          "humanReadableName": app.selectedObject.humanReadableName, 
+          "humanReadableName": app.selectedObject.humanReadableName,
           parcel_id: app.selectedObject.id // Soon to be deprecated
-        }, 
+        },
         "parcel_id": app.selectedObject.id, // Soon to be deprecated
         "object_id": app.selectedObject.id, // Replaces parcel_id
         "responses": serialized
