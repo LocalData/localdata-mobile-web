@@ -184,8 +184,16 @@ define(function (require) {
   //  &geometry=-89.097769,42.271545,-89.092362,42.274038
   //  &f=json&outFields=*&inSR=4326
   //
+  // Sample options might looks like this:
+  // {
+  //   "type": "ArcGIS Server",
+  //   "endpoint": "http://ags.wingis.org/ArcGIS/rest/services/1_Parcels/MapServer/1/",
+  //   "name": ["LOPHouseNumber", "LOPPrefixDirectional", "LOPStreetName"],
+  //   "id": "PrimaryPIN"
+  // }
+  //
   // @param {Object} bounds A bounds object from Leaflet
-  // @param {Object} options Options for the query. Must include: 
+  // @param {Object} options Options for the query. Must include:
   //    endpoint: the URL of the needed Arc Server collection
   //    name: an array of keys that, when concatenated, name each location
   //      (eg, 'house number' + 'street name')
