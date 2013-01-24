@@ -241,7 +241,7 @@ define(function (require) {
         memo = memo + ' ' + attributes[key];
       }
       return memo;
-    }, "");
+    }, '');
     return address;
   };
 
