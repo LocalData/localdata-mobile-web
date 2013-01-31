@@ -235,9 +235,29 @@ define(function (require) {
       });
     };
 
+    function selectParcel(event) {
+      // Deselect the previous layer, if any
+      if (selectedLayer !== null) {
+        selectedLayer.setStyle(defaultStyle);
+      }
+
+      // Select the current layer
+      selectedLayer = event.layer;
+      selectedLayer.setStyle(selectedStyle);
+
+      // Keep track of the selected object centrally
+      app.selectedObject.id = selectedLayer.feature.id;
+      app.selectedObject.humanReadableName = selectedLayer.feature.properties.address;
+      app.selectedObject.centroid = selectedLayer.feature.properties.centroid;
+      app.selectedObject.geometry = selectedLayer.feature.geometry; 
+
+      // Let other parts of the app know that we've selected something.
+      $.publish('objectSelected');
+    }
+
     // Render parcels that are currently visible in the map
     // Gets geodata from our api
-    var renderParcelsInBounds = function() {
+    function renderParcelsInBounds() {
       console.log('Map: getting & rendering parcels in bounds');
 
       // Don't load and render a basemap if the survey is point-based
@@ -279,62 +299,45 @@ define(function (require) {
 
       // Get data for the base layer given the current bounds
       // And then render it in the bounds of the map
-      getParcelFunction(map.getBounds(), options, function(results) {
-        console.log('Received parcel data');
+      getParcelFunction(map.getBounds(), options, function(error, result) {
+        if (error) {
+          console.log(error.message);
+          return;
+        }
 
-        _.each(results, function(elt) {    
+        var featureCollection = {
+          type: 'FeatureCollection'
+        };
 
-          // We don't want to re-draw parcels that are already on the map
-          // So we keep a hash map with the layers so we can unrender them
-          if (parcelIdsOnTheMap[elt.parcelId] !== undefined){
-            return;
+        featureCollection.features = _.filter(result.features, function (feature) {
+          if (parcelIdsOnTheMap[feature.id]) {
+            return false;
           }
+          return true;
+        });
 
-          // Make sure the format fits Leaflet's geoJSON expectations
-          if(!elt.geometry){
-            elt.geometry = elt.polygon;
-          }
-          
-          elt.type = 'Feature';
+        // Create a new GeoJSON layer and style it. 
+        var geoJSONLayer = new L.geoJson(featureCollection, {
+          style: defaultStyle
+        });
 
-          // Create a new geojson layer and style it. 
-          var geojsonLayer = new L.GeoJSON();
-          geojsonLayer.addData(elt);
-          geojsonLayer.setStyle(defaultStyle);
+        // Add click handler
+        geoJSONLayer.on('click', selectParcel);
 
-          // Handle clicks on the layer
-          geojsonLayer.on('click', function(e){ 
+        // Add the layer to the layergroup.
+        parcelsLayerGroup.addLayer(geoJSONLayer);
 
-            // Deselect the previous layer, if any
-            if (selectedLayer !== null) {
-              selectedLayer.setStyle(defaultStyle);
-            }
+        // Track the parcels that we've added.
+        _.each(featureCollection.features, function (feature) {
+          parcelIdsOnTheMap[feature.id] = geoJSONLayer;
+        });
+        numObjectsOnMap += featureCollection.features.length;
 
-            // Keep track of the selected object centrally
-            app.selectedObject.id = elt.parcelId;
-            app.selectedObject.humanReadableName = elt.address;
-            app.selectedObject.centroid = elt.centroid;
-            app.selectedObject.geometry = elt.geometry; 
-
-            // Select the current layer
-            selectedLayer = e.layer;
-            selectedLayer.setStyle(selectedStyle);
-
-            // Let other parts of the app know that we've selected something.
-            $.publish('objectSelected');
-          });
-
-          // Add the layer to the layergroup and the hashmap
-          parcelsLayerGroup.addLayer(geojsonLayer);
-          parcelIdsOnTheMap[elt.parcelId] = geojsonLayer;
-          numObjectsOnMap += 1;
-
-        }); // done getting parcels
         // Hide the spinner
         $.mobile.hidePageLoadingMsg();
 
       });
-    };
+    }
 
     // Outline the given polygon
     //
