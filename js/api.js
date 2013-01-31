@@ -49,7 +49,7 @@ define(function (require) {
   // };
   
   api.getGeoBoundsObjectsURL = function(southwest, northeast) {
-    return settings.api.geo + '/parcels?bbox=' + southwest.lng + ',' + southwest.lat + ',' + northeast.lng + ',' + northeast.lat;
+    return settings.api.geo + '/parcels.geojson?bbox=' + southwest.lng + ',' + southwest.lat + ',' + northeast.lng + ',' + northeast.lat;
   };
   
   api.getForm = function(callback) {
@@ -158,6 +158,8 @@ define(function (require) {
   // @param {Object} bounds A leaflet map bounds object
   // @param {Object} options Not currently used; here for consistency
   // @param {Function} callback Expects a list of features & attributes
+  // @param {Function} callback With two parameters, error and results, a
+  // GeoJSON FeatureCollection
   api.getObjectsInBounds = function(bounds, options, callback) {
     var bufferedBounds = addBuffer(bounds);
     var southwest = bufferedBounds.getSouthWest();
@@ -169,7 +171,12 @@ define(function (require) {
     // Give the callback the responses.
     $.getJSON(url, function(data){
       if(data) {
-        callback(data);
+        callback(null, data);
+      } else {
+        callback({
+          type: 'APIError',
+          message: 'Got no data from the LocalData geo endpoint'
+        });
       }
     });
   };
@@ -198,7 +205,7 @@ define(function (require) {
   //    name: an array of keys that, when concatenated, name each location
   //      (eg, 'house number' + 'street name')
   //    id: the primary ID for each location (eg, parcel ID)
-  api.generateArcQueryURL = function(bounds, options) {
+  function generateArcQueryURL(bounds, options) {
     var url = options.endpoint;
 
     // Set the requested fields
@@ -235,7 +242,7 @@ define(function (require) {
   // @param {Object} attributes A set of attributes from an ArcServer feature
   // @param {Object} options A set of options with attribute "name", a list of
   //    1+ string keys
-  api.generateNameFromAttributes = function(attributes, options) {
+  function generateNameFromAttributes(attributes, options) {
     var address = _.reduce(options.name, function(memo, key) {
       if(attributes[key]) {
         memo = memo + ' ' + attributes[key];
@@ -243,12 +250,12 @@ define(function (require) {
       return memo;
     }, '');
     return address;
-  };
+  }
 
   // Generate GeoJSON from ESRI's JSON data format
   //
   // @param {Array} geometry A list of features from a geoserver
-  api.generateGeoJSONFromESRIGeometry = function(geometry) {
+  function generateGeoJSONFromESRIGeometry(geometry) {
     var multiPolygon = {
       type: 'MultiPolygon',
       coordinates: []
@@ -259,35 +266,42 @@ define(function (require) {
     });
 
     return multiPolygon;
-  };
+  }
 
   // Given a map boundary, get the objects in the bounds from the given
   //  ESRI server.
   //
   // @param {Object} bounds, a leaflet bounds object
-  // @param {Function} callback With one parameter, results, a list of result
-  //    objects as defined in map.js
+  // @param {Function} callback With two parameters, error and results, a
+  // GeoJSON FeatureCollection
   api.getObjectsInBoundsFromESRI = function(bounds, options, callback) {
-    var processedResults;
-    var url;
+    var url = generateArcQueryURL(bounds, options);
 
-    // Give the callback the responses.
-    url = api.generateArcQueryURL(bounds, options);
+    // Fetch the data.
     $.getJSON(url, function(data){
       if(data) {
-        processedResults = _.reduce(data.features, function(memo, feature) {
-          var attributes = feature.attributes;
+        // Create a GeoJSON FeatureCollection from the ESRI-style data.
+        var featureCollection = {
+          type: 'FeatureCollection'
+        };
+        featureCollection.features = _.map(data.features, function (item) {
+          return {
+            type: 'Feature',
+            id: item.attributes[options.id],
+            geometry: generateGeoJSONFromESRIGeometry(item.geometry),
+            properties: {
+              address: generateNameFromAttributes(item.attributes, options)
+            }
+          };
+        });
 
-          var processedFeature = {};
-          processedFeature.parcelId = attributes[options.id];
-          processedFeature.address = api.generateNameFromAttributes(attributes, options);
-          processedFeature.geometry = api.generateGeoJSONFromESRIGeometry(feature.geometry);
-          memo.push(processedFeature);
-
-          return memo;
-        }, []);
-
-        callback(processedResults);
+        // Pass the FeatureCollection to the callback.
+        callback(null, featureCollection);
+      } else {
+        callback({
+          type: 'APIError',
+          message: 'Got no data from the Arc Server endpoint'
+        });
       }
     });
 
