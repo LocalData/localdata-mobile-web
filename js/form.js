@@ -82,8 +82,8 @@ define(function (require) {
       // Get some info about the centroid as floats. 
       var selectedCentroid = app.selectedObject.centroid;
       console.log(selectedCentroid);
-      var centroidLat = parseFloat(selectedCentroid.coordinates[0]);
-      var centroidLng = parseFloat(selectedCentroid.coordinates[1]);
+      var centroidLng = parseFloat(selectedCentroid.coordinates[0]);
+      var centroidLat = parseFloat(selectedCentroid.coordinates[1]);
 
       console.log("Selected object ID");
       console.log(app.selectedObject.id);
