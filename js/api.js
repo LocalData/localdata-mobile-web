@@ -124,7 +124,7 @@ define(function (require) {
     var northeast = bounds.getNorthEast();
     
     // Given the bounds, generate a URL to ge the responses from the API.
-    var serializedBounds = southwest.lat + ',' + southwest.lng + ',' + northeast.lat + ',' + northeast.lng;
+    var serializedBounds = southwest.lng + ',' + southwest.lat + ',' + northeast.lng + ',' + northeast.lat;
     var url = api.getSurveyURL() + '/responses/in/' + serializedBounds;
 
     // Give the callback the responses.
