@@ -399,7 +399,7 @@ define(function (require) {
       api.getResponsesInBounds(map.getBounds(), function(results) {
         console.log(results);
         $.each(results, function(key, elt) {
-          var p = new L.LatLng(elt.geo_info.centroid[0], elt.geo_info.centroid[1]);
+          var p = new L.LatLng(elt.geo_info.centroid[1], elt.geo_info.centroid[0]);
           var id = elt.parcel_id;
           addDoneMarker(p, id);
         });
