@@ -173,12 +173,13 @@ define(function (require) {
           map.removeLayer(newPoint);
         }
 
-        var latlng = [map.getCenter().lng, map.getCenter().lat];
+        var latlng = [map.getCenter().lat, map.getCenter().lng];
+        var lnglat = [map.getCenter().lng, map.getCenter().lat];
 
         // Keep track of the selected object centrally
         app.selectedObject.id = '';
         app.selectedObject.humanReadableName = 'Custom location';
-        app.selectedObject.centroid = { coordinates: latlng };
+        app.selectedObject.centroid = { coordinates: lnglat };
         console.log(app.selectedObject);
 
         // Select the current layer
