@@ -188,3 +188,7 @@ input[type="submit"] {
 .info p strong {
   font-weight:bold;
 }
+
+.leaflet-overlay-pane {
+  z-index: 7;
+}
