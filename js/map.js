@@ -82,6 +82,16 @@ define(function (require) {
       'dashArray': '1'
     };
 
+    function zoneStyle(feature) {
+      return {
+        color: feature.properties.color,
+        opacity: 0.5,
+        fillColor: feature.properties.color,
+        fillOpacity: 0.2,
+        weight: 3
+      };
+    }
+
     this.init = function() {
       console.log('Initialize map');
       console.log(settings.survey);
@@ -94,6 +104,12 @@ define(function (require) {
       var bing = new L.BingLayer(settings.bing_key, {maxZoom:21, type:'AerialWithLabels'});
       map.addLayer(bing);
 
+      if (_.has(settings.survey, 'zones')) {
+        var zoneLayer = new L.geoJson(settings.survey.zones, {
+          style: zoneStyle
+        });
+        map.addLayer(zoneLayer);
+      }
 
       // If this is a point-based survey, add a crosshair over null island 
       if(settings.survey.type === 'point') {
