@@ -19,14 +19,19 @@ define(function (require) {
     console.log(url);
     
     // TODO: Display a nice error if the survey wans't found.
-    $.getJSON(url, function(data) {
+    // TODO: Instead of deferred.pipe(), we should upgrade to jQuery >= 1.8 or
+    // use Q
+    return $.getJSON(url)
+    .pipe(function (data) {
       settings.surveyId = data.survey;
 
       // Actually get the survey metadata
       var surveyUrl = api.getSurveyURL();
-      $.getJSON(surveyUrl, function(survey){
+      return $.getJSON(surveyUrl)
+      .pipe(function (survey) {
         settings.survey = survey.survey;
         console.log(settings.survey);
+        return settings.survey;
       });
 
     });
