@@ -22,7 +22,7 @@ define(function (require) {
       console.log("Initialize NSB");
 
       // Get the survey, slug, etv.
-      api.getSurveyFromSlug();
+      var surveyPromise = api.getSurveyFromSlug();
 
       // Set the collector name, if we already know it.
       if ($.cookie('collectorName') !== null){
@@ -33,20 +33,30 @@ define(function (require) {
         console.log("Setting collector name");
 
         app.collectorName = $("#collector_name").val();      
-        $("#startpoint h2").html("Welcome, " + app.collectorName + "<br>Tap a parcel to begin");
-        $(".collector").val(app.collectorName);
+
+        $('#startpoint h2').html('Loading...');
+
+        $('.collector').val(app.collectorName);
 
         // Set a cookie with the collector's name
-        $.cookie("collectorName", app.collectorName, { path: '/' });
+        $.cookie('collectorName', app.collectorName, { path: '/' });
 
         // Hide the homepage, show the survey
         $('#home-container').slideToggle();
         $('#survey-container').slideToggle();
-        $("body").attr("id","survey");
+        $('body').attr('id', 'survey');
 
-        app.map = new MapView(app, 'map-div');
-        app.f = new FormView(app, '#form');
+        // Wait until we have the survey data
+        surveyPromise.done(function (survey) {
+          if (survey.type === 'point') {
+            $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Pan and add a point to begin');
+          } else {
+            $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Tap a parcel to begin');
+          }
 
+          app.map = new MapView(app, 'map-div');
+          app.f = new FormView(app, '#form');
+        });
       }); 
     },
 
