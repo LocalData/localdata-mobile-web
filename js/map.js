@@ -196,7 +196,6 @@ define(function (require) {
         app.selectedObject.id = '';
         app.selectedObject.humanReadableName = 'Custom location';
         app.selectedObject.centroid = { coordinates: lnglat };
-        console.log(app.selectedObject);
 
         // Select the current layer
 
@@ -414,7 +413,6 @@ define(function (require) {
       // Get the objects in the bounds
       // And add them to the map   
       api.getResponsesInBounds(map.getBounds(), function(results) {
-        console.log(results);
         $.each(results, function(key, elt) {
           var p = new L.LatLng(elt.geo_info.centroid[1], elt.geo_info.centroid[0]);
           var id = elt.parcel_id;
