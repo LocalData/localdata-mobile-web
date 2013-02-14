@@ -81,12 +81,10 @@ define(function (require) {
 
       // Get some info about the centroid as floats. 
       var selectedCentroid = app.selectedObject.centroid;
-      console.log(selectedCentroid);
       var centroidLng = parseFloat(selectedCentroid.coordinates[0]);
       var centroidLat = parseFloat(selectedCentroid.coordinates[1]);
 
       console.log("Selected object ID");
-      console.log(app.selectedObject.id);
 
       // Construct a response in the format we need it.  
       var responses = {responses: [{
@@ -105,13 +103,9 @@ define(function (require) {
         "responses": serialized
       }]};
 
-      console.log("Serialized & responses:");
-      console.log(serialized);
-      console.log(responses);
-      console.log(url);
-
       // Post the form
       // TODO: This will need to use Prashant's browser-safe POSTing
+      // TODO: This is causing us to record numbers as strings
       var jqxhr = $.post(url, responses, function() {
         console.log("Form successfully posted");
       },"text").error(function(){ 
@@ -287,7 +281,6 @@ define(function (require) {
       if(question.info !== undefined) {
         $question.find(".show-info").click(function(e) {
           var toShow = $(this).attr("data-trigger");
-          console.log($("#" + toShow));
           $("#" + toShow).slideToggle('slow');
         });
 
@@ -398,7 +391,6 @@ define(function (require) {
             formQuestions.append($repeatBox);
             $repeatButton = $repeatBox.find('a');
             var $appendTo = $repeatBox.find('.append-to');
-            console.log($appendTo);
 
             // If we click the repeat button, add the questions again
             $repeatButton.click(function handleClick(e) {
