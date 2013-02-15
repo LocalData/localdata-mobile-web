@@ -140,24 +140,6 @@ define(function (require) {
     });
   };
   
-  // Add a 100% buffer to a bounds object.
-  // Makes parcels render faster when the map is moved
-  var addBuffer = function(bounds) {
-    var sw = bounds.getSouthWest();
-    var ne = bounds.getNorthEast();
-    
-    var lngDiff = ne.lng - sw.lng;
-    var latDiff = ne.lat - sw.lat;
-    
-    var lngMod = lngDiff / 2;
-    var latMod = latDiff / 2;
-    
-    var newSW = new L.LatLng(sw.lat - latMod, sw.lng - lngMod);
-    var newNE = new L.LatLng(ne.lat + latMod, ne.lng + lngMod);
-    
-    return new L.LatLngBounds(newSW, newNE);
-  };
-  
   // Query the GeoAPI for features in the given bounds
   //
   // @param {Object} bounds A leaflet map bounds object
@@ -166,9 +148,8 @@ define(function (require) {
   // @param {Function} callback With two parameters, error and results, a
   // GeoJSON FeatureCollection
   api.getObjectsInBounds = function(bounds, options, callback) {
-    var bufferedBounds = addBuffer(bounds);
-    var southwest = bufferedBounds.getSouthWest();
-    var northeast = bufferedBounds.getNorthEast();
+    var southwest = bounds.getSouthWest();
+    var northeast = bounds.getNorthEast();
     
     // Given the bounds, generate a URL to ge the responses from the API.
     var url = api.getGeoBoundsObjectsURL(southwest, northeast);
