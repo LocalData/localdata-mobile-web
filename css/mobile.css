@@ -96,8 +96,9 @@ h2 {
   background:#eee;
 }
 
-#map {
+#map-div {
   border-bottom: 2px solid #eee; 
+  -ms-touch-action: pinch-zoom;
 }
 
 h1 {
