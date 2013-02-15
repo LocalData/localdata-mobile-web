@@ -10,6 +10,37 @@ define(function (require) {
   var api = require('api');
   var L = require('lib/leaflet');
 
+  // Add a buffer to a bounds object.
+  // Makes parcels render faster when the map is moved
+  function addBuffer(bounds, divisor) {
+    var sw = bounds.getSouthWest();
+    var ne = bounds.getNorthEast();
+    
+    var lngDiff = ne.lng - sw.lng;
+    var latDiff = ne.lat - sw.lat;
+    
+    var lngMod = lngDiff / 4;
+    var latMod = latDiff / 4;
+    
+    var newSW = new L.LatLng(sw.lat - latMod, sw.lng - lngMod);
+    var newNE = new L.LatLng(ne.lat + latMod, ne.lng + lngMod);
+    
+    return new L.LatLngBounds(newSW, newNE);
+  }
+
+  var zoomLevels = {
+    // Don't show parcels if we're zoomed out farther than 16.
+    parcelCutoff: 16,
+    // Don't indicate completed parcels if we're zoomed out farther than 16.
+    completedCutoff: 16,
+    // Don't show the checkmark completion markers if we're zoomed out farther
+    // than 19.
+    checkmarkCutoff: 19,
+    // Buffer the area for which we request objects if we're zoomed in to 17 or
+    // closer.
+    bufferParcels: 17
+  };
+
   return function (app, mapContainerId) {
 
     var map, marker, circle;
@@ -19,6 +50,8 @@ define(function (require) {
     var parcelsLayerGroup = new L.LayerGroup();
     var doneMarkersLayer = new L.LayerGroup();
     var pointMarkersLayer = new L.LayerGroup();
+    var completedParcelCount = 0;
+    var completedParcelIds = {};
 
     var crosshairLayer;
     var pointObjectLayer;
@@ -68,7 +101,7 @@ define(function (require) {
     var defaultStyle = {
       'opacity': 1,
       'fillOpacity': 0,
-      'weight': 3,
+      'weight': 2,
       'color': 'white',
       'dashArray': '5,5'
     };
@@ -82,14 +115,70 @@ define(function (require) {
       'dashArray': '1'
     };
 
+    var completedStyle = {
+      opacity: 0.7,
+      fillOpacity: 0.25,
+      weight: 2,
+      color: '#2AD471',
+      fillColor: '#2AD471',
+      dashArray: '1'
+    };
+
+    function parcelStyle(feature) {
+      if (feature.properties.selected) {
+        return selectedStyle;
+      }
+      if (_.has(completedParcelIds, feature.id)) {
+        return completedStyle;
+      }
+      return defaultStyle;
+    }
+
     function zoneStyle(feature) {
       return {
         color: feature.properties.color,
-        opacity: 0.5,
+        opacity: 0.75,
         fillColor: feature.properties.color,
-        fillOpacity: 0.2,
+        fillOpacity: 0.1,
         weight: 3
       };
+    }
+
+    function cleanupParcels(bounds) {
+      // If we have too many objects, let's delete the ones outside of the new view + buffer.
+      if(numObjectsOnMap > 200) {
+        var groupCount = 0;
+        parcelsLayerGroup.eachLayer(function (group) {
+          groupCount += 1;
+          var groupBounds = group.getBounds();
+          // TODO: Checking groupBounds._southWest is a bit of a hack. I think
+          // the latest leaflet handles this better.
+          if (groupBounds._southWest === undefined || !bounds.intersects(groupBounds)) {
+            group.eachLayer(function (layer) {
+              if (completedParcelIds[layer.feature.id] !== undefined) {
+                delete completedParcelIds[layer.feature.id];
+                completedParcelCount -= 1;
+              }
+              delete parcelIdsOnTheMap[layer.feature.id];
+              numObjectsOnMap -= 1;
+            });
+            parcelsLayerGroup.removeLayer(group);
+          } else {
+            group.eachLayer(function (layer) {
+              if (!bounds.intersects(layer.getBounds())) {
+                group.removeLayer(layer);
+
+                if (completedParcelIds[layer.feature.id] !== undefined) {
+                  delete completedParcelIds[layer.feature.id];
+                  completedParcelCount -= 1;
+                }
+                delete parcelIdsOnTheMap[layer.feature.id];
+                numObjectsOnMap -= 1;
+              }
+            });
+          }
+        });
+      }
     }
 
     this.init = function() {
@@ -252,15 +341,21 @@ define(function (require) {
     };
 
     function selectParcel(event) {
-      // Deselect the previous layer, if any
-      if (selectedLayer !== null) {
-        selectedLayer.setStyle(defaultStyle);
-      }
+      var oldSelectedLayer = selectedLayer;
 
       // Select the current layer
       selectedLayer = event.layer;
-      selectedLayer.setStyle(selectedStyle);
 
+      if (oldSelectedLayer !== null) {
+        oldSelectedLayer.feature.properties.selected = false;
+      }
+      selectedLayer.feature.properties.selected = true;
+
+      // Restyle the parcels
+      parcelsLayerGroup.eachLayer(function (layer) {
+        layer.setStyle(parcelStyle);
+      });
+      
       // Keep track of the selected object centrally
       app.selectedObject.id = selectedLayer.feature.id;
       app.selectedObject.humanReadableName = selectedLayer.feature.properties.address;
@@ -283,25 +378,21 @@ define(function (require) {
  
       // Don't add any parcels if the zoom is really far out. 
       var zoom = map.getZoom();
-      if(zoom < 17) {
+      if(zoom < zoomLevels.parcelCutoff) {
+        // Clear out the parcels. An odd group of leftover parcels looks
+        // confusing.
+        parcelsLayerGroup.clearLayers();
+        parcelIdsOnTheMap = {};
+        numObjectsOnMap = 0;
         return;
       }
 
-      // If we have too many objects, let's delete them
-      // This keep the app responsive
-      console.log(numObjectsOnMap);
-      if(numObjectsOnMap > 175) {
-        parcelsLayerGroup.clearLayers();
-        // TODO - does setting this to an empty object 
-        // result in good garbage collection? Or do we have references to 
-        // layers still floating around?
-        parcelIdsOnTheMap = {};
-        numObjectsOnMap = 0;
+      var bounds = map.getBounds();
+      if (zoom >= zoomLevels.bufferParcels) {
+        bounds = addBuffer(bounds);
       }
 
-      if(_.isEmpty(parcelIdsOnTheMap)) {
-        $.mobile.showPageLoadingMsg();
-      }
+      $.mobile.showPageLoadingMsg();
 
       // Decide which function we use to get the base layer
       var options = {};
@@ -315,7 +406,7 @@ define(function (require) {
 
       // Get data for the base layer given the current bounds
       // And then render it in the bounds of the map
-      getParcelFunction(map.getBounds(), options, function(error, result) {
+      getParcelFunction(bounds, options, function(error, result) {
         if (error) {
           console.log(error.message);
           return;
@@ -334,7 +425,7 @@ define(function (require) {
 
         // Create a new GeoJSON layer and style it. 
         var geoJSONLayer = new L.geoJson(featureCollection, {
-          style: defaultStyle
+          style: parcelStyle
         });
 
         // Add click handler
@@ -353,44 +444,13 @@ define(function (require) {
         $.mobile.hidePageLoadingMsg();
 
       });
+
+      // Clean up parcels while we wait for the remote data.
+      cleanupParcels(bounds);
     }
-
-    // Outline the given polygon
-    //
-    // @param {Object} selectedObjectJSON A reference to the object to be hihlighted
-    // expects polygon to be {coordinates: [[x,y], [x,y], ...] }
-    var highlightObject = function(selectedObjectJSON) {
-      var i;
-      var options;
-      var point;
-      var polypoints = [];  
-
-      polygonJSON = selectedObjectJSON.polygon;
-
-      // Remove existing highlighting 
-      if(selectedPolygon) {
-        map.removeLayer(selectedPolygon);
-      }
-
-      // Add the new polygon
-      for (i = polygonJSON.coordinates[0].length - 1; i >= 0; i--){
-        point = new L.LatLng(polygonJSON.coordinates[0][i][1], polygonJSON.coordinates[0][i][0]);
-        polypoints.push(point);
-      }
-
-      options = {
-        color: 'red',
-        fillColor: 'transparent',
-        fillOpacity: 0.5
-      };
-      selectedPolygon = new L.Polygon(polypoints, options);
-      map.addLayer(selectedPolygon);
-    };
 
     // Adds a checkbox marker to the given point
     var addDoneMarker = function(latlng, id) {
-
-      console.log('Adding done marker');
       // Only add markers if they aren't already on the map.
       if (markers[id] == undefined  || id === ''){
         var doneIcon = new CheckIcon();
@@ -401,23 +461,60 @@ define(function (require) {
     };
 
     // Get all the responses in a map 
-    var getResponsesInMap = function(){  
+    var getResponsesInMap = function () {  
       console.log('Getting responses in the map');
 
       // Don't add any markers if the zoom is really far out. 
       var zoom = map.getZoom();
-      if(zoom < 17) {
+      if(zoom < zoomLevels.completedCutoff) {
+        completedParcelIds = {};
+        completedParcelCount = 0;
+
+        doneMarkersLayer.clearLayers();
+        markers = [];
         return;
       }
 
-      // Get the objects in the bounds
-      // And add them to the map   
-      api.getResponsesInBounds(map.getBounds(), function(results) {
-        $.each(results, function(key, elt) {
-          var p = new L.LatLng(elt.geo_info.centroid[1], elt.geo_info.centroid[0]);
-          var id = elt.parcel_id;
-          addDoneMarker(p, id);
+      // When zoomed out a bit, just color the completed parcels, don't show
+      // checkmarks.
+      if (zoom < zoomLevels.checkmarkCutoff) {
+        doneMarkersLayer.clearLayers();
+        markers = [];
+      }
+
+      var bounds = map.getBounds();
+      if (zoom >= zoomLevels.bufferParcels) {
+        bounds = addBuffer(bounds);
+      }
+
+      api.getResponsesInBounds(bounds, function (results) {
+        // TODO: This should be greater than the maximum number of completed
+        // parcels we expect to display on the screen at one time.
+        if (completedParcelCount > 2000) {
+          completedParcelIds = {};
+          completedParcelCount = 0;
+        }
+
+        // Track the responses that we've added.
+        _.each(results, function (response) {
+          var parcelId = response.geo_info.parcel_id;
+
+          if (zoom >= zoomLevels.checkmarkCutoff) {
+            var point = new L.LatLng(response.geo_info.centroid[1], response.geo_info.centroid[0]);
+            addDoneMarker(point, parcelId);
+          }
+
+          if (parcelId !== undefined) {
+            completedParcelIds[parcelId] = true;
+            completedParcelCount += 1;
+          }
         });
+
+        if (results.length > 0) {
+          parcelsLayerGroup.eachLayer(function (layer) {
+            layer.setStyle(parcelStyle);
+          });
+        }
       });
 
     };
