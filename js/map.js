@@ -420,6 +420,13 @@ define(function (require) {
       _.each(tiles, function (tile) {
         getParcels(maptiles.tileToBBox(tile), options, function (error, result) {
           if (error) {
+            // TODO: If we use promises, we can use something like Q.all, instead
+            // of counting this ourselves.
+            loadingCount -= 1;
+            if (loadingCount === 0) {
+              // Hide the spinner
+              $.mobile.hidePageLoadingMsg();
+            }
             console.log(error.message);
             return;
           }
