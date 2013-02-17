@@ -36,10 +36,11 @@ require.config({
   }
 });
 
-require(['jquery', 'app', 'lib/jquery.mobile', 'lib/jquery.cookie', 'lib/jquery.tinypubsub', 'lib/leaflet', 'lib/tilelayer.bing.pull'],
-        function ($, app, jqm, jqc, jqtps, L, tLBing) {
+require(['jquery', 'app', 'lib/jquery.mobile', 'lib/jquery.cookie', 'lib/jquery.tinypubsub', 'lib/leaflet', 'lib/tilelayer.bing.pull', 'loglevel'],
+        function ($, app, jqm, jqc, jqtps, L, tLBing, logLevel) {
   'use strict';
 
+  logLevel('silent');
   $(document).ready(function () {
     app.init();
   });
