@@ -9,6 +9,7 @@ define(function (require) {
   var settings = require('settings');
   var api = require('api');
   var L = require('lib/leaflet');
+  var maptiles = require('maptiles');
 
   // Add a buffer to a bounds object.
   // Makes parcels render faster when the map is moved
@@ -40,6 +41,11 @@ define(function (require) {
     // closer.
     bufferParcels: 17
   };
+
+  // We request parcel shape data using tile names, even though they are not
+  // rendered tiles. Since we're getting shape data, we can work with whatever
+  // zoom level produces a convenient spatial chunk of data.
+  var vectorTileZoom = 17;
 
   return function (app, mapContainerId) {
 
@@ -396,53 +402,78 @@ define(function (require) {
 
       // Decide which function we use to get the base layer
       var options = {};
-      var getParcelFunction = api.getObjectsInBounds;
+      var getParcels = api.getObjectsInBBox;
       if(_.has(settings.survey, 'geoObjectSource')) {
         if (settings.survey.geoObjectSource.type === 'ArcGIS Server') {
-          getParcelFunction = api.getObjectsInBoundsFromESRI;
+          getParcels = api.getObjectsInBBoxFromESRI;
           options = settings.survey.geoObjectSource;
         }
       }
 
-      // Get data for the base layer given the current bounds
-      // And then render it in the bounds of the map
-      getParcelFunction(bounds, options, function(error, result) {
-        if (error) {
-          console.log(error.message);
-          return;
-        }
-
-        var featureCollection = {
-          type: 'FeatureCollection'
-        };
-
-        featureCollection.features = _.filter(result.features, function (feature) {
-          if (parcelIdsOnTheMap[feature.id]) {
-            return false;
+      // Compute the tiles that we need to cover the current map bounds.
+      // TODO: When we upgrade Leaflet, we can just use bounds.getSouth(), bounds.getEast(), etc.
+      var sw = bounds.getSouthWest();
+      var ne = bounds.getNorthEast();
+      var tiles = maptiles.getTileCoords(vectorTileZoom, [[sw.lng, sw.lat], [ne.lng, ne.lat]]);
+      // Fetch each tile.
+      var loadingCount = tiles.length;
+      _.each(tiles, function (tile) {
+        getParcels(maptiles.tileToBBox(tile), options, function (error, result) {
+          if (error) {
+            // TODO: If we use promises, we can use something like Q.all, instead
+            // of counting this ourselves.
+            loadingCount -= 1;
+            if (loadingCount === 0) {
+              // Hide the spinner
+              $.mobile.hidePageLoadingMsg();
+            }
+            console.log(error.message);
+            return;
           }
-          return true;
+
+          var featureCollection = {
+            type: 'FeatureCollection'
+          };
+
+          // When parcels cross tile boundaries, we'll have duplicates. This
+          // filters those out, so we don't actually plot duplicates on the
+          // map. That means that some of our local parcel tiles will be
+          // incomplete. As we move the map around, we technically go through
+          // the full set of parcels again to see which ones to plot. That
+          // should restore any parcels that were clipped because they were
+          // once duplicated in other tiles.
+          featureCollection.features = _.filter(result.features, function (feature) {
+            if (parcelIdsOnTheMap[feature.id]) {
+              return false;
+            }
+            return true;
+          });
+
+          // Create a new GeoJSON layer and style it. 
+          var geoJSONLayer = new L.geoJson(featureCollection, {
+            style: parcelStyle
+          });
+
+          // Add click handler
+          geoJSONLayer.on('click', selectParcel);
+
+          // Add the layer to the layergroup.
+          parcelsLayerGroup.addLayer(geoJSONLayer);
+
+          // Track the parcels that we've added.
+          _.each(featureCollection.features, function (feature) {
+            parcelIdsOnTheMap[feature.id] = geoJSONLayer;
+          });
+          numObjectsOnMap += featureCollection.features.length;
+
+          // TODO: If we use promises, we can use something like Q.all, instead
+          // of counting this ourselves.
+          loadingCount -= 1;
+          if (loadingCount === 0) {
+            // Hide the spinner
+            $.mobile.hidePageLoadingMsg();
+          }
         });
-
-        // Create a new GeoJSON layer and style it. 
-        var geoJSONLayer = new L.geoJson(featureCollection, {
-          style: parcelStyle
-        });
-
-        // Add click handler
-        geoJSONLayer.on('click', selectParcel);
-
-        // Add the layer to the layergroup.
-        parcelsLayerGroup.addLayer(geoJSONLayer);
-
-        // Track the parcels that we've added.
-        _.each(featureCollection.features, function (feature) {
-          parcelIdsOnTheMap[feature.id] = geoJSONLayer;
-        });
-        numObjectsOnMap += featureCollection.features.length;
-
-        // Hide the spinner
-        $.mobile.hidePageLoadingMsg();
-
       });
 
       // Clean up parcels while we wait for the remote data.
@@ -476,8 +507,8 @@ define(function (require) {
       }
 
       // When zoomed out a bit, just color the completed parcels, don't show
-      // checkmarks.
-      if (zoom < zoomLevels.checkmarkCutoff) {
+      // checkmarks. Of course, for point-based surveys, we always want checkmarks.
+      if (zoom < zoomLevels.checkmarkCutoff && settings.survey.type !== 'point') {
         doneMarkersLayer.clearLayers();
         markers = [];
       }
@@ -487,6 +518,7 @@ define(function (require) {
         bounds = addBuffer(bounds);
       }
 
+      // TODO: make these requests according to tile boundaries
       api.getResponsesInBounds(bounds, function (results) {
         // TODO: This should be greater than the maximum number of completed
         // parcels we expect to display on the screen at one time.
