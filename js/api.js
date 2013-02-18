@@ -53,8 +53,8 @@ define(function (require) {
   //   return settings.api.geo + '/parcels/parcel?lat=' + lat + '&lng=' + lng;
   // };
   
-  api.getGeoBoundsObjectsURL = function(southwest, northeast) {
-    return settings.api.geo + '/parcels.geojson?bbox=' + southwest.lng + ',' + southwest.lat + ',' + northeast.lng + ',' + northeast.lat;
+  api.getGeoBoundsObjectsURL = function(bbox) {
+    return settings.api.geo + '/parcels.geojson?bbox=' + bbox.join(',');
   };
   
   api.getForm = function(callback) {
@@ -140,19 +140,17 @@ define(function (require) {
     });
   };
   
-  // Query the GeoAPI for features in the given bounds
+  // Query the GeoAPI for features in the given bounding box
   //
-  // @param {Object} bounds A leaflet map bounds object
+  // @param {Object} bbox A bounding box specified as an array of coordinates:
+  // [[west, south], [east, north]]
   // @param {Object} options Not currently used; here for consistency
   // @param {Function} callback Expects a list of features & attributes
   // @param {Function} callback With two parameters, error and results, a
   // GeoJSON FeatureCollection
-  api.getObjectsInBounds = function(bounds, options, callback) {
-    var southwest = bounds.getSouthWest();
-    var northeast = bounds.getNorthEast();
-    
+  api.getObjectsInBBox = function(bbox, options, callback) {
     // Given the bounds, generate a URL to ge the responses from the API.
-    var url = api.getGeoBoundsObjectsURL(southwest, northeast);
+    var url = api.getGeoBoundsObjectsURL(bbox);
 
     // Give the callback the responses.
     $.getJSON(url, function(data){
@@ -185,13 +183,14 @@ define(function (require) {
   //   "id": "PrimaryPIN"
   // }
   //
-  // @param {Object} bounds A bounds object from Leaflet
+  // @param {Object} bbox A bounding box specified as an array of coordinates:
+  // [[west, south], [east, north]]
   // @param {Object} options Options for the query. Must include:
   //    endpoint: the URL of the needed Arc Server collection
   //    name: an array of keys that, when concatenated, name each location
   //      (eg, 'house number' + 'street name')
   //    id: the primary ID for each location (eg, parcel ID)
-  function generateArcQueryURL(bounds, options) {
+  function generateArcQueryURL(bbox, options) {
     var url = options.endpoint;
 
     // Set the requested fields
@@ -199,10 +198,8 @@ define(function (require) {
     url += 'query?' + 'outFields=' + outFields;
 
     // Add the geometry query
-    // Given the bounds, generate a URL to ge the responses from the API.
-    var southwest = bounds.getSouthWest();
-    var northeast = bounds.getNorthEast();
-    var serializedBounds = southwest.lng + ',' + southwest.lat + ',' + northeast.lng + ',' + northeast.lat;
+    // Given the bounding box, generate a URL to ge the responses from the API.
+    var serializedBounds = bbox.join(',');
 
     url += '&geometryType=esriGeometryEnvelope';
     url += '&geometry=' + serializedBounds;
@@ -220,7 +217,7 @@ define(function (require) {
 
     console.log(url);
     return url;
-  };
+  }
 
   // Generate a human readable name for a feature.
   // Concatenates attributes together.
@@ -254,14 +251,15 @@ define(function (require) {
     return multiPolygon;
   }
 
-  // Given a map boundary, get the objects in the bounds from the given
-  //  ESRI server.
+  // Given a map bounding box, get the objects in the bbox from the given ESRI
+  // server.
   //
-  // @param {Object} bounds, a leaflet bounds object
+  // @param {Object} bbox A bounding box specified as an array of coordinates:
+  // [[west, south], [east, north]]
   // @param {Function} callback With two parameters, error and results, a
   // GeoJSON FeatureCollection
-  api.getObjectsInBoundsFromESRI = function(bounds, options, callback) {
-    var url = generateArcQueryURL(bounds, options);
+  api.getObjectsInBBoxFromESRI = function(bbox, options, callback) {
+    var url = generateArcQueryURL(bbox, options);
 
     // Fetch the data.
     $.getJSON(url, function(data){
