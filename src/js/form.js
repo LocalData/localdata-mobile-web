@@ -13,6 +13,7 @@ define(function (require) {
     var form = $(formContainerId + ' form');
     var formQuestions = $('#questions');
     var repeatCounter = {};
+    var timeStarted;
 
     this.init = function(){
       console.log("Initialize form");
@@ -53,6 +54,10 @@ define(function (require) {
         $addressDOM.fadeIn(400);
       });
 
+      // Record the time to track how long a submission takes
+      var timeStarted = new Date();
+
+      // Show/hide UI as needed
       if(!$('#form').is(":visible")) {
         $('#form').slideToggle();
       }
@@ -72,7 +77,7 @@ define(function (require) {
       console.log("Submitting survey results");
 
       // Stop form from submitting normally
-      event.preventDefault(); 
+      event.preventDefault();
 
       var url = api.getSurveyURL() + form.attr('action');
 
@@ -100,7 +105,9 @@ define(function (require) {
         },
         "parcel_id": app.selectedObject.id, // Soon to be deprecated
         "object_id": app.selectedObject.id, // Replaces parcel_id
-        "responses": serialized
+        "responses": serialized,
+        "started": timeStarted,             // Time started
+        "finished": new Date()              // Time finished
       }]};
 
       // Post the form
