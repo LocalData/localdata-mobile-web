@@ -11,16 +11,16 @@ define(function (require) {
 
   return function (app, formContainerId) {
     var form = $(formContainerId + ' form');
-    var formQuestions = $('#questions'); 
+    var formQuestions = $('#questions');
     var repeatCounter = {};
 
     this.init = function(){
       console.log("Initialize form");
 
       // Listen for objectedSelected, triggered when items on the map are tapped
-      $.subscribe("objectSelected", setSelectedObjectInfo);  
+      $.subscribe("objectSelected", setSelectedObjectInfo);
 
-      // Render the form 
+      // Render the form
       api.getForm(renderForm);
 
       // Add a function to serialize the form for submission to the API
@@ -74,30 +74,30 @@ define(function (require) {
       // Stop form from submitting normally
       event.preventDefault(); 
 
-      var url = api.getSurveyURL() + form.attr('action'); 
+      var url = api.getSurveyURL() + form.attr('action');
 
       // Serialize the form
       var serialized = form.serializeObject();
 
-      // Get some info about the centroid as floats. 
+      // Get some info about the centroid as floats.
       var selectedCentroid = app.selectedObject.centroid;
       var centroidLng = parseFloat(selectedCentroid.coordinates[0]);
       var centroidLat = parseFloat(selectedCentroid.coordinates[1]);
 
       console.log("Selected object ID");
 
-      // Construct a response in the format we need it.  
+      // Construct a response in the format we need it.
       var responses = {responses: [{
         "source": {
-          "type":"mobile", 
+          "type":"mobile",
           "collector":app.collectorName
-        }, 
+        },
         "geo_info": {
-          "centroid":[centroidLng, centroidLat], 
+          "centroid":[centroidLng, centroidLat],
           "geometry": app.selectedObject.geometry,
-          "humanReadableName": app.selectedObject.humanReadableName, 
+          "humanReadableName": app.selectedObject.humanReadableName,
           parcel_id: app.selectedObject.id // Soon to be deprecated
-        }, 
+        },
         "parcel_id": app.selectedObject.id, // Soon to be deprecated
         "object_id": app.selectedObject.id, // Replaces parcel_id
         "responses": serialized
@@ -108,7 +108,7 @@ define(function (require) {
       // TODO: This is causing us to record numbers as strings
       var jqxhr = $.post(url, responses, function() {
         console.log("Form successfully posted");
-      },"text").error(function(){ 
+      },"text").error(function(){
         var key;
         var result = "";
         for (key in jqxhr) {
@@ -143,7 +143,7 @@ define(function (require) {
       resetForm();
     }
 
-    // Reset the form: clear checkboxes, remove added option groups, hide 
+    // Reset the form: clear checkboxes, remove added option groups, hide
     // sub options.
     function resetForm() {
       console.log("Resetting form");
@@ -176,21 +176,21 @@ define(function (require) {
       console.log(settings.formData);
       $.each(settings.formData.questions, function (index, question) {
         addQuestion(question);
-      });    
+      });
       form.trigger("create");
     };
 
-    /* 
+    /**
      * Keep track of how many times we've seen a question with a given name
-     * Return a suffix if we've seen it more than once times
-     */ 
+     * Return a suffix if we've seen it more than once
+     */
     function suffix(name) {
       if(_.has(repeatCounter, name)) {
         repeatCounter[name] += 1;
         return "-" + repeatCounter[name].toString();
       }
 
-      repeatCounter[name] = 1; 
+      repeatCounter[name] = 1;
       return "";
     }
 
@@ -205,10 +205,10 @@ define(function (require) {
             $(this).show();
           });
 
-          $('.repeating-button[data-trigger=' + id + ']').each(function (i) {            
+          $('.repeating-button[data-trigger=' + id + ']').each(function (i) {
             $(this).show();
           });
-        }        
+        }
       };
     }
 
@@ -245,10 +245,10 @@ define(function (require) {
       // Give the question an ID based on its name
       var id = _.uniqueId(question.name);
 
-      // Collected the data needed to render the question 
+      // Collected the data needed to render the question
       var questionData = {
         text: question.text,
-        info: question.info, 
+        info: question.info,
         id: id,
         parentID: parentID,
         triggerID: triggerID
@@ -260,13 +260,12 @@ define(function (require) {
         $question.hide();
       }
 
-      // 
       var siblings = app.questionsByParentId[parentID];
       if (siblings === undefined) {
         siblings = [];
         app.questionsByParentId[parentID] = siblings;
       }
-      siblings.push($question); 
+      siblings.push($question);
 
 
       if (appendTo !== undefined) {
@@ -287,7 +286,7 @@ define(function (require) {
         $question.find(".box-close").click(function(e) {
           var $toHide = $(this).parent();
           $toHide.slideUp('slow');
-        });      
+        });
       }
 
       // TODO: Titles for question groups
@@ -381,7 +380,7 @@ define(function (require) {
         // If there are conditional questions, add them.
         // They are hidden by default.
         if (answer.questions !== undefined) {
-          // If users can repeat those conditional questions: 
+          // If users can repeat those conditional questions:
           if(answer.repeatQuestions !== undefined) {
             var $repeatButton;
             var $repeatBox = $(templates.repeatButton({
@@ -396,7 +395,7 @@ define(function (require) {
             $repeatButton.click(function handleClick(e) {
               e.preventDefault();
 
-              // Append the questions to this answer again! 
+              // Append the questions to this answer again!
               _.each(answer.questions, function (subq) {
                 addQuestion(subq, true, id, triggerID, $appendTo);
               });
