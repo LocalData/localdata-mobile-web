@@ -95,7 +95,9 @@ define(function (require) {
       var responses = {responses: [{
         "source": {
           "type":"mobile",
-          "collector":app.collectorName
+          "collector":app.collectorName,
+          "started": timeStarted,             // Time started
+          "finished": new Date()              // Time finished
         },
         "geo_info": {
           "centroid":[centroidLng, centroidLat],
@@ -105,9 +107,7 @@ define(function (require) {
         },
         "parcel_id": app.selectedObject.id, // Soon to be deprecated
         "object_id": app.selectedObject.id, // Replaces parcel_id
-        "responses": serialized,
-        "started": timeStarted,             // Time started
-        "finished": new Date()              // Time finished
+        "responses": serialized
       }]};
 
       // Post the form
