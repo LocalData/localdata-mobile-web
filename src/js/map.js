@@ -562,7 +562,7 @@ define(function (require) {
       // When zoomed out a bit, just color the completed parcels, don't show
       // checkmarks. Of course, for point-based surveys, we always want checkmarks.
       if (zoom < zoomLevels.checkmarkCutoff && (
-          settings.survey.type !== 'point' ||
+          settings.survey.type !== 'point' &&
           settings.survey.type !== 'pointandparcel'
         ) ) {
         doneMarkersLayer.clearLayers();
