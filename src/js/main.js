@@ -22,7 +22,7 @@
 
 require.config({
   paths: { 
-    jquery: 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery',
+    jquery: 'lib/jquery',
     'lib/leaflet': 'lib/leaflet/leaflet'
   },
   shim: {
