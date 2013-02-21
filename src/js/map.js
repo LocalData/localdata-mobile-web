@@ -247,8 +247,9 @@ define(function (require) {
         map.addLayer(zoneLayer);
       }
 
-      // If this is a point-based survey, add a crosshair over null island 
-      if(settings.survey.type === 'point') {
+      // If this is a point-based survey, add a crosshair over null island
+      if(settings.survey.type === 'point' ||
+         settings.survey.type === 'pointandparcel') {
         crosshairLayer = L.marker([0,0], {icon: CrosshairIcon});
         map.addLayer(crosshairLayer);
 
@@ -260,7 +261,7 @@ define(function (require) {
         $('#point').show();
       }
 
-      $.subscribe('successfulSubmit', getResponsesInMap);    
+      $.subscribe('successfulSubmit', getResponsesInMap);
 
       // Show which parcels have responses when the map is moved.
       map.on('moveend', function(event) {
@@ -329,6 +330,8 @@ define(function (require) {
         var lnglat = [map.getCenter().lng, map.getCenter().lat];
 
         // Keep track of the selected object centrally
+        delete app.selectedObject;
+        app.selectedObject = {};
         app.selectedObject.id = '';
         app.selectedObject.humanReadableName = 'Custom location';
         app.selectedObject.centroid = { coordinates: lnglat };
@@ -432,7 +435,7 @@ define(function (require) {
         return;
       }
  
-      // Don't add any parcels if the zoom is really far out. 
+      // Don't add any parcels if the zoom is really far out.
       var zoom = map.getZoom();
       if(zoom < zoomLevels.parcelCutoff) {
         // Clear out the parcels. An odd group of leftover parcels looks
@@ -558,7 +561,10 @@ define(function (require) {
 
       // When zoomed out a bit, just color the completed parcels, don't show
       // checkmarks. Of course, for point-based surveys, we always want checkmarks.
-      if (zoom < zoomLevels.checkmarkCutoff && settings.survey.type !== 'point') {
+      if (zoom < zoomLevels.checkmarkCutoff && (
+          settings.survey.type !== 'point' &&
+          settings.survey.type !== 'pointandparcel'
+        ) ) {
         doneMarkersLayer.clearLayers();
         markers = [];
       }
