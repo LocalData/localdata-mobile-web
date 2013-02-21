@@ -4,11 +4,22 @@
 define(function (require) {
   'use strict';
 
+  var console = global.console;
+  function noop() {}
+
+  if (console === undefined) {
+    console = global.console = {
+      log: noop,
+      info: noop,
+      warn: noop,
+      error: noop
+    };
+  }
+
   var log = console.log;
   var info = console.info;
   var warn = console.warn;
   var error = console.error;
-  function noop() {}
 
   return function logLevel(level) {
     if (level === 'info' || level === 'all' || level === 'verbose') {
