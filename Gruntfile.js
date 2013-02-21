@@ -97,7 +97,8 @@ module.exports = function(grunt) {
               'js/require.js',
               '*.html',
               'img/**',
-              '**/*.png' // Leaflet looks for PNGs in a funny spot
+              '**/*.png', // Leaflet looks for PNGs in a funny spot
+              '**/*.gif'
             ],
             dest: '<%= dirs.staging %>'
           }
@@ -114,11 +115,30 @@ module.exports = function(grunt) {
               'css/**',
               '*.html',
               'img/**',
-              '**/*.png'
+              '**/*.png',
+              '**/*.gif'
             ],
             dest: '<%= dirs.build %>'
           }
         ]
+      }
+    },
+
+    manifest: {
+      generate: {
+        options: {
+          basePath: '<%= dirs.build %>/',
+          network: ['*'],
+          verbose: true,
+          timestamp: true
+        },
+        src: [
+          'js/*.js',
+          '**/*.css',
+          '**/*.png',
+          '**/*.gif'
+        ],
+        dest: '<%= dirs.build %>/manifest.appcache'
       }
     }
   });
@@ -129,6 +149,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-cssmin');
   grunt.loadNpmTasks('grunt-contrib-requirejs');
   grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-contrib-manifest');
 
   // Define the deploy task
   grunt.registerTask('deploy', 'Deploy the build directory to S3 using s3cmd', function (locname) {
@@ -220,7 +241,7 @@ module.exports = function(grunt) {
   // Run the version task, which only updates the configuration with the appropriate version number.
   grunt.task.run('setVersion');
 
-  grunt.registerTask('build', ['cssmin', 'requirejs', 'copy:staging', 'concat:build', 'copy:build']);
+  grunt.registerTask('build', ['cssmin', 'requirejs', 'copy:staging', 'concat:build', 'copy:build', 'manifest']);
   
 
   // Default task

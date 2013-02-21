@@ -14,6 +14,7 @@
     "grunt-contrib-requirejs": "~0.4.0",
     "grunt-contrib-cssmin": "~0.4.0",
     "grunt-contrib-copy": "~0.4.0",
-    "grunt-contrib-concat": "~0.1.2"
+    "grunt-contrib-concat": "~0.1.2",
+    "grunt-contrib-manifest": "git+https://github.com/saulhardman/grunt-contrib-manifest.git"
   }
 }
