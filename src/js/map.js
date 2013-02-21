@@ -29,6 +29,47 @@ define(function (require) {
     return new L.LatLngBounds(newSW, newNE);
   }
 
+  function computeRingCentroid(ring) {
+    var off = ring[0];
+    var twiceArea = 0;
+    var x = 0;
+    var y = 0;
+    var nPoints = ring.length;
+    var p1, p2;
+    var f;
+
+    var i, j;
+    for (i = 0, j = nPoints - 1; i < nPoints; j = i, i += 1) {
+      p1 = ring[i];
+      p2 = ring[j];
+      f = (p1[1] - off[1]) * (p2[0] - off[0]) - (p2[1] - off[1]) * (p1[0] - off[0]);
+      twiceArea += f;
+      y += (p1[1] + p2[1] - 2 * off[1]) * f;
+      x += (p1[0] + p2[0] - 2 * off[0]) * f;
+    }
+    f = twiceArea * 3;
+    return [x / f + off[0], y / f + off[1]];
+  }
+
+  // Compute the centroid of a geometry.
+  function computeCentroid(geometry) {
+    if (geometry.type === 'MultiPolygon') {
+      // TODO: For now we only handle the first polygon.
+      return computeRingCentroid(geometry.coordinates[0][0]);
+    }
+
+    if (geometry.type === 'Polygon') {
+      // TODO: For now we only handle the exterior ring.
+      return computeRingCentroid(geometry.coordinates[0]);
+    }
+
+    if (geometry.type === 'Point') {
+      return _.clone(geometry.coordinates);
+    }
+
+    return null;
+  }
+
   var zoomLevels = {
     // Don't show parcels if we're zoomed out farther than 16.
     parcelCutoff: 16,
@@ -365,7 +406,16 @@ define(function (require) {
       // Keep track of the selected object centrally
       app.selectedObject.id = selectedLayer.feature.id;
       app.selectedObject.humanReadableName = selectedLayer.feature.properties.address;
-      app.selectedObject.centroid = selectedLayer.feature.properties.centroid;
+
+      if (selectedLayer.feature.properties.centroid !== undefined) {
+        app.selectedObject.centroid = selectedLayer.feature.properties.centroid;
+      } else {
+        app.selectedObject.centroid = {
+          type: 'Point',
+          coordinates: computeCentroid(selectedLayer.feature.geometry)
+        };
+      }
+
       app.selectedObject.geometry = selectedLayer.feature.geometry; 
 
       // Let other parts of the app know that we've selected something.
