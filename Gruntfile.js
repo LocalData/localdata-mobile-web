@@ -78,7 +78,7 @@ module.exports = function(grunt) {
     concat: {
       options: {
         separator: ';',
-        banner: '/* v <%= version.toString() %> */\n'
+        banner: '/* v <%= version.toString() %> <%= grunt.template.today("isoDateTime") %> */\n'
       },
       build: {
         src: ['<%= dirs.staging %>/js/main.js'],
@@ -204,7 +204,7 @@ module.exports = function(grunt) {
     grunt.config.requires(['pkg', 'version']);
     var done = this.async();
 
-    var showCmd = 'git show head --format=format:%H';
+    var showCmd = 'git show -s head --format=format:%H';
     var statusCmd = 'git status --short src';
 
     // Get the commit hash.
