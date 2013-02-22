@@ -231,7 +231,7 @@ define(function (require) {
     this.init = function() {
       console.log('Initialize map');
       console.log(settings.survey);
-      map = new L.Map(mapContainerId, {minZoom:13, maxZoom:21});
+      map = new L.Map(mapContainerId, {minZoom:11, maxZoom:21});
 
       map.addLayer(parcelsLayerGroup);
       map.addLayer(doneMarkersLayer);
@@ -278,7 +278,11 @@ define(function (require) {
       map.on('locationfound', onLocationFound);
       map.on('locationerror', onLocationError);
 
-      map.locate({setView: true, maxZoom: 19});
+      map.locate({
+        setView: true,
+        maxZoom: 19,
+        enableHighAccuracy: true
+      });
 
       // Mark a location on the map. 
       // Primarily used with browser-based geolocation (aka 'where am I?')
@@ -315,7 +319,10 @@ define(function (require) {
       });
 
       $('#geolocate').click(function(){
-        map.locate({setView: true, maxZoom: 19});
+        map.locate({
+          setView: false,
+          enableHighAccuracy: true
+        });
       });
 
       // Add a point to the map and open up the survey
