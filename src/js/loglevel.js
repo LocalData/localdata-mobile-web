@@ -4,11 +4,11 @@
 define(function (require) {
   'use strict';
 
-  var console = global.console;
+  var console = window.console;
   function noop() {}
 
   if (console === undefined) {
-    console = global.console = {
+    console = window.console = {
       log: noop,
       info: noop,
       warn: noop,
