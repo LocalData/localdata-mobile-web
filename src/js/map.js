@@ -90,7 +90,8 @@ define(function (require) {
 
   return function (app, mapContainerId) {
 
-    var map, marker, circle;
+    var map, marker;
+    var circle = null;
     var markers = {};
     var numObjectsOnMap = 0;
     var parcelIdsOnTheMap = {};
@@ -288,14 +289,18 @@ define(function (require) {
       // Primarily used with browser-based geolocation (aka 'where am I?')
       function onLocationFound(e) {
         // Remove the old circle if we have one
-        if (circle !== undefined) {
+        if (circle !== null) {
           map.removeLayer(circle);
+          circle = null;
         }
 
-        // Add the accuracy circle to the map
+        // Add the accuracy circle to the map, unless it's huge.
         var radius = e.accuracy / 2;
-        circle = new L.Circle(e.latlng, radius);
-        map.addLayer(circle);
+        if (radius < 60) {
+          circle = new L.Circle(e.latlng, radius);
+          map.addLayer(circle);
+        }
+        map.panTo(e.latlng);
 
         getResponsesInMap();
         renderParcelsInBounds();
