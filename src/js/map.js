@@ -90,7 +90,8 @@ define(function (require) {
 
   return function (app, mapContainerId) {
 
-    var map, marker, circle;
+    var map, marker;
+    var circle = null;
     var markers = {};
     var numObjectsOnMap = 0;
     var parcelIdsOnTheMap = {};
@@ -231,7 +232,7 @@ define(function (require) {
     this.init = function() {
       console.log('Initialize map');
       console.log(settings.survey);
-      map = new L.Map(mapContainerId, {minZoom:13, maxZoom:21});
+      map = new L.Map(mapContainerId, {minZoom:11, maxZoom:21});
 
       map.addLayer(parcelsLayerGroup);
       map.addLayer(doneMarkersLayer);
@@ -279,20 +280,28 @@ define(function (require) {
       map.on('locationfound', onLocationFound);
       map.on('locationerror', onLocationError);
 
-      map.locate({setView: true, maxZoom: 19});
+      map.locate({
+        setView: true,
+        maxZoom: 19,
+        enableHighAccuracy: true
+      });
 
       // Mark a location on the map. 
       // Primarily used with browser-based geolocation (aka 'where am I?')
       function onLocationFound(e) {
         // Remove the old circle if we have one
-        if (circle !== undefined) {
+        if (circle !== null) {
           map.removeLayer(circle);
+          circle = null;
         }
 
-        // Add the accuracy circle to the map
+        // Add the accuracy circle to the map, unless it's huge.
         var radius = e.accuracy / 2;
-        circle = new L.Circle(e.latlng, radius);
-        map.addLayer(circle);
+        if (radius < 60) {
+          circle = new L.Circle(e.latlng, radius);
+          map.addLayer(circle);
+        }
+        map.panTo(e.latlng);
 
         getResponsesInMap();
         renderParcelsInBounds();
@@ -316,7 +325,10 @@ define(function (require) {
       });
 
       $('#geolocate').click(function(){
-        map.locate({setView: true, maxZoom: 19});
+        map.locate({
+          setView: false,
+          enableHighAccuracy: true
+        });
       });
 
       // Add a point to the map and open up the survey
