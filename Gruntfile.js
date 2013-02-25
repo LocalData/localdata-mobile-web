@@ -95,6 +95,7 @@ module.exports = function(grunt) {
             cwd: 'src/',
             src: [
               'js/require.js',
+              'js/lib/aight.js',
               '*.html',
               'img/**',
               '**/*.png', // Leaflet looks for PNGs in a funny spot
@@ -111,6 +112,7 @@ module.exports = function(grunt) {
             cwd: '<%= dirs.staging %>',
             src: [
               'js/require.js',
+              'js/lib/aight.js',
               '**/*.css',
               'css/**',
               '*.html',
@@ -129,6 +131,7 @@ module.exports = function(grunt) {
         options: {
           basePath: '<%= dirs.build %>/',
           network: ['*'],
+          exclude: ['img/nbhd-blur.jpg', 'nbhd.jpeg', 'streetscape_blur-01.jpg'],
           verbose: true,
           timestamp: true
         },
