@@ -25,6 +25,17 @@ module.exports = function(grunt) {
       return {};
     }()),
 
+    // We set this later using a grunt task.
+    version: {
+      number: null,
+      commit: null,
+      custom: false,
+      toString: function () {
+        if (this.custom) { return this.number + '.' + this.commit + '_custom'; }
+        return this.number + '.' + this.commit;
+      }
+    },
+
     dirs: {
       staging: 'temp',
       build: 'build'
@@ -64,6 +75,17 @@ module.exports = function(grunt) {
       }
     },
 
+    concat: {
+      options: {
+        separator: ';',
+        banner: '/* v <%= version.toString() %> <%= grunt.template.today("isoDateTime") %> */\n'
+      },
+      build: {
+        src: ['<%= dirs.staging %>/js/main.js'],
+        dest: '<%= dirs.build %>/js/main.js'
+      }
+    },
+
     copy: {
       staging: {
         files: [
@@ -75,7 +97,8 @@ module.exports = function(grunt) {
               'js/require.js',
               '*.html',
               'img/**',
-              '**/*.png' // Leaflet looks for PNGs in a funny spot
+              '**/*.png', // Leaflet looks for PNGs in a funny spot
+              '**/*.gif'
             ],
             dest: '<%= dirs.staging %>'
           }
@@ -88,25 +111,47 @@ module.exports = function(grunt) {
             cwd: '<%= dirs.staging %>',
             src: [
               'js/require.js',
-              'js/main.js',
               '**/*.css',
               'css/**',
               '*.html',
               'img/**',
-              '**/*.png'
+              '**/*.png',
+              '**/*.gif'
             ],
             dest: '<%= dirs.build %>'
           }
         ]
       }
+    },
+
+    manifest: {
+      generate: {
+        options: {
+          basePath: '<%= dirs.build %>/',
+          network: ['*'],
+          verbose: true,
+          timestamp: true
+        },
+        src: [
+          'js/*.js',
+          '**/*.css',
+          '**/*.png',
+          '**/*.gif'
+        ],
+        dest: '<%= dirs.build %>/manifest.appcache'
+      }
     }
   });
 
+  // Load plugins
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-cssmin');
   grunt.loadNpmTasks('grunt-contrib-requirejs');
+  grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-contrib-manifest');
 
+  // Define the deploy task
   grunt.registerTask('deploy', 'Deploy the build directory to S3 using s3cmd', function (locname) {
     var deploy = grunt.config('dev').deploy;
     var location;
@@ -154,7 +199,49 @@ module.exports = function(grunt) {
     });
   });
 
-  grunt.registerTask('build', ['cssmin', 'requirejs', 'copy:staging', 'copy:build']);
+  // Define version task
+  grunt.registerTask('setVersion', 'Sets the version using package.json and git', function () {
+    grunt.config.requires(['pkg', 'version']);
+    var done = this.async();
+
+    var showCmd = 'git show -s head --format=format:%H';
+    var statusCmd = 'git status --short src';
+
+    // Get the commit hash.
+    exec(showCmd, function (error, stdout, stderr) {
+      if (error || stderr.length > 0) {
+        grunt.log.error(stderr);
+        done(false);
+        return;
+      }
+
+      var commit = stdout.toString().trim();
+
+      // See if we have local, uncommitted changes.
+      exec(statusCmd, function (error, stdout, stderr) {
+        if (error || stderr.length > 0) {
+          grunt.log.error(stderr);
+          done(false);
+          return;
+        }
+
+        var custom = stdout.length > 1;
+
+        // Use getRaw, so we don't get a copy.
+        var version = grunt.config.getRaw('version');
+        version.number = grunt.config('pkg').version;
+        version.commit = commit;
+        version.custom = custom;
+        grunt.log.writeln('Version: ' + version.toString());
+        done();
+      });
+    });
+  });
+
+  // Run the version task, which only updates the configuration with the appropriate version number.
+  grunt.task.run('setVersion');
+
+  grunt.registerTask('build', ['cssmin', 'requirejs', 'copy:staging', 'concat:build', 'copy:build', 'manifest']);
   
 
   // Default task
