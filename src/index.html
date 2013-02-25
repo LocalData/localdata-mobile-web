@@ -93,8 +93,11 @@
         </script>
 
         <script type="text/template" id="answer-text">
-          <label for="<%= id %>"><%= text %></label>
           <input type="text" name="<%= questionName %>" id="<%= id %>" value="<%= value %>">
+        </script>
+        
+        <script type="text/template" id="answer-address">
+          <input type="text" name="<%= questionName %>" id="<%= id %>" value="<%= value %>" data-type="address">
         </script>
         
         <script type="text/template" id="answer-texarea">

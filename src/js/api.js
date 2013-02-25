@@ -99,23 +99,53 @@ define(function (require) {
   };
   
   // Take an address string.
-  // Add 'Detroit' to the end.
-  // Return the first result as a lat-lng for convenience.
-  // Or Null if Bing is being a jerk / we're dumb. 
-  api.codeAddress = function(address, callback) {
+  // callback(error, data)
+  // data contains addressLine and coords (a lng-lat array)
+  api.codeAddress = function (address, callback) {
     console.log('Coding an address');
     console.log(address);
 
-    // TODO: Append a locale to the address to make searching easier.
-    // Can we get the locale from the geolocation feature?
+    // TODO: Can we get the locale from the geolocation feature?
+    // If the user-entered address does not include a city, append the survey location.
     var addressWithLocale = address;
+    if (settings.survey.location !== undefined && settings.survey.location.length > 0) {
+      // If there is a comma in the address, assume the user added the city.
+      if (address.indexOf(',') === -1) {
+        // See if the survey location is part of the user-entered address.
+        // Assume survey location is of the form "City, State", "City, State, USA", or "City, State ZIP"
+        var addressLower = address.toLocaleLowerCase();
+        var locationComponents = settings.survey.location.split(',');
+        var containsLocale = false;
+
+        // TODO: Check the tail parts of the survey location.
+
+        // Check the first part of the survey location.
+        var city = locationComponents[0].toLocaleLowerCase().trim();
+        if (addressLower.length >= city.length && addressLower.substr(addressLower.length - city.length, city.length) === city) {
+          containsLocale = true;
+          // Add the remaining location components.
+          addressWithLocale = addressWithLocale + ', ' + locationComponents.slice(1).join(',');
+        }
+
+        if (!containsLocale) {
+          addressWithLocale = addressWithLocale + ', ' + settings.survey.location;
+        }
+      }
+    }
     var geocodeEndpoint = 'http://dev.virtualearth.net/REST/v1/Locations/' + addressWithLocale + '?o=json&key=' + settings.bing_key + '&jsonp=?';
 
-    $.getJSON(geocodeEndpoint, function(data){
-      if(data.resourceSets.length > 0){
-        var point = data.resourceSets[0].resources[0].point;
-        var latlng = new L.LatLng(point.coordinates[0], point.coordinates[1]);
-        callback(latlng);
+    $.getJSON(geocodeEndpoint, function (data){
+      if (data.resourceSets.length > 0){
+        var result = data.resourceSets[0].resources[0];
+        callback(null, {
+          addressLine: result.address.addressLine,
+          coords: [result.point.coordinates[1], result.point.coordinates[0]]
+        });
+      } else {
+        callback({
+          type: 'GeocodingError',
+          message: 'No geocoding results found'
+        });
       }
     });
   };

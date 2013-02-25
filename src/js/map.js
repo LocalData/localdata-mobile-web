@@ -376,16 +376,28 @@ define(function (require) {
 
 
     // Move the map ............................................................
-    // Attempt to center the map on an address using Google's geocoder.
+    // Attempt to center the map on an address using Bing's geocoder.
     // This should probably live in APIs. 
     var goToAddress = function(address) {
-      api.codeAddress(address, function(latlng){
+      api.codeAddress(address, function (error, data) {
+        if (error) {
+          if (error.type === 'GeocodingError') {
+            console.warn('We could not geocode the address: '  + address);
+          } else {
+            console.error('Unexpected error of type ' + error.type);
+            console.error(error.message);
+          }
+          settings.address = '';
+          return;
+        }
+
         if (circle !== undefined) {
           map.removeLayer(circle);
         }
 
         // Add the accuracy circle to the map
         var radius = 4;
+        var latlng = new L.LatLng(data.coords[1], data.coords[0]);
         circle = new L.Circle(latlng, radius);
         map.addLayer(circle);
         map.setView(latlng, 19);
@@ -395,7 +407,10 @@ define(function (require) {
         $('#address-search').slideToggle();
         $('#address-search-prompt').slideToggle();
 
+        // Record the address, for potential later use by the survey questions.
+        settings.address = data.addressLine;
 
+        // TODO: Select an object, if appropriate
       });
     };
 
@@ -429,6 +444,18 @@ define(function (require) {
       }
 
       app.selectedObject.geometry = selectedLayer.feature.geometry; 
+
+      // If there is an address associated with the selected object, save that.
+      // TODO: For now, if the survey type is "address", we assume the object
+      // name indicates the address.
+      // TODO: This is Houston-specific for beta testing.
+      if (settings.survey.type === 'address') {
+        var address = selectedLayer.feature.properties.address;
+        var city = 'houston';
+        if (address.length > city.length && address.substr(address.length - city.length).toLocaleLowerCase() === city) {
+          app.selectedObject.address = address.substr(0, address.length - city.length - 1).titleCase();
+        }
+      }
 
       // Let other parts of the app know that we've selected something.
       $.publish('objectSelected');
