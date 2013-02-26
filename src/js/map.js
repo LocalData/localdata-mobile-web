@@ -394,7 +394,7 @@ define(function (require) {
           return;
         }
 
-        if (circle !== undefined) {
+        if (circle !== null) {
           map.removeLayer(circle);
         }
 
