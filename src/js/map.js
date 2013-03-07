@@ -280,6 +280,7 @@ define(function (require) {
       map.on('locationfound', onLocationFound);
       map.on('locationerror', onLocationError);
 
+      var initialLocate = true;
       map.locate({
         setView: true,
         maxZoom: 19,
@@ -289,6 +290,7 @@ define(function (require) {
       // Mark a location on the map. 
       // Primarily used with browser-based geolocation (aka 'where am I?')
       function onLocationFound(e) {
+        initialLocate = false;
         // Remove the old circle if we have one
         if (circle !== null) {
           map.removeLayer(circle);
@@ -308,7 +310,36 @@ define(function (require) {
       }
 
       function onLocationError(e) {
-        alert(e.message);
+        if (initialLocate) {
+          initialLocate = false;
+          api.codeAddress(settings.survey.location, function (error, data) {
+            if (error) {
+              if (error.type === 'GeocodingError') {
+                console.warn('We could not geocode the address: '  + address);
+              } else {
+                console.error('Unexpected error of type ' + error.type);
+                console.error(error.message);
+              }
+              return;
+            }
+
+            if (circle !== null) {
+              map.removeLayer(circle);
+            }
+
+            // Add the accuracy circle to the map
+            var radius = 4;
+            var latlng = new L.LatLng(data.coords[1], data.coords[0]);
+            circle = new L.Circle(latlng, radius);
+            map.addLayer(circle);
+            map.setView(latlng, 19);
+
+            // Scroll to the top
+            window.scrollTo(0,0);
+          });
+        } else {
+          alert(e.message);
+        }
       }
 
 
@@ -626,7 +657,9 @@ define(function (require) {
         _.each(results, function (response) {
           var parcelId = response.geo_info.parcel_id;
 
-          if (zoom >= zoomLevels.checkmarkCutoff) {
+          // For address-based surveys, the checkmarks can be misleading, since
+          // they will correspond to lots/parcels and not individual units.
+          if (zoom >= zoomLevels.checkmarkCutoff && settings.survey.type !== 'address') {
             var point = new L.LatLng(response.geo_info.centroid[1], response.geo_info.centroid[0]);
             addDoneMarker(point, parcelId);
           }
