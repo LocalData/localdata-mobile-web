@@ -9,7 +9,13 @@ define(function (require) {
   var $ = require('jquery');
   var L = require('lib/leaflet');
 
+  var cache = true;
+
   var api = {};
+
+  if (window.useCacheBuster) {
+    cache = false;
+  }
 
   api.getSurveyFromSlug = function() {
     var slug = window.location.hash.slice(1);
@@ -21,13 +27,21 @@ define(function (require) {
     // TODO: Display a nice error if the survey wans't found.
     // TODO: Instead of deferred.pipe(), we should upgrade to jQuery >= 1.8 or
     // use Q
-    return $.getJSON(url)
+    return $.ajax({
+      url: url,
+      dataType: 'json',
+      cache: cache
+    })
     .pipe(function (data) {
       settings.surveyId = data.survey;
 
       // Actually get the survey metadata
       var surveyUrl = api.getSurveyURL();
-      return $.getJSON(surveyUrl)
+      return $.ajax({
+        url: surveyUrl,
+        dataType: 'json',
+        cache: cache
+      })
       .pipe(function (survey) {
         settings.survey = survey.survey;
         console.log(settings.survey);
@@ -63,24 +77,28 @@ define(function (require) {
     
     console.log(url);
 
-    $.getJSON(url, function(data){
-      
-      // Get only the mobile forms
-      var mobileForms = _.filter(data.forms, function(form) {
-        if (_.has(form, 'type')) {
-          if (form.type === 'mobile'){
-            return true;
+    $.ajax({
+      url: url,
+      dataType: 'json',
+      cache: cache,
+      success: function (data){
+        // Get only the mobile forms
+        var mobileForms = _.filter(data.forms, function(form) {
+          if (_.has(form, 'type')) {
+            if (form.type === 'mobile'){
+              return true;
+            }
           }
-        }
-        return false;
-      });
-      settings.formData = mobileForms[0];
-      
-      console.log('Mobile forms');
-      console.log(mobileForms);
-      
-      // Endpoint should give the most recent form first.
-      callback();
+          return false;
+        });
+        settings.formData = mobileForms[0];
+        
+        console.log('Mobile forms');
+        console.log(mobileForms);
+        
+        // Endpoint should give the most recent form first.
+        callback();
+      }
     });
   };
 
@@ -134,18 +152,23 @@ define(function (require) {
     }
     var geocodeEndpoint = 'http://dev.virtualearth.net/REST/v1/Locations/' + addressWithLocale + '?o=json&key=' + settings.bing_key + '&jsonp=?';
 
-    $.getJSON(geocodeEndpoint, function (data){
-      if (data.resourceSets.length > 0){
-        var result = data.resourceSets[0].resources[0];
-        callback(null, {
-          addressLine: result.address.addressLine,
-          coords: [result.point.coordinates[1], result.point.coordinates[0]]
-        });
-      } else {
-        callback({
-          type: 'GeocodingError',
-          message: 'No geocoding results found'
-        });
+    $.ajax({
+      url: geocodeEndpoint,
+      dataType: 'json',
+      cache: cache,
+      success: function (data) {
+        if (data.resourceSets.length > 0){
+          var result = data.resourceSets[0].resources[0];
+          callback(null, {
+            addressLine: result.address.addressLine,
+            coords: [result.point.coordinates[1], result.point.coordinates[0]]
+          });
+        } else {
+          callback({
+            type: 'GeocodingError',
+            message: 'No geocoding results found'
+          });
+        }
       }
     });
   };
@@ -163,9 +186,14 @@ define(function (require) {
     var url = api.getSurveyURL() + '/responses/in/' + serializedBounds;
 
     // Give the callback the responses.
-    $.getJSON(url, function(data){
-      if(data.responses) {
-        callback(data.responses);
+    $.ajax({
+      url: url,
+      dataType: 'json',
+      cache: cache,
+      success: function (data){
+        if(data.responses) {
+          callback(data.responses);
+        }
       }
     });
   };
@@ -182,15 +210,21 @@ define(function (require) {
     // Given the bounds, generate a URL to ge the responses from the API.
     var url = api.getGeoBoundsObjectsURL(bbox);
 
-    // Give the callback the responses.
-    $.getJSON(url, function(data){
-      if(data) {
-        callback(null, data);
-      } else {
-        callback({
-          type: 'APIError',
-          message: 'Got no data from the LocalData geo endpoint'
-        });
+    // Get geo objects from the API. Don't force non-caching on IE, since these
+    // should rarely change and could be requested multiple times in a session.
+    $.ajax({
+      url: url,
+      dataType: 'json',
+      success: function (data) {
+        // Give the callback the responses.
+        if(data) {
+          callback(null, data);
+        } else {
+          callback({
+            type: 'APIError',
+            message: 'Got no data from the LocalData geo endpoint'
+          });
+        }
       }
     });
   };
@@ -291,31 +325,38 @@ define(function (require) {
   api.getObjectsInBBoxFromESRI = function(bbox, options, callback) {
     var url = generateArcQueryURL(bbox, options);
 
-    // Fetch the data.
-    $.getJSON(url, function(data){
-      if(data) {
-        // Create a GeoJSON FeatureCollection from the ESRI-style data.
-        var featureCollection = {
-          type: 'FeatureCollection'
-        };
-        featureCollection.features = _.map(data.features, function (item) {
-          return {
-            type: 'Feature',
-            id: item.attributes[options.id],
-            geometry: generateGeoJSONFromESRIGeometry(item.geometry),
-            properties: {
-              address: generateNameFromAttributes(item.attributes, options)
-            }
+    // Get geo objects from the ArcServer API. Don't force non-caching on IE,
+    // since these should rarely change and could be requested multiple times
+    // in a session.
+    $.ajax({
+      url: url,
+      dataType: 'json',
+      cache: cache,
+      success: function (data){
+        if(data) {
+          // Create a GeoJSON FeatureCollection from the ESRI-style data.
+          var featureCollection = {
+            type: 'FeatureCollection'
           };
-        });
+          featureCollection.features = _.map(data.features, function (item) {
+            return {
+              type: 'Feature',
+              id: item.attributes[options.id],
+              geometry: generateGeoJSONFromESRIGeometry(item.geometry),
+              properties: {
+                address: generateNameFromAttributes(item.attributes, options)
+              }
+            };
+          });
 
-        // Pass the FeatureCollection to the callback.
-        callback(null, featureCollection);
-      } else {
-        callback({
-          type: 'APIError',
-          message: 'Got no data from the Arc Server endpoint'
-        });
+          // Pass the FeatureCollection to the callback.
+          callback(null, featureCollection);
+        } else {
+          callback({
+            type: 'APIError',
+            message: 'Got no data from the Arc Server endpoint'
+          });
+        }
       }
     });
 
