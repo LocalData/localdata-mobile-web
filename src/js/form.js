@@ -59,7 +59,18 @@ define(function (require) {
 
       // Show/hide UI as needed
       if(!$('#form').is(":visible")) {
-        $('#form').slideToggle();
+        $('#form').slideToggle(400, function(){
+
+          // Make sure the form becomes visible
+          // when an object on the map is clicked
+          var offset = $('#form').offset();
+          offset.top -= 175; // Keep enough of the map visible
+                             // to give the user context
+          $('html, body').animate({
+            scrollTop: offset.top,
+            scrollLeft: offset.left
+          });
+        });
       }
       if($('#startpoint').is(":visible")) {
         $('#startpoint').hide();
@@ -67,6 +78,7 @@ define(function (require) {
       if($('#thanks').is(":visible")) {
         $('#thanks').slideToggle();
       }
+      
     };
 
 
