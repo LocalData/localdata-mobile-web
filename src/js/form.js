@@ -78,6 +78,7 @@ define(function (require) {
 
       // Stop form from submitting normally
       event.preventDefault();
+      submitStart();
 
       var url = api.getSurveyURL() + form.attr('action');
 
@@ -121,11 +122,40 @@ define(function (require) {
         for (key in jqxhr) {
           result += key + ": " + jqxhr[key] + "\n";
         }
-        console.log("error: " + result);
+        console.log("Error submitting result");
+
+        // Show the form again
+        $('#form').show(function(){
+          // Hide the submitting message
+          $('#submitting').slideToggle();
+          
+          // Show an error message. 
+          $('#error').slideToggle();
+
+          // Roll down to the submit button so they can submit again.
+          var offset = $('#submitbutton').offset();
+          offset.top -= 100; // Keep enough of the map visible
+                             // to give the user context
+          $('html, body').animate({
+            scrollTop: offset.top,
+            scrollLeft: offset.left
+          });
+        });
+
+
       }).success(function(){
         successfulSubmit();
       });
     });
+
+    function submitStart() {
+      // Roll up the form & show the "now submitting" message
+      if($('#error').is(":visible")) {
+        $('#error').slideToggle();
+      }
+      $('#form').slideToggle();
+      $('#submitting').slideToggle();
+    }
 
     // Clear the form and thank the user after a successful submission
     // TODO: pass in selected_parcel_json
@@ -136,7 +166,7 @@ define(function (require) {
       $.publish("successfulSubmit");
 
       // Hide the form and show the thanks
-      $('#form').slideToggle();
+      $('#submitting').slideToggle();
       $('#thanks').slideToggle();
 
       if($('#address-search-prompt').is(":hidden")) {

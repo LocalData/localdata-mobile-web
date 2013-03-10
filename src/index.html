@@ -54,6 +54,9 @@
     <div id="startpoint">
         <h2>Select a location to begin.</h2>
     </div> 
+    <div id="submitting">
+        <h2>Submitting data...</h2>
+    </div>
     <div id="thanks">
         <h2>Thank you! Select another location to continue.</h2>
     </div>
@@ -109,8 +112,13 @@
           </div>
         </script>
         
-                
-        <input type="submit" data-theme="b" data-icon="check" value="Submit answers">
+        <div id="error">
+          <h2>
+            There was an error submitting your answer.<br>
+            Please try submitting again.
+          </h2>
+        </div>
+        <input type="submit" data-theme="b" data-icon="check" value="Submit answers" id="submitbutton">
       </form>
     </div><!-- end form -->
     
