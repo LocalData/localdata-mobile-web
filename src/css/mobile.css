@@ -40,6 +40,8 @@ small {
 h2,
 #startpoint, 
 #thanks,
+#submitting,
+#error,
 #form fieldset {
   padding:1em;
 }
@@ -76,6 +78,8 @@ h2 {
   display:none;
 }
 
+#submitting, 
+#error,
 #thanks {
   display:none;
   background:#ffe;

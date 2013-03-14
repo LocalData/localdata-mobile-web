@@ -90,6 +90,7 @@ define(function (require) {
 
       // Stop form from submitting normally
       event.preventDefault();
+      submitStart();
 
       var url = api.getSurveyURL() + form.attr('action');
 
@@ -126,35 +127,64 @@ define(function (require) {
       // TODO: This will need to use Prashant's browser-safe POSTing
       // TODO: This is causing us to record numbers as strings
       var jqxhr = $.post(url, responses, function() {
-        console.log("Form successfully posted");
-      },"text").error(function(){
+        console.log('Form successfully posted');
+      }, 'text').error(function(){
         var key;
-        var result = "";
+        var result = '';
         for (key in jqxhr) {
-          result += key + ": " + jqxhr[key] + "\n";
+          result += key + ': ' + jqxhr[key] + '\n';
         }
-        console.log("error: " + result);
+        console.log('Error submitting result');
+
+        // Show the form again
+        $('#form').show(function(){
+          // Hide the submitting message
+          $('#submitting').slideToggle();
+
+          // Show an error message. 
+          $('#error').slideToggle();
+
+          // Roll down to the submit button so they can submit again.
+          var offset = $('#submitbutton').offset();
+          offset.top -= 100; // Keep enough of the map visible
+                             // to give the user context
+          $('html, body').animate({
+            scrollTop: offset.top,
+            scrollLeft: offset.left
+          });
+        });
+
+
       }).success(function(){
         successfulSubmit();
       });
     });
 
+    function submitStart() {
+      // Roll up the form & show the "now submitting" message
+      if($('#error').is(':visible')) {
+        $('#error').slideToggle();
+      }
+      $('#form').slideToggle();
+      $('#submitting').slideToggle();
+    }
+
     // Clear the form and thank the user after a successful submission
     // TODO: pass in selected_parcel_json
     function successfulSubmit() {
-      console.log("Successful submit");
+      console.log('Successful submit');
 
       // Publish  a "form submitted" event
-      $.publish("successfulSubmit");
+      $.publish('successfulSubmit');
 
       // Hide the form and show the thanks
-      $('#form').slideToggle();
+      $('#submitting').slideToggle();
       $('#thanks').slideToggle();
 
-      if($('#address-search-prompt').is(":hidden")) {
+      if($('#address-search-prompt').is(':hidden')) {
         $('#address-search-prompt').slideToggle();
       }
-      if($('#address-search').is(":visible")) {
+      if($('#address-search').is(':visible')) {
         $('#address-search').slideToggle();
       }
 
