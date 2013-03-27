@@ -50,12 +50,18 @@ define(function (require) {
         surveyPromise.done(function (survey) {
           if (survey.type === 'point') {
             $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Pan and add a point to begin');
+          } else if (survey.type === 'address-point') {
+            $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Enter an address to begin');
           } else {
             $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Tap a parcel to begin');
           }
 
           app.map = new MapView(app, 'map-div');
           app.f = new FormView(app, '#form');
+
+          if (survey.type === 'address-point') {
+            $.publish('readyForAddressForm');
+          }
         });
       }); 
     },

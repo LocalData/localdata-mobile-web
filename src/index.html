@@ -50,6 +50,7 @@
       <a href='#' id='address-search-toggle' data-icon="search" data-role="button" data-inline="true" >Address</a>
       <a href='#' id='geolocate' data-icon="star" data-role="button" data-inline="true" >Locate me</a>
       <a href='#' id='point' data-icon="plus" data-role="button" data-inline="true" style="display:none;">Add point</a>
+      <a href='#' id='entry' data-icon="plus" data-role="button" data-inline="true" style="display:none;">Add entry</a>
     </div>
     <div id="address-search">
       <input type="text" name="address-input" id="address-input" style="width:70%" value="" data-mini="true" placeholder="Address">
@@ -105,6 +106,11 @@
           <input type="text" name="<%= questionName %>" id="<%= id %>" value="<%= value %>" data-type="address">
         </script>
         
+        <script type="text/template" id="answer-address-map">
+          <input type="text" name="<%= questionName %>" id="<%= id %>" value="<%= value %>" data-type="address">
+          <a class="address-map-button button" href="#" data-role="button" data-inline="true">Show on map</a>
+        </script>
+
         <script type="text/template" id="answer-texarea">
           <label for="<%= id %>"><%= text %></label>
           <input type="text" name="<%= questionName %>" id="<%= id %>" value="<%= value %>">

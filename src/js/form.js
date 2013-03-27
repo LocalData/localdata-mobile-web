@@ -21,6 +21,8 @@ define(function (require) {
       // Listen for objectedSelected, triggered when items on the map are tapped
       $.subscribe("objectSelected", setSelectedObjectInfo);
 
+      $.subscribe('readyForAddressForm', showObjectFreeForm);
+
       // Render the form
       api.getForm(renderForm);
 
@@ -83,16 +85,24 @@ define(function (require) {
       }
     };
 
+    function showObjectFreeForm() {
+      // Record the time to track how long a submission takes
+      var timeStarted = new Date();
+
+      // Show/hide UI as needed
+      showForm();
+      if ($('#startpoint').is(":visible")) {
+        $('#startpoint').hide();
+      }
+      if ($('#thanks').is(":visible")) {
+        $('#thanks').slideToggle();
+      }
+    }
+
 
     // Form submission .........................................................
 
-    // Handle the parcel survey form being submitted
-    form.submit(function(event) {
-      console.log("Submitting survey results");
-
-      // Stop form from submitting normally
-      event.preventDefault();
-
+    function doSubmit() {
       var url = api.getSurveyURL() + form.attr('action');
 
       // Serialize the form
@@ -139,6 +149,33 @@ define(function (require) {
       }).success(function(){
         successfulSubmit();
       });
+    }
+
+    // Handle the parcel survey form being submitted
+    form.submit(function(event) {
+      console.log("Submitting survey results");
+
+      // Stop form from submitting normally
+      event.preventDefault();
+
+      if (app.selectedObject && app.selectedObject.hasOwnProperty('centroid')) {
+        doSubmit();
+      } else {
+        var address = $('input:text[data-type="address"]').val();
+        api.codeAddress(address, function (error, data) {
+          // FIXME handle error
+
+          app.selectedObject = {
+            centroid: {
+              type: 'Point',
+              coordinates: data.coords
+            }
+          };
+
+          doSubmit();
+        });
+      }
+
     });
 
     // Clear the form and thank the user after a successful submission
@@ -265,9 +302,13 @@ define(function (require) {
           answerCheckbox: _.template($('#answer-checkbox').html()),
           answerRadio: _.template($('#answer-radio').html()),
           answerText: _.template($('#answer-text').html()),
-          answerAddress: _.template($('#answer-address').html()),
           repeatButton: _.template($('#repeat-button').html())
         };
+        if (settings.survey.type === 'address-point') {
+          templates.answerAddress = _.template($('#answer-address-map').html());
+        } else {
+          templates.answerAddress = _.template($('#answer-address').html());
+        }
       }
 
       // Give the question an ID based on its name
@@ -350,6 +391,16 @@ define(function (require) {
           };
 
           $answer = $(templates.answerAddress(data));
+          if (settings.survey.type === 'address-point') {
+            $answer.each(function (i, el) {
+              if ($(el).hasClass('address-map-button')) {
+                $(el).click(function (e) {
+                  e.preventDefault();
+                  $.publish('mapAddress', [$answer.val()]);
+                });
+              }
+            });
+          }
         }
 
         $question.append($answer);

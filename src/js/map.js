@@ -229,6 +229,40 @@ define(function (require) {
       }
     }
 
+    function mapAddress(e, address) {
+      api.codeAddress(address, function (error, data) {
+        if (error) {
+          if (error.type === 'GeocodingError') {
+            console.warn('We could not geocode the address: '  + address);
+          } else {
+            console.error('Unexpected error of type ' + error.type);
+            console.error(error.message);
+          }
+          settings.address = '';
+          return;
+        }
+
+        if (circle !== null) {
+          map.removeLayer(circle);
+        }
+
+        // Add the accuracy circle to the map
+        var radius = 4;
+        var latlng = new L.LatLng(data.coords[1], data.coords[0]);
+        circle = new L.Circle(latlng, radius);
+        map.addLayer(circle);
+        map.setView(latlng, 17);
+
+        delete app.selectedObject;
+        app.selectedObject = {
+          centroid: {
+            type: 'Point',
+            coordinates: data.coords
+          }
+        };
+      });
+    }
+
     this.init = function() {
       console.log('Initialize map');
       console.log(settings.survey);
@@ -260,6 +294,31 @@ define(function (require) {
         });
 
         $('#point').show();
+      } else if (settings.survey.type === 'address-point') {
+        api.codeAddress(settings.survey.location, function (error, data) {
+          if (error) {
+            if (error.type === 'GeocodingError') {
+              console.warn('We could not geocode the address: '  + address);
+            } else {
+              console.error('Unexpected error of type ' + error.type);
+              console.error(error.message);
+            }
+            return;
+          }
+          crosshairLayer = L.marker([0,0], {icon: CrosshairIcon});
+          map.addLayer(crosshairLayer);
+
+          // Move the crosshairs as the map moves
+          map.on('move', function(e){
+            crosshairLayer.setLatLng(map.getCenter());
+          });
+        });
+
+        $.subscribe('mapAddress', mapAddress);
+
+        $('#address-search-toggle').hide();
+        $('#geolocate').hide();
+        $('#entry').show();
       }
 
       $.subscribe('successfulSubmit', getResponsesInMap);
@@ -391,6 +450,13 @@ define(function (require) {
 
       });
 
+      $('#entry').click(function () {
+        app.selectedObject = {};
+
+        // Indicate that we're ready for a form
+        $.publish('readyForAddressForm');
+      });
+
     }; // end init
 
 
@@ -501,7 +567,7 @@ define(function (require) {
       console.log('Map: getting & rendering parcels in bounds');
 
       // Don't load and render a basemap if the survey is point-based
-      if (settings.survey.type === 'point') {
+      if (settings.survey.type === 'point' || settings.survey.type === 'address-point') {
         return;
       }
  
@@ -633,7 +699,8 @@ define(function (require) {
       // checkmarks. Of course, for point-based surveys, we always want checkmarks.
       if (zoom < zoomLevels.checkmarkCutoff && (
           settings.survey.type !== 'point' &&
-          settings.survey.type !== 'pointandparcel'
+          settings.survey.type !== 'pointandparcel' &&
+          settings.survey.type !== 'address-point'
         ) ) {
         doneMarkersLayer.clearLayers();
         markers = [];
