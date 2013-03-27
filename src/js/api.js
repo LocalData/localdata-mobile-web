@@ -45,7 +45,7 @@ define(function (require) {
   };
   
   api.getParcelDataURL = function(parcel_id) {
-    return settings.api.baseurl + '/surveys/' + settings.surveyId + '/parcels/' + parcel_id + '/responses';
+    return settings.api.baseurl + '/surveys/' + settings.surveyId + '/responses?objectId=' + parcel_id;
   };
   
   // Deprecated
@@ -130,7 +130,7 @@ define(function (require) {
     
     // Given the bounds, generate a URL to ge the responses from the API.
     var serializedBounds = southwest.lng + ',' + southwest.lat + ',' + northeast.lng + ',' + northeast.lat;
-    var url = api.getSurveyURL() + '/responses/in/' + serializedBounds;
+    var url = api.getSurveyURL() + '/responses?bbox=' + serializedBounds;
 
     // Give the callback the responses.
     $.getJSON(url, function(data){

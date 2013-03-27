@@ -597,7 +597,7 @@ define(function (require) {
 
         // Track the responses that we've added.
         _.each(results, function (response) {
-          var parcelId = response.geo_info.parcel_id;
+          var parcelId = response.parcel_id;
 
           if (zoom >= zoomLevels.checkmarkCutoff) {
             var point = new L.LatLng(response.geo_info.centroid[1], response.geo_info.centroid[0]);
