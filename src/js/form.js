@@ -395,6 +395,9 @@ define(function (require) {
           });
 
         }else {
+          if(question.type === "file") {
+            $answer = $(templates.answerFile(data));
+          }
           if(question.type === "text") {
             $answer = $(templates.answerText(data));
           }else {
