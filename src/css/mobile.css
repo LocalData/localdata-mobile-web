@@ -65,10 +65,38 @@ h2 {
   padding-bottom:0;
 }
 
+#status-bar,
 #tools,
 #address-search {
   background:#3f5b88;
   padding:5px;
+}
+
+#online-status {
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  -webkit-border-radius: 8px;
+  -moz-border-radius: 8px;
+  margin: 2px 5px;
+  float: right;
+  background-color: #00BA2F;
+}
+#online-status.offline {
+  background-color: #EB1A1A;
+}
+
+#net-activity {
+  width: 16px;
+  height: 16px;
+  margin: 2px 5px;
+  float: right;
+  background-repeat: no-repeat;
+  background-image: url(../img/icons/net-activity.gif);
+  visibility: hidden;
+}
+#net-activity.active {
+  visibility: visible;
 }
 
 

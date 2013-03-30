@@ -13,6 +13,28 @@ define(function (require) {
   var FormView = require('form');
   var MapView = require('map');
 
+  // Listen for status-change events and adjust the UI accordingly.
+  function setupEventHandlers() {
+    var $onlineStatus = $('#online-status');
+    var $netActivity = $('#net-activity');
+
+    $.subscribe('online', function () {
+      $onlineStatus.removeClass('offline');
+    });
+    $.subscribe('offline', function () {
+      $onlineStatus.addClass('offline');
+    });
+
+    // TODO: debounce these so we don't flicker the activity animation
+    $(document)
+    .ajaxStart(function () {
+      $netActivity.addClass('active');
+    })
+    .ajaxStop(function () {
+      $netActivity.removeClass('active');
+    });
+  }
+
   var app = {
     /* 
      * Show the survey & hide the front page after the sign-in form has been 
@@ -54,12 +76,7 @@ define(function (require) {
               return;
             }
 
-            $.subscribe('online', function () {
-              $('#online-status').html('online');
-            });
-            $.subscribe('offline', function () {
-              $('#online-status').html('OFFLINE');
-            });
+            setupEventHandlers();
 
             if (survey.type === 'point') {
               $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Pan and add a point to begin');
