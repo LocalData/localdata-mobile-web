@@ -48,14 +48,28 @@ define(function (require) {
 
         // Wait until we have the survey data
         surveyPromise.done(function (survey) {
-          if (survey.type === 'point') {
-            $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Pan and add a point to begin');
-          } else {
-            $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Tap a parcel to begin');
-          }
+          api.init(function (error) {
+            if (error) {
+              $('#startpoint h2').html('Sorry, something went wrong. Please reload the page.');
+              return;
+            }
 
-          app.map = new MapView(app, 'map-div');
-          app.f = new FormView(app, '#form');
+            $.subscribe('online', function () {
+              $('#online-status').html('online');
+            });
+            $.subscribe('offline', function () {
+              $('#online-status').html('OFFLINE');
+            });
+
+            if (survey.type === 'point') {
+              $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Pan and add a point to begin');
+            } else {
+              $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Tap a parcel to begin');
+            }
+
+            app.map = new MapView(app, 'map-div');
+            app.f = new FormView(app, '#form');
+          });
         });
       }); 
     },

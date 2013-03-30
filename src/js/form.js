@@ -14,6 +14,9 @@ define(function (require) {
     var formQuestions = $('#questions');
     var repeatCounter = {};
     var timeStarted;
+    var $form = $('#form');
+    var $submitting = $('#submitting');
+    var $thanks = $('#thanks');
 
     this.init = function(){
       console.log("Initialize form");
@@ -58,12 +61,12 @@ define(function (require) {
       var timeStarted = new Date();
 
       // Show/hide UI as needed
-      if(!$('#form').is(":visible")) {
-        $('#form').slideToggle(400, function(){
+      if(!$form.is(":visible")) {
+        $form.slideToggle(400, function(){
 
           // Make sure the form becomes visible
           // when an object on the map is clicked
-          var offset = $('#form').offset();
+          var offset = $form.offset();
           offset.top -= 175; // Keep enough of the map visible
                              // to give the user context
           $('html, body').animate({
@@ -75,8 +78,8 @@ define(function (require) {
       if($('#startpoint').is(":visible")) {
         $('#startpoint').hide();
       }
-      if($('#thanks').is(":visible")) {
-        $('#thanks').slideToggle();
+      if($thanks.is(":visible")) {
+        $thanks.slideToggle();
       }
       
     };
@@ -90,7 +93,7 @@ define(function (require) {
 
       // Stop form from submitting normally
       event.preventDefault();
-      submitStart();
+      submitFlash();
 
       var url = api.getSurveyURL() + form.attr('action');
 
@@ -102,84 +105,33 @@ define(function (require) {
       var centroidLng = parseFloat(selectedCentroid.coordinates[0]);
       var centroidLat = parseFloat(selectedCentroid.coordinates[1]);
 
-      console.log("Selected object ID");
-
-      // Construct a response in the format we need it.
-      var responses = {responses: [{
-        "source": {
-          "type":"mobile",
-          "collector":app.collectorName,
-          "started": timeStarted,             // Time started
-          "finished": new Date()              // Time finished
+      // Post a response in the appropriate format.
+      api.postResponse({
+        source: {
+          type: 'mobile',
+          collector: app.collectorName,
+          started: timeStarted,             // Time started
+          finished: new Date()              // Time finished
         },
-        "geo_info": {
-          "centroid":[centroidLng, centroidLat],
-          "geometry": app.selectedObject.geometry,
-          "humanReadableName": app.selectedObject.humanReadableName,
+        geo_info: {
+          centroid:[centroidLng, centroidLat],
+          geometry: app.selectedObject.geometry,
+          humanReadableName: app.selectedObject.humanReadableName,
           parcel_id: app.selectedObject.id // Soon to be deprecated
         },
-        "parcel_id": app.selectedObject.id, // Soon to be deprecated
-        "object_id": app.selectedObject.id, // Replaces parcel_id
-        "responses": serialized
-      }]};
-
-      // Post the form
-      // TODO: This will need to use Prashant's browser-safe POSTing
-      // TODO: This is causing us to record numbers as strings
-      var jqxhr = $.post(url, responses, function() {
-        console.log('Form successfully posted');
-      }, 'text').error(function(){
-        var key;
-        var result = '';
-        for (key in jqxhr) {
-          result += key + ': ' + jqxhr[key] + '\n';
-        }
-        console.log('Error submitting result');
-
-        // Show the form again
-        $('#form').show(function(){
-          // Hide the submitting message
-          $('#submitting').slideToggle();
-
-          // Show an error message. 
-          $('#error').slideToggle();
-
-          // Roll down to the submit button so they can submit again.
-          var offset = $('#submitbutton').offset();
-          offset.top -= 100; // Keep enough of the map visible
-                             // to give the user context
-          $('html, body').animate({
-            scrollTop: offset.top,
-            scrollLeft: offset.left
-          });
-        });
-
-
-      }).success(function(){
-        successfulSubmit();
+        parcel_id: app.selectedObject.id, // Soon to be deprecated
+        object_id: app.selectedObject.id, // Replaces parcel_id
+        responses: serialized
       });
     });
 
-    function submitStart() {
-      // Roll up the form & show the "now submitting" message
-      if($('#error').is(':visible')) {
-        $('#error').slideToggle();
-      }
-      $('#form').slideToggle();
-      $('#submitting').slideToggle();
-    }
-
-    // Clear the form and thank the user after a successful submission
-    // TODO: pass in selected_parcel_json
-    function successfulSubmit() {
-      console.log('Successful submit');
-
+    function submitThanks() {
       // Publish  a "form submitted" event
       $.publish('successfulSubmit');
 
       // Hide the form and show the thanks
-      $('#submitting').slideToggle();
-      $('#thanks').slideToggle();
+      $submitting.slideUp();
+      $thanks.slideDown();
 
       if($('#address-search-prompt').is(':hidden')) {
         $('#address-search-prompt').slideToggle();
@@ -190,6 +142,19 @@ define(function (require) {
 
       // Reset the form for the next submission.
       resetForm();
+    }
+
+    // Show a brief thank-you message before bringing back a blank form.
+    function submitFlash() {
+      // Roll up the form & show the "now submitting" message
+      if ($('#error').is(':visible')) {
+        $('#error').slideToggle();
+      }
+
+      $form.slideUp();
+      $submitting.slideDown(function () {
+        setTimeout(submitThanks, 1000);
+      });
     }
 
     // Reset the form: clear checkboxes, remove added option groups, hide

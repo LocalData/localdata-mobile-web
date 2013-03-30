@@ -8,8 +8,165 @@ define(function (require) {
   var _ = require('lib/underscore');
   var $ = require('jquery');
   var L = require('lib/leaflet');
+  var Lawnchair = require('lawnchair');
 
   var api = {};
+
+  var PING_INTERVAL = 10000; // 10 seconds
+  var PING_TIMEOUT = 5000; // 5 seconds
+
+  // Local storage for responses, in case of connectivity issues
+  var responseDB = null;
+
+  // Initialize the API module.
+  // Set up the local database.
+  // @param {Function} done Called with null if initialization went smoothly.
+  api.init = function init(done) {
+    var lawnchair = new Lawnchair({ name: 'responseDB' }, function (db) {
+      responseDB = db;
+      done(null);
+    });
+  };
+
+  // Make periodic tiny GET requests to see if we're back online.
+  var pingId = null;
+  function startPinging() {
+    pingId = setInterval(function ping() {
+      $.ajax({
+        url: '/index.html',
+        cache: false,
+        type: 'HEAD',
+        timeout: PING_TIMEOUT
+      }).done(function () {
+        api.online = true;
+      }).fail(function (error) {
+        api.online = false;
+      });
+    }, PING_INTERVAL);
+  }
+
+  function stopPinging() {
+    if (pingId !== null) {
+      clearInterval(pingId);
+      pingId = null;
+    }
+  }
+
+  // Expose our online vs. offline status.
+  // api.online
+  var onlineValue = true;
+  Object.defineProperty(api, 'online', {
+    get: function () { return onlineValue; },
+    set: function (value) {
+      if (onlineValue !== value) {
+        onlineValue = value;
+        if (value === false) {
+          // We switched to OFFLINE mode.
+          console.info('Going offline');
+
+          // Announce it to the world!
+          $.publish('offline');
+
+          // Kick off the periodic ping to see if we're back online.
+          startPinging();
+        } else {
+          // We switched to ONLINE mode.
+          console.info('Coming back online');
+
+          // Cancel the periodic ping.
+          stopPinging();
+
+          // Send the responses that we stored locally.
+          api.postSavedResponses();
+
+          // Announce it to the world!
+          $.publish('online');
+        }
+      }
+    }
+  });
+
+  $(document).ajaxError(function globalErrorHandler(event, jqXHR, settings, error) {
+    // TODO: If we get a 500, 404, etc. response, then we're in a different
+    // situation than just poor connectivity.
+    api.online = false;
+  });
+
+  api.getSavedResponses = function getSavedResponses(done) {
+    try {
+      responseDB.all(function (docs) {
+        done(null, _.pluck(docs, 'response'));
+      });
+    } catch (e) {
+      done(e);
+    }
+  };
+
+  // Sync all of the locally-saved responses to the server.
+  api.postSavedResponses = function sendSavedResponses() {
+    // FIXME: The responses could correspond to different surveys.
+    responseDB.keys(function (keys) {
+      if (keys.length === 0) {
+        return;
+      }
+      var data = { responses: [] };
+      responseDB.get(keys, function (doc) {
+        data = { responses: _.pluck(doc, 'response') };
+        $.ajax({
+          url: api.getSurveyURL() + '/responses',
+          type: 'POST',
+          data: data,
+          dataType: 'json'
+        })
+        .fail(function (error) {
+          api.online = false;
+        })
+        .done(function (data) {
+          if (data.responses.length !== keys.length) {
+            console.error('We tried to save ' + keys.length + ' responses but only got ' + data.responses.length + ' back from the server!');
+          }
+          // Remove the documents from the local DB.
+          responseDB.remove(keys, function () {
+            $.publish('syncedResponses');
+          });
+        });
+      });
+    });
+  };
+
+  // Save a single response, for the current survey, to the server.
+  // @param {Object} response A response object for the API
+  api.postResponse = function postResponse(response) {
+    // Save the response locally, in case of failure.
+    responseDB.save({ response: response }, function (doc) {
+      // If we're offline, don't do anything.
+      if (!api.online) {
+        return;
+      }
+
+      // We're online, so try POSTing the data.
+      $.ajax({
+        url: api.getSurveyURL() + '/responses',
+        type: 'POST',
+        data: { responses: [response] },
+        dataType: 'json'
+      })
+      .fail(function (error) {
+        // TODO: differentiate between serious errors (like 404 Not Found) and
+        // connectivity issues.
+        api.online = false;
+      })
+      .done(function () {
+        // Remove the data from our local cache.
+        responseDB.remove(doc.key, function () {
+          // Wait until we've removed the document before setting the online
+          // status. If we go from offline to online, we'll try sending all of
+          // the locally-saved documents.
+          api.online = true;
+        });
+      });
+    });
+  };
 
   api.getSurveyFromSlug = function() {
     var slug = window.location.hash.slice(1);
@@ -132,11 +289,27 @@ define(function (require) {
     var serializedBounds = southwest.lng + ',' + southwest.lat + ',' + northeast.lng + ',' + northeast.lat;
     var url = api.getSurveyURL() + '/responses?bbox=' + serializedBounds;
 
-    // Give the callback the responses.
-    $.getJSON(url, function(data){
-      if(data.responses) {
-        callback(data.responses);
-      }
+    // If we likely have poor connectivity, let's not spend forever waiting for
+    // these responses.
+    var timeout = 0;
+    if (!api.online) {
+      timeout = 10000;
+    }
+
+    // Fetch responses and hand them to the callback.
+    $.ajax({
+      url: url,
+      dataType: 'json',
+      type: 'GET',
+      timeout: timeout
+    })
+    .done(function (data) {
+      callback(data.responses);
+    })
+    .fail(function (error) {
+      console.warn('Error fetching responses in a bounding box: ' + error.name);
+      console.warn(error.message);
+      callback([]);
     });
   };
   
@@ -152,9 +325,21 @@ define(function (require) {
     // Given the bounds, generate a URL to ge the responses from the API.
     var url = api.getGeoBoundsObjectsURL(bbox);
 
+    // If we're in offline mode, don't wait around forever for base layer
+    // objects.
+    var timeout = 0;
+    if (!api.online) {
+      timeout = 10000;
+    }
     // Give the callback the responses.
-    $.getJSON(url, function(data){
-      if(data) {
+    $.ajax({
+      url: url,
+      dataType: 'json',
+      type: 'GET',
+      timeout: timeout
+    })
+    .done(function (data) {
+      if (data) {
         callback(null, data);
       } else {
         callback({
@@ -162,6 +347,14 @@ define(function (require) {
           message: 'Got no data from the LocalData geo endpoint'
         });
       }
+    })
+    .fail(function (error) {
+      console.warn('Failed to fetch objects in a bounding box: ' + error.name);
+      console.warn(error.message);
+      callback({
+        type: 'APIError',
+        message: 'Error fetching data from the LocalData geo endpoint'
+      });
     });
   };
 
