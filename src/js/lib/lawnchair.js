@@ -5,34 +5,50 @@
  *
  */
 define([],function () {
-var Lawnchair = function () {
+var Lawnchair = function (options, callback) {
+    // ensure Lawnchair was called as a constructor
+    if (!(this instanceof Lawnchair)) return new Lawnchair(options, callback);
+
     // lawnchair requires json 
     if (!JSON) throw 'JSON unavailable! Include http://www.json.org/json2.js to fix.'
     // options are optional; callback is not
     if (arguments.length <= 2 && arguments.length > 0) {
-        var callback = (typeof arguments[0] === 'function') ? arguments[0] : arguments[1]
-        ,   options  = (typeof arguments[0] === 'function') ? {} : arguments[0]
+        callback = (typeof arguments[0] === 'function') ? arguments[0] : arguments[1];
+        options  = (typeof arguments[0] === 'function') ? {} : arguments[0];
     } else {
         throw 'Incorrect # of ctor args!'
     }
     // TODO perhaps allow for pub/sub instead?
     if (typeof callback !== 'function') throw 'No callback was provided';
     
-    // ensure we init with this set to the Lawnchair prototype
-    var self = (!(this instanceof Lawnchair))
-             ? new Lawnchair(options, callback)
-             : this
-
     // default configuration 
-    self.record = options.record || 'record'  // default for records
-    self.name   = options.name   || 'records' // default name for underlying store
+    this.record = options.record || 'record'  // default for records
+    this.name   = options.name   || 'records' // default name for underlying store
     
     // mixin first valid  adapter
     var adapter
     // if the adapter is passed in we try to load that only
     if (options.adapter) {
-        adapter = Lawnchair.adapters[self.indexOf(Lawnchair.adapters, options.adapter)]
-        adapter = adapter.valid() ? adapter : undefined
+        
+        // the argument passed should be an array of prefered adapters
+        // if it is not, we convert it
+        if(typeof(options.adapter) === 'string'){
+            options.adapter = [options.adapter];    
+        }
+            
+        // iterates over the array of passed adapters 
+        for(var j = 0, k = options.adapter.length; j < k; j++){
+            
+            // itirates over the array of available adapters
+            for (var i = Lawnchair.adapters.length-1; i >= 0; i--) {
+                if (Lawnchair.adapters[i].adapter === options.adapter[j]) {
+                    adapter = Lawnchair.adapters[i].valid() ? Lawnchair.adapters[i] : undefined;
+                    if (adapter) break 
+                }
+            }
+            if (adapter) break
+        }
+    
     // otherwise find the first valid adapter for this env
     } 
     else {
@@ -47,17 +63,14 @@ var Lawnchair = function () {
     
     // yay! mixin the adapter 
     for (var j in adapter)  
-        self[j] = adapter[j]
+        this[j] = adapter[j]
     
     // call init for each mixed in plugin
     for (var i = 0, l = Lawnchair.plugins.length; i < l; i++) 
-        Lawnchair.plugins[i].call(self)
+        Lawnchair.plugins[i].call(this)
 
     // init the adapter 
-    self.init(options, callback)
-
-    // called as a function or as a ctor with new always return an instance
-    return self
+    this.init(options, callback)
 }
 
 Lawnchair.adapters = [] 
@@ -80,7 +93,8 @@ Lawnchair.adapter = function (id, obj) {
         if (indexOf(implementing, i) === -1) throw 'Invalid adapter! Nonstandard method: ' + i
     }
     // if we made it this far the adapter interface is valid 
-    Lawnchair.adapters.push(obj)
+	// insert the new adapter as the preferred adapter
+	Lawnchair.adapters.splice(0,0,obj)
 }
 
 Lawnchair.plugins = []
