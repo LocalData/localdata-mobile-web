@@ -32,7 +32,7 @@ define(function (require) {
       $("#collector-name-submit").click(function(event) {
         console.log("Setting collector name");
 
-        app.collectorName = $("#collector_name").val();      
+        app.collectorName = $("#collector_name").val();
 
         $('#startpoint h2').html('Loading...');
 
@@ -47,7 +47,16 @@ define(function (require) {
         $('body').attr('id', 'survey');
 
         // Wait until we have the survey data
-        surveyPromise.done(function (survey) {
+        surveyPromise.done(function (error, survey) {
+          // If we don't have a survey, let the user know there's a problem
+          if (error) {
+            console.log("Survey not found");
+            $('#login').fadeOut(function() {
+              $('#notfound').fadeIn();
+            });
+          }
+
+          // Set up the intro messages to match the survey type.
           if (survey.type === 'point') {
             $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Pan and add a point to begin');
           } else {
@@ -57,7 +66,7 @@ define(function (require) {
           app.map = new MapView(app, 'map-div');
           app.f = new FormView(app, '#form');
         });
-      }); 
+      });
     },
 
     // We'll use this to keep track of the object currently selected in the app

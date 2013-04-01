@@ -33,6 +33,7 @@ small {
   padding:0;
 }
 
+#notfound,
 #survey-container {
   display:none;
 }

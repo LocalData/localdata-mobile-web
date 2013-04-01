@@ -13,11 +13,10 @@ define(function (require) {
 
   api.getSurveyFromSlug = function() {
     var slug = window.location.hash.slice(1);
-    
+
     var url = settings.api.baseurl +  '/slugs/' + slug;
-    console.log("I'm using this URL to get ");
-    console.log(url);
-    
+    console.log("I'm using this URL to get ", url);
+
     // TODO: Display a nice error if the survey wans't found.
     // TODO: Instead of deferred.pipe(), we should upgrade to jQuery >= 1.8 or
     // use Q
@@ -36,7 +35,8 @@ define(function (require) {
 
     });
   };
-  
+
+
   /*
    * Generates the URL to retrieve results for a given parcel
    */
