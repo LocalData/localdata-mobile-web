@@ -147,6 +147,11 @@ h1 {
   line-height:1.3;
 }
 
+#loading-msg {
+  font-size:2em;
+  color:#fff;
+  margin: 6px;
+}
 
 .container {
 }
