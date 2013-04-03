@@ -65,19 +65,23 @@ h2 {
   padding-bottom:0;
 }
 
-#status-bar,
 #tools,
 #address-search {
   background:#3f5b88;
   padding:5px;
 }
 
-#online-status {
-  width: 16px;
+#status-bar {
+  background:#3f5b88;
   height: 16px;
-  border-radius: 8px;
-  -webkit-border-radius: 8px;
-  -moz-border-radius: 8px;
+}
+
+#online-status {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  -webkit-border-radius: 50%;
+  -moz-border-radius: 50%;
   margin: 2px 5px;
   float: right;
   background-color: #00BA2F;
@@ -88,7 +92,7 @@ h2 {
 
 #net-activity {
   width: 16px;
-  height: 16px;
+  height: 12px;
   margin: 2px 5px;
   float: right;
   background-repeat: no-repeat;
