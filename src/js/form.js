@@ -17,6 +17,7 @@ define(function (require) {
     var $form = $('#form');
     var $submitting = $('#submitting');
     var $thanks = $('#thanks');
+    var $thanksOffline = $('#thanks-offline');
 
     this.init = function(){
       console.log("Initialize form");
@@ -81,6 +82,9 @@ define(function (require) {
       if($thanks.is(":visible")) {
         $thanks.slideToggle();
       }
+      if($thanksOffline.is(":visible")) {
+        $thanksOffline.slideToggle();
+      }
       
     };
 
@@ -131,7 +135,11 @@ define(function (require) {
 
       // Hide the form and show the thanks
       $submitting.slideUp();
-      $thanks.slideDown();
+      if (api.online) {
+        $thanks.slideDown();
+      } else {
+        $thanksOffline.slideDown();
+      }
 
       if($('#address-search-prompt').is(':hidden')) {
         $('#address-search-prompt').slideToggle();

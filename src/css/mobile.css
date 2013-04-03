@@ -101,7 +101,8 @@ h2 {
 
 #submitting, 
 #error,
-#thanks {
+#thanks
+#thanks-offline {
   display:none;
   background:#ffe;
   border-top:1px solid #fff;
