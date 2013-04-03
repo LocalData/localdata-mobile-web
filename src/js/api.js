@@ -105,15 +105,11 @@ define(function (require) {
   api.codeAddress = function(address, callback) {
     console.log('Coding an address');
 
-    console.log(settings);
     // TODO: Append a locale to the address to make searching easier.
     // Can we get the locale from the geolocation feature?
     if(settings.survey.hasOwnProperty('location')) {
       address = address + " " + settings.survey.location;
     }
-
-    console.log(address);
-
     
     var geocodeEndpoint = 'http://dev.virtualearth.net/REST/v1/Locations/' + address + '?o=json&key=' + settings.bing_key + '&jsonp=?';
 
