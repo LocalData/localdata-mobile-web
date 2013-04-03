@@ -104,12 +104,14 @@ define(function (require) {
   // Or Null if Bing is being a jerk / we're dumb. 
   api.codeAddress = function(address, callback) {
     console.log('Coding an address');
-    console.log(address);
 
     // TODO: Append a locale to the address to make searching easier.
     // Can we get the locale from the geolocation feature?
-    var addressWithLocale = address;
-    var geocodeEndpoint = 'http://dev.virtualearth.net/REST/v1/Locations/' + addressWithLocale + '?o=json&key=' + settings.bing_key + '&jsonp=?';
+    if(settings.survey.hasOwnProperty('location')) {
+      address = address + " " + settings.survey.location;
+    }
+    
+    var geocodeEndpoint = 'http://dev.virtualearth.net/REST/v1/Locations/' + address + '?o=json&key=' + settings.bing_key + '&jsonp=?';
 
     $.getJSON(geocodeEndpoint, function(data){
       if(data.resourceSets.length > 0){
