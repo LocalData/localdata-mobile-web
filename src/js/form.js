@@ -165,14 +165,14 @@ define(function (require) {
       // Clear all checkboxes and radio buttons
       $('input:checkbox').each(function(index){
         var $this = $(this);
-        if ($this.attr('checked')) {
-          $this.attr('checked', false).checkboxradio('refresh');
+        if ($this.prop('checked')) {
+          $this.prop('checked', false).checkboxradio('refresh');
         }
       });
       $('input:radio').each(function(index){
         var $this = $(this);
-        if ($this.attr('checked')) {
-          $this.attr('checked', false).checkboxradio('refresh');
+        if ($this.prop('checked')) {
+          $this.prop('checked', false).checkboxradio('refresh');
         }
       });
       $('fieldset').each(function(index){
@@ -248,11 +248,11 @@ define(function (require) {
       // Load the templates
       if (templates === undefined) {
         templates = {
-          question: _.template($('#question').html()),
-          answerCheckbox: _.template($('#answer-checkbox').html()),
-          answerRadio: _.template($('#answer-radio').html()),
-          answerText: _.template($('#answer-text').html()),
-          repeatButton: _.template($('#repeat-button').html())
+          question: _.template($('#question').html().trim()),
+          answerCheckbox: _.template($('#answer-checkbox').html().trim()),
+          answerRadio: _.template($('#answer-radio').html().trim()),
+          answerText: _.template($('#answer-text').html().trim()),
+          repeatButton: _.template($('#repeat-button').html().trim())
         };
       }
 
@@ -480,8 +480,8 @@ define(function (require) {
       var j;
       var answersToProcessLength = answersToProcess.length;
       for (j = 0; j < answersToProcessLength; j += 1) {
-        if (answersToProcess[j].attr('checked')) {
-          answersToProcess[j].attr('checked', false).checkboxradio("refresh");
+        if (answersToProcess[j].prop('checked')) {
+          answersToProcess[j].prop('checked', false).checkboxradio("refresh");
         }
       }
 
