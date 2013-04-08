@@ -48,6 +48,7 @@ define(function (require) {
 
         // Wait until we have the survey data
         surveyPromise.done(function (error, survey) {
+          console.log("DONE", error, survey);
           // If we don't have a survey, let the user know there's a problem
           if (error) {
             console.log("Survey not found");
@@ -66,6 +67,7 @@ define(function (require) {
           app.map = new MapView(app, 'map-div');
           app.f = new FormView(app, '#form');
         });
+
       });
     },
 

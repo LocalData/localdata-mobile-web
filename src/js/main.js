@@ -40,7 +40,7 @@ require(['jquery', 'app', 'lib/jquery.mobile', 'lib/jquery.cookie', 'lib/jquery.
         function ($, app, jqm, jqc, jqtps, L, tLBing, logLevel) {
   'use strict';
 
-  logLevel('silent');
+  logLevel('verbose');
   $(document).ready(function () {
     app.init();
   });

@@ -21,7 +21,9 @@ define(function (require) {
     // TODO: Instead of deferred.pipe(), we should upgrade to jQuery >= 1.8 or
     // use Q
     return $.getJSON(url)
-    .pipe(function (data) {
+    .pipe(function (data, error) {
+      console.log("here we're at", data, error);
+
       settings.surveyId = data.survey;
 
       // Actually get the survey metadata
