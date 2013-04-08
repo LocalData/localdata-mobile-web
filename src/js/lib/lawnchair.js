@@ -3,6 +3,8 @@
  * --- 
  * clientside json store 
  *
+ * Copyright (c) 2009, 2010, 2011 Brian LeRoux
+ * Distributed under the MIT License
  */
 define([],function () {
 var Lawnchair = function (options, callback) {
