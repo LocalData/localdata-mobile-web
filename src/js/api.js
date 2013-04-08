@@ -22,7 +22,7 @@ define(function (require) {
     // use Q
     return $.getJSON(url)
     .pipe(function (data, error) {
-      console.log("here we're at", data, error);
+      console.log("here we're:", data, error);
 
       settings.surveyId = data.survey;
 
