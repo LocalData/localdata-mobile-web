@@ -82,6 +82,8 @@ define(function (require) {
     };
 
 
+
+
     // Form submission .........................................................
 
     // Handle the parcel survey form being submitted
@@ -122,6 +124,30 @@ define(function (require) {
         "object_id": app.selectedObject.id, // Replaces parcel_id
         "responses": serialized
       }]};
+
+
+      // If there are files, handle them
+      var file = $('input[type=file]')[0];
+      if file()
+      $('input[type=file]').each(function(e) {
+        var file = e.target.files[0];
+        console.log(file);
+
+          // Resize the image as needed
+          $.canvasResize(file, {
+              width: 800,
+              height: 0,
+              crop: false,
+              quality: 100,
+              //rotate: 90,
+              callback: function(data, width, height) {
+
+        // DO STUF
+      });
+
+
+
+
 
       // Post the form
       // TODO: This will need to use Prashant's browser-safe POSTing
@@ -219,6 +245,8 @@ define(function (require) {
     }
 
 
+
+
     // Render the form ...........................................................
     var renderForm = function() {
       console.log("Form data:");
@@ -260,7 +288,6 @@ define(function (require) {
         }
       };
     }
-
 
     /*
      * Render questions
@@ -395,9 +422,6 @@ define(function (require) {
           });
 
         }else {
-          if(question.type === "file") {
-            $answer = $(templates.answerFile(data));
-          }
           if(question.type === "text") {
             $answer = $(templates.answerText(data));
           }else {
@@ -479,7 +503,9 @@ define(function (require) {
     }
 
 
-    // Option group stuff ........................................................
+
+
+    // Option group stuff ......................................................
 
     // Show / hide sub questions for a given parent
     function hideAndClearSubQuestionsFor(parent) {
