@@ -35,12 +35,18 @@
         LocalData<br>
       </h1>
   
-      <input type="text" name="name" id="collector_name" style="width:70%" value="" data-mini="true" placeholder="Your name">
-      <input id="collector-name-submit" type="submit" data-icon="arrow-r" data-iconpos="right" data-inline="true" data-theme="e" value="Get started">
+      <div id="loading-msg">Loading application...</div>
+      <div style="width: 75%;">
+        <input type="text" name="name" id="collector_name" data-inline="true" style="display:none;" value="" data-mini="true" placeholder="Your name">
+        <input id="collector-name-submit" type="submit" style="display:none;" data-icon="arrow-r" data-iconpos="right" data-inline="true" data-theme="e" value="Get started">
+      </div>
       
   </div><!-- end home -->
     
   <div class="container" id="survey-container">
+    <div id="status-bar">
+      <div id="net-status"></div>
+    </div>
     <div id="tools">
       <a href='#' id='address-search-toggle' data-icon="search" data-role="button" data-inline="true" >Address</a>
       <a href='#' id='geolocate' data-icon="star" data-role="button" data-inline="true" >Locate me</a>
@@ -60,6 +66,10 @@
     </div>
     <div id="thanks">
         <h2>Thank you! Select another location to continue.</h2>
+    </div>
+    <div id="thanks-offline">
+      <h2>You're offline, so we saved the entry on your device.</h2>
+      <h2>Please continue, and we'll upload when you have converage again. Thanks!</h2>
     </div>
     
     <div id="form">
