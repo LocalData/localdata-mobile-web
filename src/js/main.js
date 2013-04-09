@@ -21,7 +21,7 @@
 }());
 
 require.config({
-  paths: { 
+  paths: {
     jquery: 'lib/jquery',
     'lib/leaflet': 'lib/leaflet/leaflet'
   },
@@ -36,13 +36,13 @@ require.config({
   }
 });
 
-require(['jquery', 'app', 'lib/jquery.mobile', 'lib/jquery.cookie', 'lib/jquery.tinypubsub', 'lib/leaflet', 'lib/tilelayer.bing.pull', 'loglevel'],
-        function ($, app, jqm, jqc, jqtps, L, tLBing, logLevel) {
+require(['jquery', 'app', 'lib/jquery.mobile', 'lib/jquery.cookie', 'lib/jquery.tinypubsub', 'lib/jquery.exif', 'lib/jquery.canvasResize', 'lib/leaflet', 'lib/tilelayer.bing.pull', 'loglevel'],
+        function ($, app, jqm, jqc, jqtps, jqexif, canvasResize, L, tLBing, logLevel) {
   'use strict';
 
-  logLevel('silent');
+  logLevel('verbose');
   $(document).ready(function () {
     app.init();
   });
 });
-    
+

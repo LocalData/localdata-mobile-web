@@ -78,9 +78,69 @@ define(function (require) {
       if($('#thanks').is(":visible")) {
         $('#thanks').slideToggle();
       }
-      
+
     };
 
+    /**
+     * Submit response data
+     * @param  {Object} options JQXHR options object
+     */
+    var submitResponses = function(options) {
+      options.url = api.getSurveyURL() + form.attr('action');
+
+      options.beforeSend = function(xhr) {
+        xhr.setRequestHeader("pragma", "no-cache");
+      };
+
+      options.xhr = function() {
+        var xhr = new window.XMLHttpRequest();
+        //Upload progress
+        // xhr.upload.addEventListener("progress", function(e) {
+        //   if (e.lengthComputable) {
+        //     var loaded = Math.ceil((e.loaded / e.total) * 100);
+        //     $('p span').css({
+        //       'width': loaded + "%"
+        //     }).html(loaded + "%");
+        //   }
+        // }, false);
+        return xhr;
+      };
+
+      // Post the form
+      // TODO: This will need to use Prashant's browser-safe POSTing
+      // TODO: This is causing us to record numbers as strings
+      $.ajax(options).done(function(){
+        // It worked.
+        successfulSubmit();
+
+      }).fail(function(jqxhr, textStatus, errorThrown){
+        // Uh-oh, something went wrong
+        var key;
+        var result = '';
+        for (key in jqxhr) {
+          result += key + ': ' + jqxhr[key] + '\n';
+        }
+        console.log('Error submitting result');
+
+        // Show the form again
+        $('#form').show(function(){
+          // Hide the submitting message
+          $('#submitting').slideToggle();
+
+          // Show an error message. 
+          $('#error').slideToggle();
+
+          // Roll down to the submit button so they can submit again.
+          var offset = $('#submitbutton').offset();
+          offset.top -= 100; // Keep enough of the map visible
+                             // to give the user context
+          $('html, body').animate({
+            scrollTop: offset.top,
+            scrollLeft: offset.left
+          });
+        });
+      });
+    };
 
 
 
@@ -94,7 +154,6 @@ define(function (require) {
       event.preventDefault();
       submitStart();
 
-      var url = api.getSurveyURL() + form.attr('action');
 
       // Serialize the form
       var serialized = form.serializeObject();
@@ -127,63 +186,47 @@ define(function (require) {
 
 
       // If there are files, handle them
-      var file = $('input[type=file]')[0];
-      if file()
-      $('input[type=file]').each(function(e) {
-        var file = e.target.files[0];
-        console.log(file);
+      var files = $('input[type=file]');
+      if (files !== []) {
+        files.each(function(index) {
+          var obj = $(this)[0];
+          var file = obj.files[0];
+          console.log(file);
 
           // Resize the image as needed
           $.canvasResize(file, {
-              width: 800,
-              height: 0,
-              crop: false,
-              quality: 100,
-              //rotate: 90,
-              callback: function(data, width, height) {
+            width: 800,
+            height: 0,
+            crop: false,
+            quality: 100,
+            callback: function(data, width, height) {
 
-        // DO STUF
-      });
+              // Get ready to submit the data
+              // Create a new formdata...
+              var fd = new FormData();
 
+              // ... and add the file data
+              var f = $.canvasResize('dataURLtoBlob', data);
+              f.name = file.name;
+              console.log(f.name);
+              fd.append($('#area input').attr('name'), f, f.name);
 
+              // Responses need to be added as a string :-\
+              fd.append('data', JSON.toString(responses));
 
+              var options = {
+                type: 'POST',
+                data: fd,
+                dataType: 'json',
+                contentType: false,
+                processData: false
+              };
 
-
-      // Post the form
-      // TODO: This will need to use Prashant's browser-safe POSTing
-      // TODO: This is causing us to record numbers as strings
-      var jqxhr = $.post(url, responses, function() {
-        console.log('Form successfully posted');
-      }, 'text').error(function(){
-        var key;
-        var result = '';
-        for (key in jqxhr) {
-          result += key + ': ' + jqxhr[key] + '\n';
-        }
-        console.log('Error submitting result');
-
-        // Show the form again
-        $('#form').show(function(){
-          // Hide the submitting message
-          $('#submitting').slideToggle();
-
-          // Show an error message. 
-          $('#error').slideToggle();
-
-          // Roll down to the submit button so they can submit again.
-          var offset = $('#submitbutton').offset();
-          offset.top -= 100; // Keep enough of the map visible
-                             // to give the user context
-          $('html, body').animate({
-            scrollTop: offset.top,
-            scrollLeft: offset.left
+              // SUBMIT DATA HERE
+            }
           });
         });
-
-
-      }).success(function(){
-        successfulSubmit();
-      });
+      }
     });
 
     function submitStart() {
@@ -314,6 +357,7 @@ define(function (require) {
           answerCheckbox: _.template($('#answer-checkbox').html()),
           answerRadio: _.template($('#answer-radio').html()),
           answerText: _.template($('#answer-text').html()),
+          answerFile: _.template($('#answer-file').html()),
           repeatButton: _.template($('#repeat-button').html())
         };
       }
@@ -402,9 +446,13 @@ define(function (require) {
         // or a radio group.
         if (question.answers.length > 1) {
 
-          if(question.type === "checkbox") {
+          if (question.type === "checkbox") {
             $answer = $(templates.answerCheckbox(data));
-          }else {
+          }
+          else if (question.type === 'file') {
+            $answer = $(templates.answerFile(data));
+          }
+          else {
             $answer = $(templates.answerRadio(data));
           }
 
