@@ -78,7 +78,8 @@ define(function (require) {
           $('body').attr('id', 'survey');
 
           // Wait until we have the survey data
-          surveyPromise.done(function (survey) {
+          surveyPromise
+          .done(function (survey) {
             api.init(function (error) {
               if (error) {
                 $('#startpoint h2').html('Sorry, something went wrong. Please reload the page.');
@@ -96,6 +97,15 @@ define(function (require) {
               app.map = new MapView(app, 'map-div');
               app.f = new FormView(app, '#form');
             });
+          })
+          .fail(function (jqXHR) {
+            if (jqXHR.status === 404) {
+              // Survey was not found
+              $('#startpoint h2').html('Sorry, we couldn\'t find the survey. Please check the URL or contact the survey organizer.');
+            } else {
+              // Unknown error
+              $('#startpoint h2').html('Sorry, something has gone wrong. Please try again in a bit or contact the survey organizer.');
+            }
           });
         }); 
       });

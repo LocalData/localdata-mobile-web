@@ -168,29 +168,28 @@ define(function (require) {
     });
   };
 
-  api.getSurveyFromSlug = function() {
+  // Returns a promise for the survey data.
+  // TODO: manage the errors, so the caller doesn't have to know about jqXHR
+  // and can just look for an error named NotFoundError or similar.
+  api.getSurveyFromSlug = function getSurveyFromSlug() {
     var slug = window.location.hash.slice(1);
     
     var url = settings.api.baseurl +  '/slugs/' + slug;
-    console.log("I'm using this URL to get ");
-    console.log(url);
+    console.log('Retrieving survey id from ' + url);
     
-    // TODO: Display a nice error if the survey wans't found.
-    // TODO: Instead of deferred.pipe(), we should upgrade to jQuery >= 1.8 or
-    // use Q
+    // Get the survey ID
     return $.getJSON(url)
-    .pipe(function (data) {
+    .then(function (data) {
       settings.surveyId = data.survey;
 
       // Actually get the survey metadata
       var surveyUrl = api.getSurveyURL();
       return $.getJSON(surveyUrl)
-      .pipe(function (survey) {
+      .then(function (survey) {
         settings.survey = survey.survey;
         console.log(settings.survey);
         return settings.survey;
       });
-
     });
   };
   
