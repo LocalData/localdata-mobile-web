@@ -17,7 +17,7 @@
  *   Thanks, Shinichi Tomita and Jacob Seidelin
  */
 
-define(['jquery'], function ($) {
+define(['jquery', 'lib/jquery.exif'], function (jQuery, jqe) {
 
     (function($) {
         var pluginName = 'canvasResize',
