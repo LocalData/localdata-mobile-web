@@ -34,13 +34,13 @@ define(function (require) {
       var xrange;
       var yrange;
 
-      if (tileBBox[0][0] < tileBBox[1][0]) {
+      if (tileBBox[0][0] <= tileBBox[1][0]) {
         xrange = _.range(tileBBox[0][0], tileBBox[1][0] + 1);
       } else {
         xrange = _.range(tileBBox[0][0], tileBBox[1][0] + 1, -1);
       }
 
-      if (tileBBox[0][1] < tileBBox[1][1]) {
+      if (tileBBox[0][1] <= tileBBox[1][1]) {
         yrange = _.range(tileBBox[0][1], tileBBox[1][1] + 1);
       } else {
         yrange = _.range(tileBBox[0][1], tileBBox[1][1] - 1, -1);
