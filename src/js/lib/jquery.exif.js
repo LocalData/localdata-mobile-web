@@ -109,6 +109,8 @@ var BinaryAjax = (function() {
         return oHTTP;
     }
 
+
+
     function getHead(strURL, fncCallback, fncError) {
         var oHTTP = createRequest();
         if (oHTTP) {
@@ -825,6 +827,29 @@ EXIF.readFromBinaryFile = function(oFile) {
     return findEXIFinJPEG(oFile);
 };
 
+function getImageDataFromDataURL(oImg, fncCallback)
+{
+    var byteString = atob(oImg.src.split(',')[1]);
+    var f = new BinaryFile(byteString, 0, byteString.length);
+    var oEXIF = findEXIFinJPEG(f);
+    oImg.exifdata = oEXIF || {};
+    if (fncCallback)
+        fncCallback();
+}
+
+
+EXIF.getDataFromDataURL = function(oImg, fncCallback) {
+    if (!oImg.complete)
+        return false;
+    if (!imageHasData(oImg)) {
+        getImageDataFromDataURL(oImg, fncCallback);
+    } else {
+        if (fncCallback)
+            fncCallback();
+    }
+    return true;
+};
+
 // function loadAllImages()
 // {
 //     var aImages = document.getElementsByTagName("img");
@@ -852,6 +877,14 @@ $.fn.exifLoad = function(fncCallback) {
     });
 };
 
+// load data for images manually
+$.fn.exifLoadFromDataURL = function(fncCallback) {
+    return this.each(function() {
+        EXIF.getDataFromDataURL(this, fncCallback);
+        return true;
+    });
+};
+
 $.fn.exif = function(strTag) {
     var aStrings = [];
     this.each(function() {
@@ -859,6 +892,7 @@ $.fn.exif = function(strTag) {
     });
     return aStrings;
 };
+
 
 $.fn.exifAll = function() {
     var aStrings = [];
