@@ -16,24 +16,25 @@ define(function (require) {
 
   // Listen for status-change events and adjust the UI accordingly.
   function setupEventHandlers() {
-    var $netStatus = $('#net-status');
+    var $netStatusOffline = $('#net-status-offline');
+    var $netStatusBackOnline = $('#net-status-back');
 
     $.subscribe('online', function () {
-      $netStatus.removeClass('offline');
-      $netStatus.removeClass('active');
+      $netStatusOffline.hide();
+      $netStatusBackOnline.hide();
     });
     $.subscribe('offline', function () {
-      $netStatus.removeClass('active');
-      $netStatus.addClass('offline');
+      $netStatusOffline.show();
+      $netStatusBackOnline.hide();
     });
 
     // TODO: debounce these so we don't flicker the activity animation
     $(document)
     .ajaxStart(function () {
-      $netStatus.addClass('active');
+      // $netStatus.addClass('active');
     })
     .ajaxStop(function () {
-      $netStatus.removeClass('active');
+      // $netStatus.removeClass('active');
     });
   }
 
