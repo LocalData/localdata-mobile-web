@@ -111,6 +111,8 @@ define(function (require) {
       }
       var data = { responses: [] };
       responseDB.get(keys, function (doc) {
+        $.publish('syncingResponses');
+
         data = { responses: _.pluck(doc, 'response') };
         $.ajax({
           url: api.getSurveyURL() + '/responses',

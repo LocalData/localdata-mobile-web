@@ -27,14 +27,13 @@ define(function (require) {
       $netStatusOffline.show();
       $netStatusBackOnline.hide();
     });
-
-    // TODO: debounce these so we don't flicker the activity animation
-    $(document)
-    .ajaxStart(function () {
-      // $netStatus.addClass('active');
-    })
-    .ajaxStop(function () {
-      // $netStatus.removeClass('active');
+    $.subscribe('syncingResponses', function () {
+      $netStatusOffline.hide();
+      $netStatusBackOnline.show();
+    });
+    $.subscribe('syncedResponses', function () {
+      $netStatusOffline.hide();
+      $netStatusBackOnline.hide();
     });
   }
 
