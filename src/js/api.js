@@ -24,6 +24,7 @@ define(function (require) {
   api.init = function init(done) {
     var lawnchair = new Lawnchair({ name: 'responseDB' }, function (db) {
       responseDB = db;
+      api.online = true;
       done(null);
     });
   };
@@ -54,7 +55,7 @@ define(function (require) {
 
   // Expose our online vs. offline status.
   // api.online
-  var onlineValue = true;
+  var onlineValue = false;
   Object.defineProperty(api, 'online', {
     get: function () { return onlineValue; },
     set: function (value) {
