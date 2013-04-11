@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   /*
-   * Trim function: strips whitespace from a string. 
+   * Trim function: strips whitespace from a string.
    * Use: " dog".trim() === "dog" //true
    */
   if(typeof(String.prototype.trim) === "undefined") {
@@ -14,14 +14,14 @@
   }
 
   if(typeof(String.prototype.titleCase) === "undefined") {
-    String.prototype.titleCase = function() { 
+    String.prototype.titleCase = function() {
       return this.toLowerCase().replace(/^.|\s\S/g, function(a) { return a.toUpperCase(); });
     };
   }
 }());
 
 require.config({
-  paths: { 
+  paths: {
     jquery: 'lib/jquery',
     'lib/leaflet': 'lib/leaflet/leaflet'
   },
@@ -45,4 +45,4 @@ require(['jquery', 'app', 'lib/jquery.mobile', 'lib/jquery.cookie', 'lib/jquery.
     app.init();
   });
 });
-    
+
