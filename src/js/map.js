@@ -396,7 +396,7 @@ define(function (require) {
     // This should probably live in APIs. 
     var goToAddress = function(address) {
       api.codeAddress(address, function(latlng){
-        if (circle !== undefined) {
+        if (circle !== null) {
           map.removeLayer(circle);
         }
 
