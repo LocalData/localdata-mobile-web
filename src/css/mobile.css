@@ -71,6 +71,17 @@ h2 {
   padding:5px;
 }
 
+#status-bar {
+  background:#3f5b88;
+  height: 20px;
+}
+
+#net-status-offline,
+#net-status-back {
+  float: right;
+  display:none;
+
+}
 
 #form {
   background:#fff;
@@ -80,7 +91,8 @@ h2 {
 
 #submitting,
 #error,
-#thanks {
+#thanks,
+#thanks-offline {
   display:none;
   background:#ffe;
   border-top:1px solid #fff;
@@ -119,6 +131,11 @@ h1 {
   line-height:1.3;
 }
 
+#loading-msg {
+  font-size:2em;
+  color:#fff;
+  margin: 6px;
+}
 
 .container {
 }

@@ -23,7 +23,8 @@
 require.config({
   paths: {
     jquery: 'lib/jquery',
-    'lib/leaflet': 'lib/leaflet/leaflet'
+    'lib/leaflet': 'lib/leaflet/leaflet',
+    lawnchair: 'lib/lawnchair'
   },
   shim: {
     'lib/underscore': {
@@ -36,8 +37,12 @@ require.config({
   }
 });
 
-require(['jquery', 'app', 'lib/jquery.mobile', 'lib/jquery.cookie', 'lib/jquery.tinypubsub', 'lib/leaflet', 'lib/tilelayer.bing.pull', 'loglevel'],
-        function ($, app, jqm, jqc, jqtps, L, tLBing, logLevel) {
+require(['jquery', 'app', 'lib/jquery.mobile', 'lib/jquery.cookie',
+        'lib/jquery.tinypubsub', 'lib/leaflet', 'lib/tilelayer.bing.pull',
+        'loglevel', 'lawnchair', 'lib/lawnchair-adapter-webkit-sqlite'],
+        function ($, app, jqm, jqc,
+                  jqtps, L, tLBing,
+                  logLevel, lawnchair, adapterWebSQL) {
   'use strict';
 
   logLevel('silent');
