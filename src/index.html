@@ -30,14 +30,24 @@
 </head>
 
 <body id="home">
-  <div class="container" id="home-container">
+  <div class="container" id="loading-container">
       <h1>
         LocalData<br>
       </h1>
-
-      <input type="text" name="name" id="collector_name" style="width:70%" value="" data-mini="true" placeholder="Your name">
-      <input id="collector-name-submit" type="submit" data-icon="arrow-r" data-iconpos="right" data-inline="true" data-theme="e" value="Get started">
-
+  
+      <div id="loading-msg">Loading application...</div>
+      
+  </div><!-- end home -->
+  <div class="container" id="home-container" style="display:none;">
+      <h1>
+        LocalData<br>
+      </h1>
+  
+      <div style="width: 75%;">
+        <input type="text" name="name" id="collector_name" value="" data-mini="true" placeholder="Your name">
+        <input id="collector-name-submit" type="submit" data-icon="arrow-r" data-iconpos="right" data-inline="true" data-theme="e" value="Get started">
+      </div>
+      
   </div><!-- end home -->
 
   <div class="container" id="survey-container">
@@ -45,7 +55,10 @@
       <a href='#' id='address-search-toggle' data-icon="search" data-role="button" data-inline="true" >Address</a>
       <a href='#' id='geolocate' data-icon="star" data-role="button" data-inline="true" >Locate me</a>
       <a href='#' id='point' data-icon="plus" data-role="button" data-inline="true" style="display:none;">Add point</a>
+      <a href="#popupOffline" id="net-status-offline" data-icon="alert" data-iconpos="notext" data-role="button" data-theme="e" data-rel="popup" data-transition="pop"></a>
+      <a href="#popupBackOnline" id="net-status-back" data-icon="info" data-iconpos="notext" data-role="button" data-theme="d" data-rel="popup" data-transition="pop"></a>
     </div>
+
     <div id="address-search">
       <input type="text" name="address-input" id="address-input" style="width:70%" value="" data-mini="true" placeholder="Address">
       <input id="address-submit" type="submit" data-icon="arrow-r" data-iconpos="right" data-inline="true" data-theme="e" value="Find address">
@@ -61,7 +74,11 @@
     <div id="thanks">
         <h2>Thank you! Select another location to continue.</h2>
     </div>
-
+    <div id="thanks-offline">
+      <h2>You're offline, so we saved the entry on your device.</h2>
+      <h2>Please continue, and we'll upload when you have converage again. Thanks!</h2>
+    </div>
+    
     <div id="form">
       <h2>
           <span class="parcel_id">&nbsp;</span>
@@ -122,8 +139,18 @@
         <input type="submit" data-theme="b" data-icon="check" value="Submit answers" id="submitbutton">
       </form>
     </div><!-- end form -->
-
+    
   </div><!-- end survey -->
+
+  <div data-role="popup" id="popupOffline" data-theme="e" data-overlay-theme="a">
+    <p>You're currently offline. We'll upload your responses when you go back online.<p>
+  </div>
+
+  <div data-role="popup" id="popupBackOnline" data-theme="e" data-overlay-theme="a">
+    <p>We're uploading the responses you added while you were offline.<p>
+  </div>
+
+  
 
   <script>
     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
