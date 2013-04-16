@@ -100,6 +100,7 @@ define(function (require) {
     var pointMarkersLayer = new L.LayerGroup();
     var completedParcelCount = 0;
     var completedParcelIds = {};
+    var pendingParcelIds = {};
 
     var crosshairLayer;
     var pointObjectLayer;
@@ -172,12 +173,24 @@ define(function (require) {
       dashArray: '1'
     };
 
+    var pendingStyle = {
+      opacity: 0.7,
+      fillOpacity: 0.25,
+      weight: 2,
+      color: '#2ACCD4',
+      fillColor: '#2ACCD4',
+      dashArray: '1'
+    };
+
     function parcelStyle(feature) {
       if (feature.properties.selected) {
         return selectedStyle;
       }
       if (_.has(completedParcelIds, feature.id)) {
         return completedStyle;
+      }
+      if (_.has(pendingParcelIds, feature.id)) {
+        return pendingStyle;
       }
       return defaultStyle;
     }
@@ -617,6 +630,8 @@ define(function (require) {
               $.mobile.hidePageLoadingMsg();
             }
             console.log(error.message);
+            // TODO: we should subscribe to the 'online' event and refetch
+            // parcels if appropriate
             return;
           }
 
@@ -670,7 +685,7 @@ define(function (require) {
     }
 
     // Adds a checkbox marker to the given point
-    var addDoneMarker = function(latlng, id) {
+    function addDoneMarker(latlng, id) {
       // Only add markers if they aren't already on the map.
       if (markers[id] == undefined  || id === ''){
         var doneIcon = new CheckIcon();
@@ -678,11 +693,50 @@ define(function (require) {
         doneMarkersLayer.addLayer(doneMarker);
         markers[id] = doneMarker;
       }
-    };
+    }
+
+    // Flag existing responses, so we can style them appropriately on the map.
+    function markResponses(responses, type) {
+      if (type === 'pending') {
+        pendingParcelIds = {};
+      } else if (type === 'completed') {
+        // TODO: This should be greater than the maximum number of completed
+        // parcels we expect to display on the screen at one time.
+        if (completedParcelCount > 2000) {
+          completedParcelIds = {};
+          completedParcelCount = 0;
+        }
+      }
+
+      var zoom = map.getZoom();
+
+      _.each(responses, function (response) {
+        var parcelId = response.parcel_id;
+
+        // For address-based surveys, the checkmarks can be misleading, since
+        // they will correspond to lots/parcels and not individual units.
+        if (zoom >= zoomLevels.checkmarkCutoff && settings.survey.type !== 'address') {
+          var point = new L.LatLng(response.geo_info.centroid[1], response.geo_info.centroid[0]);
+          addDoneMarker(point, parcelId);
+        }
+
+        if (parcelId !== undefined) {
+          if (type === 'completed') {
+            completedParcelIds[parcelId] = true;
+            completedParcelCount += 1;
+          } else if (type === 'pending') {
+            pendingParcelIds[parcelId] = true;
+          }
+        }
+      });
+    }
 
     // Get all the responses in a map 
-    var getResponsesInMap = function () {  
+    function getResponsesInMap() {  
       console.log('Getting responses in the map');
+      // Unsubscribe to the syncedResponses event. We'll resubscribe later if
+      // it's appropriate.
+      $.unsubscribe('syncedResponses', getResponsesInMap);
 
       // Don't add any markers if the zoom is really far out. 
       var zoom = map.getZoom();
@@ -711,40 +765,30 @@ define(function (require) {
         bounds = addBuffer(bounds);
       }
 
-      // TODO: make these requests according to tile boundaries
-      api.getResponsesInBounds(bounds, function (results) {
-        // TODO: This should be greater than the maximum number of completed
-        // parcels we expect to display on the screen at one time.
-        if (completedParcelCount > 2000) {
-          completedParcelIds = {};
-          completedParcelCount = 0;
+      // For now we assume there are not many saved responses, so we can just grab them all.
+      api.getSavedResponses(function (error, pendingResponses) {
+        if (!error) {
+          markResponses(pendingResponses, 'pending');
         }
 
-        // Track the responses that we've added.
-        _.each(results, function (response) {
-          var parcelId = response.geo_info.parcel_id;
-
-          // For address-based surveys, the checkmarks can be misleading, since
-          // they will correspond to lots/parcels and not individual units.
-          if (zoom >= zoomLevels.checkmarkCutoff && settings.survey.type !== 'address') {
-            var point = new L.LatLng(response.geo_info.centroid[1], response.geo_info.centroid[0]);
-            addDoneMarker(point, parcelId);
+        // TODO: make these requests according to tile boundaries
+        api.getResponsesInBounds(bounds, function (completedResponses) {
+          markResponses(completedResponses, 'completed');
+          if (completedResponses.length > 0 || pendingResponses.length > 0) {
+            // Restyle
+            parcelsLayerGroup.eachLayer(function (layer) {
+              layer.setStyle(parcelStyle);
+            });
           }
-
-          if (parcelId !== undefined) {
-            completedParcelIds[parcelId] = true;
-            completedParcelCount += 1;
+          if (pendingResponses.length > 0) {
+            // When the pending responses are synced, we want to get new
+            // response data and refresh the map.
+            $.subscribe('syncedResponses', getResponsesInMap);
           }
         });
-
-        if (results.length > 0) {
-          parcelsLayerGroup.eachLayer(function (layer) {
-            layer.setStyle(parcelStyle);
-          });
-        }
       });
 
-    };
+    }
 
     // Map init ================================================================
     this.init();

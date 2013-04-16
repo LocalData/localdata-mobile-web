@@ -14,6 +14,10 @@ define(function (require) {
     var formQuestions = $('#questions');
     var repeatCounter = {};
     var timeStarted;
+    var $form = $('#form');
+    var $submitting = $('#submitting');
+    var $thanks = $('#thanks');
+    var $thanksOffline = $('#thanks-offline');
 
     this.init = function(){
       console.log("Initialize form");
@@ -57,8 +61,19 @@ define(function (require) {
         $('input:text[data-type="address"]').val('');
       }
 
-      if(!$('#form').is(":visible")) {
-        $('#form').slideToggle();
+      if(!$form.is(":visible")) {
+        $form.slideToggle(400, function(){
+
+          // Make sure the form becomes visible
+          // when an object on the map is clicked
+          var offset = $form.offset();
+          offset.top -= 175; // Keep enough of the map visible
+                             // to give the user context
+          $('html, body').animate({
+            scrollTop: offset.top,
+            scrollLeft: offset.left
+          });
+        });
       }
     }
     // Update the form with information about the selected object.
@@ -80,9 +95,13 @@ define(function (require) {
       if($('#startpoint').is(":visible")) {
         $('#startpoint').hide();
       }
-      if($('#thanks').is(":visible")) {
-        $('#thanks').slideToggle();
+      if($thanks.is(":visible")) {
+        $thanks.slideToggle();
       }
+      if($thanksOffline.is(":visible")) {
+        $thanksOffline.slideToggle();
+      }
+      
     };
 
     function showObjectFreeForm() {
@@ -101,7 +120,6 @@ define(function (require) {
 
 
     // Form submission .........................................................
-
     function doSubmit() {
       var url = api.getSurveyURL() + form.attr('action');
 
@@ -113,41 +131,23 @@ define(function (require) {
       var centroidLng = parseFloat(selectedCentroid.coordinates[0]);
       var centroidLat = parseFloat(selectedCentroid.coordinates[1]);
 
-      console.log("Selected object ID");
-
-      // Construct a response in the format we need it.
-      var responses = {responses: [{
-        "source": {
-          "type":"mobile",
-          "collector":app.collectorName,
-          "started": timeStarted,             // Time started
-          "finished": new Date()              // Time finished
+      // Post a response in the appropriate format.
+      api.postResponse({
+        source: {
+          type: 'mobile',
+          collector: app.collectorName,
+          started: timeStarted,             // Time started
+          finished: new Date()              // Time finished
         },
-        "geo_info": {
-          "centroid":[centroidLng, centroidLat],
-          "geometry": app.selectedObject.geometry,
-          "humanReadableName": app.selectedObject.humanReadableName,
+        geo_info: {
+          centroid:[centroidLng, centroidLat],
+          geometry: app.selectedObject.geometry,
+          humanReadableName: app.selectedObject.humanReadableName,
           parcel_id: app.selectedObject.id // Soon to be deprecated
         },
-        "parcel_id": app.selectedObject.id, // Soon to be deprecated
-        "object_id": app.selectedObject.id, // Replaces parcel_id
-        "responses": serialized
-      }]};
-
-      // Post the form
-      // TODO: This will need to use Prashant's browser-safe POSTing
-      // TODO: This is causing us to record numbers as strings
-      var jqxhr = $.post(url, responses, function() {
-        console.log("Form successfully posted");
-      },"text").error(function(){
-        var key;
-        var result = "";
-        for (key in jqxhr) {
-          result += key + ": " + jqxhr[key] + "\n";
-        }
-        console.log("error: " + result);
-      }).success(function(){
-        successfulSubmit();
+        parcel_id: app.selectedObject.id, // Soon to be deprecated
+        object_id: app.selectedObject.id, // Replaces parcel_id
+        responses: serialized
       });
     }
 
@@ -163,6 +163,7 @@ define(function (require) {
       } else {
         var address = $('input:text[data-type="address"]').val();
         api.codeAddress(address, function (error, data) {
+          // FIXME deal with offline mode properly in this situation.
           // FIXME handle error
 
           app.selectedObject = {
@@ -178,27 +179,40 @@ define(function (require) {
 
     });
 
-    // Clear the form and thank the user after a successful submission
-    // TODO: pass in selected_parcel_json
-    function successfulSubmit() {
-      console.log("Successful submit");
-
+    function submitThanks() {
       // Publish  a "form submitted" event
-      $.publish("successfulSubmit");
+      $.publish('successfulSubmit');
 
       // Hide the form and show the thanks
-      $('#form').slideToggle();
-      $('#thanks').slideToggle();
+      $submitting.slideUp();
+      if (api.online) {
+        $thanks.slideDown();
+      } else {
+        $thanksOffline.slideDown();
+      }
 
-      if($('#address-search-prompt').is(":hidden")) {
+      if($('#address-search-prompt').is(':hidden')) {
         $('#address-search-prompt').slideToggle();
       }
-      if($('#address-search').is(":visible")) {
+      if($('#address-search').is(':visible')) {
         $('#address-search').slideToggle();
       }
 
       // Reset the form for the next submission.
       resetForm();
+    }
+
+    // Show a brief thank-you message before bringing back a blank form.
+    function submitFlash() {
+      // Roll up the form & show the "now submitting" message
+      if ($('#error').is(':visible')) {
+        $('#error').slideToggle();
+      }
+
+      $form.slideUp();
+      $submitting.slideDown(function () {
+        setTimeout(submitThanks, 1000);
+      });
     }
 
     // Reset the form: clear checkboxes, remove added option groups, hide
@@ -209,14 +223,14 @@ define(function (require) {
       // Clear all checkboxes and radio buttons
       $('input:checkbox').each(function(index){
         var $this = $(this);
-        if ($this.attr('checked')) {
-          $this.attr('checked', false).checkboxradio('refresh');
+        if ($this.prop('checked')) {
+          $this.prop('checked', false).checkboxradio('refresh');
         }
       });
       $('input:radio').each(function(index){
         var $this = $(this);
-        if ($this.attr('checked')) {
-          $this.attr('checked', false).checkboxradio('refresh');
+        if ($this.prop('checked')) {
+          $this.prop('checked', false).checkboxradio('refresh');
         }
       });
       $('fieldset').each(function(index){
@@ -298,11 +312,11 @@ define(function (require) {
       // Load the templates
       if (templates === undefined) {
         templates = {
-          question: _.template($('#question').html()),
-          answerCheckbox: _.template($('#answer-checkbox').html()),
-          answerRadio: _.template($('#answer-radio').html()),
-          answerText: _.template($('#answer-text').html()),
-          repeatButton: _.template($('#repeat-button').html())
+          question: _.template($('#question').html().trim()),
+          answerCheckbox: _.template($('#answer-checkbox').html().trim()),
+          answerRadio: _.template($('#answer-radio').html().trim()),
+          answerText: _.template($('#answer-text').html().trim()),
+          repeatButton: _.template($('#repeat-button').html().trim())
         };
         if (settings.survey.type === 'address-point') {
           templates.answerAddress = _.template($('#answer-address-map').html());
@@ -570,8 +584,8 @@ define(function (require) {
       var j;
       var answersToProcessLength = answersToProcess.length;
       for (j = 0; j < answersToProcessLength; j += 1) {
-        if (answersToProcess[j].attr('checked')) {
-          answersToProcess[j].attr('checked', false).checkboxradio("refresh");
+        if (answersToProcess[j].prop('checked')) {
+          answersToProcess[j].prop('checked', false).checkboxradio("refresh");
         }
       }
 
