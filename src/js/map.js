@@ -651,8 +651,6 @@ define(function (require) {
         // TODO: make these requests according to tile boundaries
         api.getResponsesInBounds(bounds, function (completedResponses) {
 
-          console.log("RESPONSES IN BOUNDS", completedResponses);
-
           markResponses(completedResponses, 'completed');
           if (completedResponses.length > 0 || pendingResponses.length > 0) {
             // Restyle
