@@ -16,16 +16,16 @@ define(function (require) {
   function addBuffer(bounds, divisor) {
     var sw = bounds.getSouthWest();
     var ne = bounds.getNorthEast();
-    
+
     var lngDiff = ne.lng - sw.lng;
     var latDiff = ne.lat - sw.lat;
-    
+
     var lngMod = lngDiff / 4;
     var latMod = latDiff / 4;
-    
+
     var newSW = new L.LatLng(sw.lat - latMod, sw.lng - lngMod);
     var newNE = new L.LatLng(ne.lat + latMod, ne.lng + lngMod);
-    
+
     return new L.LatLngBounds(newSW, newNE);
   }
 
@@ -123,7 +123,7 @@ define(function (require) {
         iconAnchor: new L.Point(8, 8),
         popupAnchor: new L.Point(8, 8)
       }
-    });  
+    });
 
     var PlaceIcon = L.icon({
       className: 'PlaceIcon',
@@ -133,7 +133,7 @@ define(function (require) {
       shadowSize: new L.Point(25, 25),
       iconAnchor: new L.Point(13, 13),
       popupAnchor: new L.Point(13, 13)
-    });  
+    });
 
     var CrosshairIcon = L.icon({
       className: 'CrosshairIcon',
@@ -299,7 +299,7 @@ define(function (require) {
         enableHighAccuracy: true
       });
 
-      // Mark a location on the map. 
+      // Mark a location on the map.
       // Primarily used with browser-based geolocation (aka 'where am I?')
       function onLocationFound(e) {
         // Remove the old circle if we have one
@@ -359,9 +359,12 @@ define(function (require) {
         app.selectedObject = {};
         app.selectedObject.id = '';
         app.selectedObject.humanReadableName = 'Custom location';
-        app.selectedObject.centroid = { coordinates: lnglat };
 
-        // Select the current layer
+        app.selectedObject.centroid = { coordinates: lnglat };
+        app.selectedObject.geometry = {
+          type: 'Point',
+          coordinates: lnglat
+        };
 
         newPoint = L.marker(latlng, {icon: PlaceIcon});
         map.addLayer(newPoint);
@@ -386,14 +389,14 @@ define(function (require) {
     this.getMapBounds = function() {
       var bounds = '';
       bounds += map.getBounds().getNorthWest().toString();
-      bounds += ' ' + map.getBounds().getSouthEast().toString();  
+      bounds += ' ' + map.getBounds().getSouthEast().toString();
       return bounds;
     };
 
 
     // Move the map ............................................................
     // Attempt to center the map on an address using Google's geocoder.
-    // This should probably live in APIs. 
+    // This should probably live in APIs.
     var goToAddress = function(address) {
       api.codeAddress(address, function(latlng){
         if (circle !== null) {
@@ -406,7 +409,7 @@ define(function (require) {
         map.addLayer(circle);
         map.setView(latlng, 19);
 
-        // Scroll to the top so users can 
+        // Scroll to the top so users can
         window.scrollTo(0,0);
         $('#address-search').slideToggle();
         $('#address-search-prompt').slideToggle();
@@ -430,7 +433,7 @@ define(function (require) {
       parcelsLayerGroup.eachLayer(function (layer) {
         layer.setStyle(parcelStyle);
       });
-      
+
       // Keep track of the selected object centrally
       app.selectedObject.id = selectedLayer.feature.id;
       app.selectedObject.humanReadableName = selectedLayer.feature.properties.address;
@@ -444,7 +447,7 @@ define(function (require) {
         };
       }
 
-      app.selectedObject.geometry = selectedLayer.feature.geometry; 
+      app.selectedObject.geometry = selectedLayer.feature.geometry;
 
       // Let other parts of the app know that we've selected something.
       $.publish('objectSelected');
@@ -459,7 +462,7 @@ define(function (require) {
       if (settings.survey.type === 'point') {
         return;
       }
- 
+
       // Don't add any parcels if the zoom is really far out.
       var zoom = map.getZoom();
       if(zoom < zoomLevels.parcelCutoff) {
@@ -529,7 +532,7 @@ define(function (require) {
             return true;
           });
 
-          // Create a new GeoJSON layer and style it. 
+          // Create a new GeoJSON layer and style it.
           var geoJSONLayer = new L.geoJson(featureCollection, {
             style: parcelStyle
           });
@@ -588,8 +591,9 @@ define(function (require) {
 
       _.each(responses, function (response) {
         var parcelId = response.parcel_id;
+        var treatAsPoint = parcelId === '';
 
-        if (zoom >= zoomLevels.checkmarkCutoff) {
+        if (zoom >= zoomLevels.checkmarkCutoff || treatAsPoint) {
           var point = new L.LatLng(response.geo_info.centroid[1], response.geo_info.centroid[0]);
           addDoneMarker(point, parcelId);
         }
@@ -605,14 +609,14 @@ define(function (require) {
       });
     }
 
-    // Get all the responses in a map 
-    function getResponsesInMap() {  
+    // Get all the responses in a map
+    function getResponsesInMap() {
       console.log('Getting responses in the map');
       // Unsubscribe to the syncedResponses event. We'll resubscribe later if
       // it's appropriate.
       $.unsubscribe('syncedResponses', getResponsesInMap);
 
-      // Don't add any markers if the zoom is really far out. 
+      // Don't add any markers if the zoom is really far out.
       var zoom = map.getZoom();
       if(zoom < zoomLevels.completedCutoff) {
         completedParcelIds = {};
@@ -646,6 +650,7 @@ define(function (require) {
 
         // TODO: make these requests according to tile boundaries
         api.getResponsesInBounds(bounds, function (completedResponses) {
+
           markResponses(completedResponses, 'completed');
           if (completedResponses.length > 0 || pendingResponses.length > 0) {
             // Restyle
