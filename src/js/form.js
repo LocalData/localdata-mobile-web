@@ -85,7 +85,7 @@ define(function (require) {
       if($thanksOffline.is(":visible")) {
         $thanksOffline.slideToggle();
       }
-      
+
     };
 
 
@@ -270,6 +270,7 @@ define(function (require) {
       // Collected the data needed to render the question
       var questionData = {
         text: question.text,
+        layout: question.layout,
         info: question.info,
         id: id,
         parentID: parentID,
