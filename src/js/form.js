@@ -205,6 +205,11 @@ define(function (require) {
         hideAndClearSubQuestionsFor($(this).attr('id'));
       });
 
+      // Clear file upload selections
+      $('input[type=file]').each(function (index) {
+        $(this).val('');
+      });
+
       // Remove additional repeating groups
       $('.append-to').empty();
     }
