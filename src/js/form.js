@@ -105,6 +105,9 @@ define(function (require) {
 
     };
 
+    // Show the form. Used when the user creates an entry that doesn't
+    // correspond to a map object. For example, the form can allow entry of an
+    // address, which will later be displayed as a point on the map.
     function showObjectFreeForm() {
       // Record the time to track how long a submission takes
       timeStarted = new Date();
