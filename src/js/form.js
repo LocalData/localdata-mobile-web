@@ -49,7 +49,7 @@ define(function (require) {
 
     // Update the form with information about the selected object.
     // Then, display the form.
-    var setSelectedObjectInfo = function(e) {
+    function setSelectedObjectInfo(e) {
       console.log("Showing the form");
       var $addressDOM = $('h2 .parcel_id');
 
@@ -59,7 +59,7 @@ define(function (require) {
       });
 
       // Record the time to track how long a submission takes
-      var timeStarted = new Date();
+      timeStarted = new Date();
 
       // Show/hide UI as needed
       if(!$form.is(":visible")) {
