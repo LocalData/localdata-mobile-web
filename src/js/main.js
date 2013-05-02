@@ -38,14 +38,14 @@ require.config({
 });
 
 require(['jquery', 'app', 'lib/jquery.mobile', 'lib/jquery.cookie',
-        'lib/jquery.tinypubsub', 'lib/leaflet', 'lib/tilelayer.bing.pull',
+        'lib/jquery.tinypubsub', 'lib/jquery.canvasResize', 'lib/leaflet', 'lib/tilelayer.bing.pull',
         'loglevel', 'lawnchair', 'lib/lawnchair-adapter-indexed-db', 'lib/lawnchair-adapter-webkit-sqlite'],
         function ($, app, jqm, jqc,
-                  jqtps, L, tLBing,
+                  jqtps, canvasResize, L, tLBing,
                   logLevel, lawnchair, adapterIDB, adapterWebSQL) {
   'use strict';
 
-  logLevel('silent');
+  logLevel('verbose');
   $(document).ready(function () {
     app.init();
   });

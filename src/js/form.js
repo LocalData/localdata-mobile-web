@@ -120,9 +120,8 @@ define(function (require) {
 
 
     // Form submission .........................................................
-    function doSubmit() {
-      var url = api.getSurveyURL() + form.attr('action');
 
+    function doSubmit();
       // Serialize the form
       var serialized = form.serializeObject();
 
@@ -131,12 +130,13 @@ define(function (require) {
       var centroidLng = parseFloat(selectedCentroid.coordinates[0]);
       var centroidLat = parseFloat(selectedCentroid.coordinates[1]);
 
-      // Post a response in the appropriate format.
-      api.postResponse({
+      var response = {
         source: {
           type: 'mobile',
           collector: app.collectorName,
           started: timeStarted,             // Time started
+          // FIXME: This could be artificially large if we take a while to look
+          // up an address. We should compute this earlier.
           finished: new Date()              // Time finished
         },
         geo_info: {
@@ -148,8 +148,28 @@ define(function (require) {
         parcel_id: app.selectedObject.id, // Soon to be deprecated
         object_id: app.selectedObject.id, // Replaces parcel_id
         responses: serialized
-      });
-    }
+      };
+
+      // If there are files, handle them
+      var fileItems = $('input[type=file]');
+      if (fileItems !== []) {
+        // Pull the actual File objects out.
+        // TODO: Support more than one file
+        var files;
+        if (fileItems[0].files.length > 0) {
+          files = [{
+            fieldName: $('#area input').attr('name'),
+            file: fileItems[0].files[0]
+          }];
+        }
+
+        // Post a response in the appropriate format.
+        api.postResponse(response, files);
+      } else {
+        // Post a response in the appropriate format.
+        api.postResponse(response);
+      }
+    });
 
     // Handle the parcel survey form being submitted
     form.submit(function(event) {
@@ -157,6 +177,7 @@ define(function (require) {
 
       // Stop form from submitting normally
       event.preventDefault();
+      submitFlash();
 
       if (app.selectedObject && app.selectedObject.hasOwnProperty('centroid')) {
         doSubmit();
@@ -176,8 +197,9 @@ define(function (require) {
           doSubmit();
         });
       }
+    }
 
-    });
+    
 
     function submitThanks() {
       // Publish  a "form submitted" event
@@ -243,9 +265,16 @@ define(function (require) {
         $this.val('');
       });
 
+      // Clear file upload selections
+      $('input[type=file]').each(function (index) {
+        $(this).val('');
+      });
+
       // Remove additional repeating groups
       $('.append-to').empty();
     }
+
+
 
 
     // Render the form ...........................................................
@@ -290,7 +319,6 @@ define(function (require) {
       };
     }
 
-
     /*
      * Render questions
      */
@@ -316,6 +344,7 @@ define(function (require) {
           answerCheckbox: _.template($('#answer-checkbox').html().trim()),
           answerRadio: _.template($('#answer-radio').html().trim()),
           answerText: _.template($('#answer-text').html().trim()),
+          answerFile: _.template($('#answer-file').html().trim()),
           repeatButton: _.template($('#repeat-button').html().trim())
         };
         if (settings.survey.type === 'address-point') {
@@ -387,6 +416,7 @@ define(function (require) {
         var $answer;
         var value = '';
         var data;
+
         if (question.type === 'text') {
           if (question.value !== undefined) {
             value = question.value;
@@ -416,6 +446,11 @@ define(function (require) {
               }
             });
           }
+        } else if (question.type === 'file') {
+          $answer = $(templates.answerFile({
+            questionName: suffixed_name,
+            id: _.uniqueId(question.name),
+          }));
         }
 
         $question.append($answer);
@@ -450,9 +485,9 @@ define(function (require) {
         // or a radio group.
         if (question.answers.length > 1) {
 
-          if(question.type === "checkbox") {
+          if (question.type === "checkbox") {
             $answer = $(templates.answerCheckbox(data));
-          }else {
+          } else {
             $answer = $(templates.answerRadio(data));
           }
 
@@ -546,7 +581,9 @@ define(function (require) {
     }
 
 
-    // Option group stuff ........................................................
+
+
+    // Option group stuff ......................................................
 
     // Show / hide sub questions for a given parent
     function hideAndClearSubQuestionsFor(parent) {

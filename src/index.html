@@ -135,7 +135,10 @@
           <label for="<%= id %>"><%= text %></label>
           <input type="text" name="<%= questionName %>" id="<%= id %>" value="<%= value %>">
         </script>
-
+        
+        <script type="text/template" id="answer-file">
+          <input type="file" name="<%= questionName %>" id="<%= id %>">
+        </script>
 
         <script type="text/template" id="repeat-button">
           <div class="repeating-button" style="display:none" data-parent="<%= parentID %>" data-trigger="<%= triggerID %>">
