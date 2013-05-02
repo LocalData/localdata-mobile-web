@@ -131,7 +131,15 @@ module.exports = function(grunt) {
         options: {
           basePath: '<%= dirs.build %>/',
           network: ['*'],
-          exclude: ['img/nbhd-blur.jpg', 'nbhd.jpeg', 'streetscape_blur-01.jpg'],
+          exclude: [
+            'img/nbhd-blur.jpg',
+            'nbhd.jpeg',
+            'streetscape_blur-01.jpg',
+            'img/hexellence.png',
+            'img/icons/net-activity.gif',
+            'img/icons/net-online.gif',
+            'css/jquery.mobile-1.1.1.css'
+          ],
           verbose: true,
           timestamp: true
         },
