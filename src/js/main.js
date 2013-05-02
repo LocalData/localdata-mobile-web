@@ -39,10 +39,10 @@ require.config({
 
 require(['jquery', 'app', 'lib/jquery.mobile', 'lib/jquery.cookie',
         'lib/jquery.tinypubsub', 'lib/leaflet', 'lib/tilelayer.bing.pull',
-        'loglevel', 'lawnchair', 'lib/lawnchair-adapter-webkit-sqlite'],
+        'loglevel', 'lawnchair', 'lib/lawnchair-adapter-indexed-db', 'lib/lawnchair-adapter-webkit-sqlite'],
         function ($, app, jqm, jqc,
                   jqtps, L, tLBing,
-                  logLevel, lawnchair, adapterWebSQL) {
+                  logLevel, lawnchair, adapterIDB, adapterWebSQL) {
   'use strict';
 
   logLevel('silent');
