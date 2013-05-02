@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   /*
-   * Trim function: strips whitespace from a string. 
+   * Trim function: strips whitespace from a string.
    * Use: " dog".trim() === "dog" //true
    */
   if(typeof(String.prototype.trim) === "undefined") {
@@ -14,7 +14,7 @@
   }
 
   if(typeof(String.prototype.titleCase) === "undefined") {
-    String.prototype.titleCase = function() { 
+    String.prototype.titleCase = function() {
       return this.toLowerCase().replace(/^.|\s\S/g, function(a) { return a.toUpperCase(); });
     };
   }
@@ -23,7 +23,8 @@
 require.config({
   paths: {
     jquery: 'lib/jquery',
-    'lib/leaflet': 'lib/leaflet/leaflet'
+    'lib/leaflet': 'lib/leaflet/leaflet',
+    lawnchair: 'lib/lawnchair'
   },
   shim: {
     'lib/underscore': {
@@ -36,8 +37,12 @@ require.config({
   }
 });
 
-require(['jquery', 'app', 'lib/jquery.mobile', 'lib/jquery.cookie', 'lib/jquery.tinypubsub', 'lib/jquery.canvasResize', 'lib/leaflet', 'lib/tilelayer.bing.pull', 'loglevel'],
-        function ($, app, jqm, jqc, jqtps, canvasResize, L, tLBing, logLevel) {
+require(['jquery', 'app', 'lib/jquery.mobile', 'lib/jquery.cookie',
+        'lib/jquery.tinypubsub', 'lib/jquery.canvasResize', 'lib/leaflet', 'lib/tilelayer.bing.pull',
+        'loglevel', 'lawnchair', 'lib/lawnchair-adapter-indexed-db', 'lib/lawnchair-adapter-webkit-sqlite'],
+        function ($, app, jqm, jqc,
+                  jqtps, canvasResize, L, tLBing,
+                  logLevel, lawnchair, adapterIDB, adapterWebSQL) {
   'use strict';
 
   logLevel('verbose');

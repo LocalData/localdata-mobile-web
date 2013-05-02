@@ -14,6 +14,10 @@ define(function (require) {
     var formQuestions = $('#questions');
     var repeatCounter = {};
     var timeStarted;
+    var $form = $('#form');
+    var $submitting = $('#submitting');
+    var $thanks = $('#thanks');
+    var $thanksOffline = $('#thanks-offline');
 
     this.init = function(){
       console.log("Initialize form");
@@ -58,12 +62,12 @@ define(function (require) {
       var timeStarted = new Date();
 
       // Show/hide UI as needed
-      if(!$('#form').is(":visible")) {
-        $('#form').slideToggle(400, function(){
+      if(!$form.is(":visible")) {
+        $form.slideToggle(400, function(){
 
           // Make sure the form becomes visible
           // when an object on the map is clicked
-          var offset = $('#form').offset();
+          var offset = $form.offset();
           offset.top -= 175; // Keep enough of the map visible
                              // to give the user context
           $('html, body').animate({
@@ -75,129 +79,14 @@ define(function (require) {
       if($('#startpoint').is(":visible")) {
         $('#startpoint').hide();
       }
-      if($('#thanks').is(":visible")) {
-        $('#thanks').slideToggle();
+      if($thanks.is(":visible")) {
+        $thanks.slideToggle();
+      }
+      if($thanksOffline.is(":visible")) {
+        $thanksOffline.slideToggle();
       }
 
     };
-
-    function resizeFile(file) {
-      var deferred = $.Deferred();
-
-      $.canvasResize(file, {
-        width: 800,
-        height: 0,
-        crop: false,
-        quality: 100,
-        callback: function(data, width, height) {
-          deferred.resolve(data);
-        }
-      });
-
-      return deferred.promise();
-    }
-
-    /**
-     * Submit response data
-     */
-    function submitResponses(responses, files) {
-      //options.xhr = function() {
-      //  var xhr = new window.XMLHttpRequest();
-      //  //Upload progress
-      //  // xhr.upload.addEventListener("progress", function(e) {
-      //  //   if (e.lengthComputable) {
-      //  //     var loaded = Math.ceil((e.loaded / e.total) * 100);
-      //  //     $('p span').css({
-      //  //       'width': loaded + "%"
-      //  //     }).html(loaded + "%");
-      //  //   }
-      //  // }, false);
-      //  return xhr;
-      //};
-
-      var url = api.getSurveyURL() + form.attr('action');
-      var submitPromise;
-
-      if (files !== undefined) {
-        if (files.length > 1) {
-          console.error('We do not yet support attaching multiple files!');
-        }
-
-        // Resize the image as needed
-        submitPromise = resizeFile(files[0])
-        .done(function (data) {
-          // Get ready to submit the data
-          // Create a new formdata...
-          var fd = new FormData();
-
-          // ... and add the file data
-          var f = $.canvasResize('dataURLtoBlob', data);
-          f.name = file.name;
-          fd.append($('#area input').attr('name'), f, f.name);
-
-          // Responses need to be added as a string :-\
-          fd.append('data', JSON.stringify(responses));
-
-          // Post!
-          return $.ajax({
-            url: url,
-            type: 'POST',
-            data: fd,
-            dataType: 'json',
-            contentType: false,
-            processData: false,
-            headers: {
-              pragma: 'no-cache'
-            }
-          });
-        });
-
-      } else {
-
-        // TODO: does the application/json content type cause problems for us anywhere (like IE)?
-        submitPromise = $.ajax({
-          url: url,
-          headers: {
-            pragma: 'no-cache'
-          },
-          type: 'POST',
-          data: JSON.stringify(responses),
-          contentType: 'application/json; charset=utf-8'
-        });
-      }
-
-      submitPromise.done(function () {
-        // It worked.
-        successfulSubmit();
-      }).fail(function (jqxhr) {
-        // Uh-oh, something went wrong
-        var key;
-        var result = '';
-        for (key in jqxhr) {
-          result += key + ': ' + jqxhr[key] + '\n';
-        }
-        console.log('Error submitting result');
-
-        // Show the form again
-        $('#form').show(function(){
-          // Hide the submitting message
-          $('#submitting').slideToggle();
-
-          // Show an error message. 
-          $('#error').slideToggle();
-
-          // Roll down to the submit button so they can submit again.
-          var offset = $('#submitbutton').offset();
-          offset.top -= 100; // Keep enough of the map visible
-                             // to give the user context
-          $('html, body').animate({
-            scrollTop: offset.top,
-            scrollLeft: offset.left
-          });
-        });
-      });
-    };
-
 
 
     // Form submission .........................................................
@@ -208,7 +97,7 @@ define(function (require) {
 
       // Stop form from submitting normally
       event.preventDefault();
-      submitStart();
+      submitFlash();
 
 
       // Serialize the form
@@ -219,26 +108,23 @@ define(function (require) {
       var centroidLng = parseFloat(selectedCentroid.coordinates[0]);
       var centroidLat = parseFloat(selectedCentroid.coordinates[1]);
 
-      console.log("Selected object ID");
-
-      // Construct a response in the format we need it.
-      var responses = {responses: [{
-        "source": {
-          "type":"mobile",
-          "collector":app.collectorName,
-          "started": timeStarted,             // Time started
-          "finished": new Date()              // Time finished
+      var response = {
+        source: {
+          type: 'mobile',
+          collector: app.collectorName,
+          started: timeStarted,             // Time started
+          finished: new Date()              // Time finished
         },
-        "geo_info": {
-          "centroid":[centroidLng, centroidLat],
-          "geometry": app.selectedObject.geometry,
-          "humanReadableName": app.selectedObject.humanReadableName,
+        geo_info: {
+          centroid:[centroidLng, centroidLat],
+          geometry: app.selectedObject.geometry,
+          humanReadableName: app.selectedObject.humanReadableName,
           parcel_id: app.selectedObject.id // Soon to be deprecated
         },
-        "parcel_id": app.selectedObject.id, // Soon to be deprecated
-        "object_id": app.selectedObject.id, // Replaces parcel_id
-        "responses": serialized
-      }]};
+        parcel_id: app.selectedObject.id, // Soon to be deprecated
+        object_id: app.selectedObject.id, // Replaces parcel_id
+        responses: serialized
+      };
 
       // If there are files, handle them
       var fileItems = $('input[type=file]');
@@ -249,32 +135,26 @@ define(function (require) {
         if (fileItems[0].files.length > 0) {
           files = [fileItems[0].files[0]];
         }
-        submitResponses(responses, files);
+
+        // Post a response in the appropriate format.
+        api.postResponse(response, files);
       } else {
-        submitResponses(responses);
+        // Post a response in the appropriate format.
+        api.postResponse(response);
       }
     });
 
-    function submitStart() {
-      // Roll up the form & show the "now submitting" message
-      if($('#error').is(':visible')) {
-        $('#error').slideToggle();
-      }
-      $('#form').slideToggle();
-      $('#submitting').slideToggle();
-    }
-
-    // Clear the form and thank the user after a successful submission
-    // TODO: pass in selected_parcel_json
-    function successfulSubmit() {
-      console.log('Successful submit');
-
+    function submitThanks() {
       // Publish  a "form submitted" event
       $.publish('successfulSubmit');
 
       // Hide the form and show the thanks
-      $('#submitting').slideToggle();
-      $('#thanks').slideToggle();
+      $submitting.slideUp();
+      if (api.online) {
+        $thanks.slideDown();
+      } else {
+        $thanksOffline.slideDown();
+      }
 
       if($('#address-search-prompt').is(':hidden')) {
         $('#address-search-prompt').slideToggle();
@@ -287,6 +167,19 @@ define(function (require) {
       resetForm();
     }
 
+    // Show a brief thank-you message before bringing back a blank form.
+    function submitFlash() {
+      // Roll up the form & show the "now submitting" message
+      if ($('#error').is(':visible')) {
+        $('#error').slideToggle();
+      }
+
+      $form.slideUp();
+      $submitting.slideDown(function () {
+        setTimeout(submitThanks, 1000);
+      });
+    }
+
     // Reset the form: clear checkboxes, remove added option groups, hide
     // sub options.
     function resetForm() {
@@ -295,14 +188,14 @@ define(function (require) {
       // Clear all checkboxes and radio buttons
       $('input:checkbox').each(function(index){
         var $this = $(this);
-        if ($this.attr('checked')) {
-          $this.attr('checked', false).checkboxradio('refresh');
+        if ($this.prop('checked')) {
+          $this.prop('checked', false).checkboxradio('refresh');
         }
       });
       $('input:radio').each(function(index){
         var $this = $(this);
-        if ($this.attr('checked')) {
-          $this.attr('checked', false).checkboxradio('refresh');
+        if ($this.prop('checked')) {
+          $this.prop('checked', false).checkboxradio('refresh');
         }
       });
       $('fieldset').each(function(index){
@@ -379,12 +272,12 @@ define(function (require) {
       // Load the templates
       if (templates === undefined) {
         templates = {
-          question: _.template($('#question').html()),
-          answerCheckbox: _.template($('#answer-checkbox').html()),
-          answerRadio: _.template($('#answer-radio').html()),
-          answerText: _.template($('#answer-text').html()),
-          answerFile: _.template($('#answer-file').html()),
-          repeatButton: _.template($('#repeat-button').html())
+          question: _.template($('#question').html().trim()),
+          answerCheckbox: _.template($('#answer-checkbox').html().trim()),
+          answerRadio: _.template($('#answer-radio').html().trim()),
+          answerText: _.template($('#answer-text').html().trim()),
+          answerFile: _.template($('#answer-file').html().trim()),
+          repeatButton: _.template($('#repeat-button').html().trim())
         };
       }
 
@@ -394,6 +287,7 @@ define(function (require) {
       // Collected the data needed to render the question
       var questionData = {
         text: question.text,
+        layout: question.layout,
         info: question.info,
         id: id,
         parentID: parentID,
@@ -618,8 +512,8 @@ define(function (require) {
       var j;
       var answersToProcessLength = answersToProcess.length;
       for (j = 0; j < answersToProcessLength; j += 1) {
-        if (answersToProcess[j].attr('checked')) {
-          answersToProcess[j].attr('checked', false).checkboxradio("refresh");
+        if (answersToProcess[j].prop('checked')) {
+          answersToProcess[j].prop('checked', false).checkboxradio("refresh");
         }
       }
 
