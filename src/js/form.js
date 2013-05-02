@@ -103,7 +103,7 @@ define(function (require) {
         $thanksOffline.slideToggle();
       }
 
-    };
+    }
 
     // Show the form. Used when the user creates an entry that doesn't
     // correspond to a map object. For example, the form can allow entry of an
@@ -125,7 +125,7 @@ define(function (require) {
 
     // Form submission .........................................................
 
-    function doSubmit();
+    function doSubmit() {
       // Serialize the form
       var serialized = form.serializeObject();
 
@@ -173,7 +173,7 @@ define(function (require) {
         // Post a response in the appropriate format.
         api.postResponse(response);
       }
-    });
+    }
 
     // Handle the parcel survey form being submitted
     form.submit(function(event) {
@@ -201,7 +201,7 @@ define(function (require) {
           doSubmit();
         });
       }
-    }
+    });
 
     
 
