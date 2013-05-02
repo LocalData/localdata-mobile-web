@@ -81,39 +81,95 @@ define(function (require) {
 
     };
 
+    function resizeFile(file) {
+      var deferred = $.Deferred();
+
+      $.canvasResize(file, {
+        width: 800,
+        height: 0,
+        crop: false,
+        quality: 100,
+        callback: function(data, width, height) {
+          deferred.resolve(data);
+        }
+      });
+
+      return deferred.promise();
+    }
+
     /**
      * Submit response data
-     * @param  {Object} options JQXHR options object
      */
-    var submitResponses = function(options) {
-      options.url = api.getSurveyURL() + form.attr('action');
+    function submitResponses(responses, files) {
+      //options.xhr = function() {
+      //  var xhr = new window.XMLHttpRequest();
+      //  //Upload progress
+      //  // xhr.upload.addEventListener("progress", function(e) {
+      //  //   if (e.lengthComputable) {
+      //  //     var loaded = Math.ceil((e.loaded / e.total) * 100);
+      //  //     $('p span').css({
+      //  //       'width': loaded + "%"
+      //  //     }).html(loaded + "%");
+      //  //   }
+      //  // }, false);
+      //  return xhr;
+      //};
 
-      options.beforeSend = function(xhr) {
-        xhr.setRequestHeader("pragma", "no-cache");
-      };
+      var url = api.getSurveyURL() + form.attr('action');
+      var submitPromise;
 
-      options.xhr = function() {
-        var xhr = new window.XMLHttpRequest();
-        //Upload progress
-        // xhr.upload.addEventListener("progress", function(e) {
-        //   if (e.lengthComputable) {
-        //     var loaded = Math.ceil((e.loaded / e.total) * 100);
-        //     $('p span').css({
-        //       'width': loaded + "%"
-        //     }).html(loaded + "%");
-        //   }
-        // }, false);
-        return xhr;
-      };
+      if (files !== undefined) {
+        if (files.length > 1) {
+          console.error('We do not yet support attaching multiple files!');
+        }
 
-      // Post the form
-      // TODO: This will need to use Prashant's browser-safe POSTing
-      // TODO: This is causing us to record numbers as strings
-      $.ajax(options).done(function(){
+        // Resize the image as needed
+        submitPromise = resizeFile(files[0])
+        .done(function (data) {
+          // Get ready to submit the data
+          // Create a new formdata...
+          var fd = new FormData();
+
+          // ... and add the file data
+          var f = $.canvasResize('dataURLtoBlob', data);
+          f.name = file.name;
+          fd.append($('#area input').attr('name'), f, f.name);
+
+          // Responses need to be added as a string :-\
+          fd.append('data', JSON.stringify(responses));
+
+          // Post!
+          return $.ajax({
+            url: url,
+            type: 'POST',
+            data: fd,
+            dataType: 'json',
+            contentType: false,
+            processData: false,
+            headers: {
+              pragma: 'no-cache'
+            }
+          });
+        });
+
+      } else {
+
+        // TODO: does the application/json content type cause problems for us anywhere (like IE)?
+        submitPromise = $.ajax({
+          url: url,
+          headers: {
+            pragma: 'no-cache'
+          },
+          type: 'POST',
+          data: JSON.stringify(responses),
+          contentType: 'application/json; charset=utf-8'
+        });
+      }
+
+      submitPromise.done(function () {
         // It worked.
         successfulSubmit();
-
-      }).fail(function(jqxhr, textStatus, errorThrown){
+      }).fail(function (jqxhr) {
         // Uh-oh, something went wrong
         var key;
         var result = '';
@@ -184,48 +240,18 @@ define(function (require) {
         "responses": serialized
       }]};
 
-
       // If there are files, handle them
-      var files = $('input[type=file]');
-      if (files !== []) {
-        files.each(function(index) {
-          var obj = $(this)[0];
-          var file = obj.files[0];
-          console.log(file);
-
-          // Resize the image as needed
-          $.canvasResize(file, {
-            width: 800,
-            height: 0,
-            crop: false,
-            quality: 100,
-            callback: function(data, width, height) {
-
-              // Get ready to submit the data
-              // Create a new formdata...
-              var fd = new FormData();
-
-              // ... and add the file data
-              var f = $.canvasResize('dataURLtoBlob', data);
-              f.name = file.name;
-              console.log(f.name);
-              fd.append($('#area input').attr('name'), f, f.name);
-
-              // Responses need to be added as a string :-\
-              fd.append('data', JSON.toString(responses));
-
-              var options = {
-                type: 'POST',
-                data: fd,
-                dataType: 'json',
-                contentType: false,
-                processData: false
-              };
-
-              // SUBMIT DATA HERE
-            }
-          });
-        });
+      var fileItems = $('input[type=file]');
+      if (fileItems !== []) {
+        // Pull the actual File objects out.
+        // TODO: Support more than one file
+        var files;
+        if (fileItems[0].files.length > 0) {
+          files = [fileItems[0].files[0]];
+        }
+        submitResponses(responses, files);
+      } else {
+        submitResponses(responses);
       }
     });
 
