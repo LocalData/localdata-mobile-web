@@ -340,6 +340,31 @@ define(function (require) {
       // }
 
       var questionID = id;
+
+      // Handle questions with no list of predefined answers
+      if (question.answers === undefined || question.answers.length === 0) {
+        var $answer;
+        var value = '';
+        if (question.type === 'text') {
+          if (question.value !== undefined) {
+            value = question.value;
+          }
+
+          $answer = $(templates.answerText({
+            questionName: suffixed_name,
+            id: _.uniqueId(question.name),
+            value: value
+          }));
+        } else if (question.type === 'file') {
+          $answer = $(templates.answerFile({
+            questionName: suffixed_name,
+            id: _.uniqueId(question.name),
+          }));
+        }
+
+        $question.append($answer);
+      }
+      
       // Add each answer to the question
       _.each(question.answers, function (answer) {
         // The triggerID is used to hide/show other question groups
@@ -371,11 +396,7 @@ define(function (require) {
 
           if (question.type === "checkbox") {
             $answer = $(templates.answerCheckbox(data));
-          }
-          else if (question.type === 'file') {
-            $answer = $(templates.answerFile(data));
-          }
-          else {
+          } else {
             $answer = $(templates.answerRadio(data));
           }
 
@@ -392,26 +413,21 @@ define(function (require) {
             referencesToAnswersForQuestion.push($(el));
           });
 
-        }else {
-          if(question.type === "text") {
-            $answer = $(templates.answerText(data));
-          }else {
-            $answer = $(templates.answerCheckbox(data));
+        } else {
+          $answer = $(templates.answerCheckbox(data));
 
-            // Store references to answers for quick retrieval later
-            referencesToAnswersForQuestion = app.boxAnswersByQuestionId[questionID];
-            if (referencesToAnswersForQuestion === undefined) {
-              referencesToAnswersForQuestion = [];
-              app.boxAnswersByQuestionId[questionID] = referencesToAnswersForQuestion;
-            }
-            $answer.filter('input[type="radio"]').each(function (i, el) {
-              referencesToAnswersForQuestion.push($(el));
-            });
-            $answer.filter('input[type="checkbox"]').each(function (i, el) {
-              referencesToAnswersForQuestion.push($(el));
-            });
-
+          // Store references to answers for quick retrieval later
+          referencesToAnswersForQuestion = app.boxAnswersByQuestionId[questionID];
+          if (referencesToAnswersForQuestion === undefined) {
+            referencesToAnswersForQuestion = [];
+            app.boxAnswersByQuestionId[questionID] = referencesToAnswersForQuestion;
           }
+          $answer.filter('input[type="radio"]').each(function (i, el) {
+            referencesToAnswersForQuestion.push($(el));
+          });
+          $answer.filter('input[type="checkbox"]').each(function (i, el) {
+            referencesToAnswersForQuestion.push($(el));
+          });
         }
 
         $question.append($answer);
