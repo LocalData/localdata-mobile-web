@@ -103,6 +103,52 @@ define(function (require) {
     }
   };
 
+  // Post a response and a file as multipart form data.
+  // Return a promise for the jQuery ajax operation.
+  function postMultipart(response) {
+    // Get ready to submit the data
+    var fd = new FormData();
+
+    // ... and add the file data
+    // TODO: support multiple files
+    var f = $.canvasResize('dataURLtoBlob', response.files[0].data);
+    f.name = response.files[0].name;
+    fd.append(response.files[0].fieldName, f, f.name);
+
+    // Remove the file data from the response object, since we will include
+    // it as part of a multipart request body.
+    delete response.files;
+
+    // Responses need to be added as a string :-\
+    fd.append('data', JSON.stringify({ responses: [response] }));
+
+    return $.ajax({
+      url: api.getSurveyURL() + '/responses',
+      type: 'POST',
+      data: fd,
+      dataType: 'json',
+      contentType: false,
+      processData: false,
+      headers: {
+        pragma: 'no-cache'
+      }
+    });
+  }
+
+  // Post a response, with no attached file, as application/json data.
+  // Return a promise for the jQuery ajax operation.
+  function postPlain(response) {
+    return $.ajax({
+      url: api.getSurveyURL() + '/responses',
+      type: 'POST',
+      data: JSON.stringify({ responses: [response] }),
+      headers: {
+        pragma: 'no-cache'
+      },
+      contentType: 'application/json; charset=utf-8'
+    });
+  }
+
   // Sync all of the locally-saved responses to the server.
   api.postSavedResponses = function sendSavedResponses() {
     // FIXME: The responses could correspond to different surveys.
@@ -116,30 +162,78 @@ define(function (require) {
         $.publish('syncingResponses');
 
         data = { responses: _.pluck(doc, 'response') };
-        $.ajax({
-          url: api.getSurveyURL() + '/responses',
-          type: 'POST',
-          data: data,
-          dataType: 'json'
-        })
-        .fail(function (error) {
-          api.online = false;
-        })
-        .done(function (data) {
-          if (data.responses.length !== keys.length) {
-            console.error('We tried to save ' + keys.length + ' responses but only got ' + data.responses.length + ' back from the server!');
-          }
-          // Remove the documents from the local DB.
-          responseDB.remove(keys, function () {
-            $.publish('syncedResponses');
-          });
+
+        var hasFiles = _.any(data.responses, function (item) {
+          return item.files !== undefined;
         });
+
+        if (!hasFiles) {
+          // No files to upload, so we can post the responses in one batch.
+          $.ajax({
+            url: api.getSurveyURL() + '/responses',
+            type: 'POST',
+            data: JSON.stringify(data),
+            headers: {
+              pragma: 'no-cache'
+            },
+            contentType: 'application/json; charset=utf-8'
+          })
+          .fail(function (error) {
+            api.online = false;
+          })
+          .done(function (data) {
+            // Sanity check
+            if (data.responses.length !== keys.length) {
+              console.error('We tried to save ' + keys.length + ' responses but only got ' + data.responses.length + ' back from the server!');
+            }
+            // Remove the documents from the local DB.
+            responseDB.remove(keys, function () {
+              $.publish('syncedResponses');
+            });
+          });
+        } else {
+          // We need to upload files, so we must post responses one by one.
+          var count = data.responses.length;
+          _.each(data.responses, function (response) {
+            var promise;
+
+            // POST a response.
+            if (response.files !== undefined) {
+              promise = postMultipart(response);
+            } else {
+              promise = postPlain(response);
+            }
+
+            // Handle completion of the POST.
+            promise
+            .fail(function (jqXHR, textStatus, errorThrown) {
+              // TODO: distinguish between errors (timeout vs. 500)
+              // TODO: If we've saved some entries, remove those from the local DB.
+              console.error('Failed to save an entry! Going offline. Error: ' + errorThrown);
+              api.online = false;
+            })
+            .always(function () {
+              count -= 1;
+              if (count === 0) {
+                // We've saved each response to the server. We can remove them from our local DB.
+
+                // Remove the documents from the local DB.
+                responseDB.remove(keys, function () {
+                  $.publish('syncedResponses');
+                });
+              }
+            });
+
+          });
+        }
+
       });
     });
   };
 
   // Save the response locally, in case of failure.
   function saveAndPost(response) {
+    // First save the data locally.
     responseDB.save({ response: response }, function (doc) {
       // If we're offline, don't do anything.
       if (!api.online) {
@@ -147,56 +241,18 @@ define(function (require) {
       }
 
       var url = api.getSurveyURL() + '/responses';
-      var ajaxOptions;
+      var promise;
 
       // We're online, so try POSTing the data.
-      if (response.files !== undefined && response.files.length > 0) {
-        // Get ready to submit the data
-        // Create a new formdata...
-        var fd = new FormData();
-
-        // ... and add the file data
-        // TODO: support multiple files
-        var f = $.canvasResize('dataURLtoBlob', response.files[0].data);
-        f.name = response.files[0].name;
-        fd.append($('#area input').attr('name'), f, f.name);
-
-        // Remove the file data from the response object, since we will include
-        // it as part of a multipart request body.
-        delete response.files;
-
-        // Responses need to be added as a string :-\
-        fd.append('data', JSON.stringify({ responses: [response] }));
-
-        ajaxOptions = {
-          url: url,
-          type: 'POST',
-          data: fd,
-          dataType: 'json',
-          contentType: false,
-          processData: false,
-          headers: {
-            pragma: 'no-cache'
-          }
-        };
-
+      if (response.files !== undefined) {
+        // Post a response and file as multipart form data.
+        promise = postMultipart(response);
       } else {
-        if (response.files !== undefined) {
-          delete response.files;
-        }
-
-        ajaxOptions = {
-          url: url,
-          type: 'POST',
-          data: JSON.stringify({ responses: [response] }),
-          headers: {
-            pragma: 'no-cache'
-          },
-          contentType: 'application/json; charset=utf-8'
-        };
+        promise = postPlain(response);
       }
 
-      $.ajax(ajaxOptions)
+      // Handle success and failure.
+      promise
       .fail(function (error) {
         // TODO: differentiate between serious errors (like 404 Not Found) and
         // connectivity issues.
@@ -211,6 +267,7 @@ define(function (require) {
           api.online = true;
         });
       });
+
     });
   }
 
@@ -218,13 +275,13 @@ define(function (require) {
   // @param {Object} response A response object for the API
   // @param {Array} files An array of file objects to attach to the response
   api.postResponse = function postResponse(response, files) {
-    if (files !== undefined) {
+    if (files !== undefined && files.length > 0) {
       if (files.length > 1) {
         console.error('We do not yet support attaching multiple files!');
       }
 
       // Resize the image as needed
-      $.canvasResize(files[0], {
+      $.canvasResize(files[0].file, {
         width: 800,
         height: 0,
         crop: false,
@@ -232,7 +289,8 @@ define(function (require) {
         callback: function(data, width, height) {
           // Attach the resized image, as a data URI, to the response object.
           response.files = [{
-            name: files[0].name,
+            fieldName: files[0].fieldName,
+            name: files[0].file.name,
             data: data
           }];
 
@@ -241,6 +299,12 @@ define(function (require) {
       });
     } else {
       // No files to attach.
+
+      // Sanity check
+      if (files !== undefined) {
+        console.error('Empty files array!');
+      }
+
       saveAndPost(response);
     }
   };

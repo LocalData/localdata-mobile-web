@@ -133,7 +133,10 @@ define(function (require) {
         // TODO: Support more than one file
         var files;
         if (fileItems[0].files.length > 0) {
-          files = [fileItems[0].files[0]];
+          files = [{
+            fieldName: $('#area input').attr('name'),
+            file: fileItems[0].files[0]
+          }];
         }
 
         // Post a response in the appropriate format.
