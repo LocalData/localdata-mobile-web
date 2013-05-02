@@ -25,6 +25,8 @@ define(function (require) {
       // Listen for objectedSelected, triggered when items on the map are tapped
       $.subscribe("objectSelected", setSelectedObjectInfo);
 
+      $.subscribe('readyForAddressForm', showObjectFreeForm);
+
       // Render the form
       api.getForm(renderForm);
 
@@ -47,6 +49,34 @@ define(function (require) {
       };
     };
 
+    function showForm() {
+      // Set any necessary form context.
+      // Right now, only address questions rely on context outside the form.
+      // Later, pieces of the form could condition on fields of the selected
+      // object.
+      var address = app.selectedObject.address;
+      if (address !== undefined) {
+        $('input:text[data-type="address"]').val(address);
+      } else {
+        $('input:text[data-type="address"]').val('');
+      }
+
+      if(!$form.is(":visible")) {
+        $form.slideToggle(400, function(){
+
+          // Make sure the form becomes visible
+          // when an object on the map is clicked
+          var offset = $form.offset();
+          offset.top -= 175; // Keep enough of the map visible
+                             // to give the user context
+          $('html, body').animate({
+            scrollTop: offset.top,
+            scrollLeft: offset.left
+          });
+        });
+      }
+    }
+
     // Update the form with information about the selected object.
     // Then, display the form.
     function setSelectedObjectInfo(e) {
@@ -62,20 +92,7 @@ define(function (require) {
       timeStarted = new Date();
 
       // Show/hide UI as needed
-      if(!$form.is(":visible")) {
-        $form.slideToggle(400, function(){
-
-          // Make sure the form becomes visible
-          // when an object on the map is clicked
-          var offset = $form.offset();
-          offset.top -= 175; // Keep enough of the map visible
-                             // to give the user context
-          $('html, body').animate({
-            scrollTop: offset.top,
-            scrollLeft: offset.left
-          });
-        });
-      }
+      showForm();
       if($('#startpoint').is(":visible")) {
         $('#startpoint').hide();
       }
@@ -86,20 +103,29 @@ define(function (require) {
         $thanksOffline.slideToggle();
       }
 
-    };
+    }
+
+    // Show the form. Used when the user creates an entry that doesn't
+    // correspond to a map object. For example, the form can allow entry of an
+    // address, which will later be displayed as a point on the map.
+    function showObjectFreeForm() {
+      // Record the time to track how long a submission takes
+      timeStarted = new Date();
+
+      // Show/hide UI as needed
+      showForm();
+      if ($('#startpoint').is(":visible")) {
+        $('#startpoint').hide();
+      }
+      if ($('#thanks').is(":visible")) {
+        $('#thanks').slideToggle();
+      }
+    }
 
 
     // Form submission .........................................................
 
-    // Handle the parcel survey form being submitted
-    form.submit(function(event) {
-      console.log("Submitting survey results");
-
-      // Stop form from submitting normally
-      event.preventDefault();
-      submitFlash();
-
-
+    function doSubmit() {
       // Serialize the form
       var serialized = form.serializeObject();
 
@@ -113,6 +139,8 @@ define(function (require) {
           type: 'mobile',
           collector: app.collectorName,
           started: timeStarted,             // Time started
+          // FIXME: This could be artificially large if we take a while to look
+          // up an address. We should compute this earlier.
           finished: new Date()              // Time finished
         },
         geo_info: {
@@ -145,7 +173,37 @@ define(function (require) {
         // Post a response in the appropriate format.
         api.postResponse(response);
       }
+    }
+
+    // Handle the parcel survey form being submitted
+    form.submit(function(event) {
+      console.log("Submitting survey results");
+
+      // Stop form from submitting normally
+      event.preventDefault();
+      submitFlash();
+
+      if (app.selectedObject && app.selectedObject.hasOwnProperty('centroid')) {
+        doSubmit();
+      } else {
+        var address = $('input:text[data-type="address"]').val();
+        api.codeAddress(address, function (error, data) {
+          // FIXME deal with offline mode properly in this situation.
+          // FIXME handle error
+
+          app.selectedObject = {
+            centroid: {
+              type: 'Point',
+              coordinates: data.coords
+            }
+          };
+
+          doSubmit();
+        });
+      }
     });
+
+    
 
     function submitThanks() {
       // Publish  a "form submitted" event
@@ -203,6 +261,12 @@ define(function (require) {
       });
       $('fieldset').each(function(index){
         hideAndClearSubQuestionsFor($(this).attr('id'));
+      });
+
+      // Clear text input
+      $('input:text').each(function (index) {
+        var $this = $(this);
+        $this.val('');
       });
 
       // Clear file upload selections
@@ -287,6 +351,11 @@ define(function (require) {
           answerFile: _.template($('#answer-file').html().trim()),
           repeatButton: _.template($('#repeat-button').html().trim())
         };
+        if (settings.survey.type === 'address-point') {
+          templates.answerAddress = _.template($('#answer-address-map').html());
+        } else {
+          templates.answerAddress = _.template($('#answer-address').html());
+        }
       }
 
       // Give the question an ID based on its name
@@ -350,16 +419,37 @@ define(function (require) {
       if (question.answers === undefined || question.answers.length === 0) {
         var $answer;
         var value = '';
+        var data;
+
         if (question.type === 'text') {
           if (question.value !== undefined) {
             value = question.value;
           }
-
-          $answer = $(templates.answerText({
+          data = {
             questionName: suffixed_name,
             id: _.uniqueId(question.name),
             value: value
-          }));
+          };
+
+          $answer = $(templates.answerText(data));
+        } else if (question.type === 'address') {
+          data = {
+            questionName: suffixed_name,
+            id: _.uniqueId(question.name),
+            value: ''
+          };
+
+          $answer = $(templates.answerAddress(data));
+          if (settings.survey.type === 'address-point') {
+            $answer.each(function (i, el) {
+              if ($(el).hasClass('address-map-button')) {
+                $(el).click(function (e) {
+                  e.preventDefault();
+                  $.publish('mapAddress', [$answer.val()]);
+                });
+              }
+            });
+          }
         } else if (question.type === 'file') {
           $answer = $(templates.answerFile({
             questionName: suffixed_name,
@@ -369,7 +459,7 @@ define(function (require) {
 
         $question.append($answer);
       }
-      
+
       // Add each answer to the question
       _.each(question.answers, function (answer) {
         // The triggerID is used to hide/show other question groups
