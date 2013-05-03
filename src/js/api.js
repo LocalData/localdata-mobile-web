@@ -10,6 +10,12 @@ define(function (require) {
   var L = require('lib/leaflet');
   var Lawnchair = require('lawnchair');
 
+  var cache = true;
+
+  if (window.useCacheBuster) {
+    cache = false;
+  }
+
   var api = {};
 
   var PING_INTERVAL = 10000; // 10 seconds
@@ -103,9 +109,56 @@ define(function (require) {
     }
   };
 
+  // Post a response and a file as multipart form data.
+  // Return a promise for the jQuery ajax operation.
+  function postMultipart(response) {
+    // Get ready to submit the data
+    var fd = new FormData();
+
+    // ... and add the file data
+    // TODO: support multiple files
+    var f = $.canvasResize('dataURLtoBlob', response.files[0].data);
+    f.name = response.files[0].name;
+    fd.append(response.files[0].fieldName, f, f.name);
+
+    // Remove the file data from the response object, since we will include
+    // it as part of a multipart request body.
+    delete response.files;
+
+    // Responses need to be added as a string :-\
+    fd.append('data', JSON.stringify({ responses: [response] }));
+
+    return $.ajax({
+      url: api.getSurveyURL() + '/responses',
+      type: 'POST',
+      data: fd,
+      dataType: 'json',
+      contentType: false,
+      processData: false,
+      headers: {
+        pragma: 'no-cache'
+      }
+    });
+  }
+
+  // Post a response, with no attached file, as application/json data.
+  // Return a promise for the jQuery ajax operation.
+  function postPlain(response) {
+    return $.ajax({
+      url: api.getSurveyURL() + '/responses',
+      type: 'POST',
+      data: JSON.stringify({ responses: [response] }),
+      headers: {
+        pragma: 'no-cache'
+      },
+      contentType: 'application/json; charset=utf-8'
+    });
+  }
+
   // Sync all of the locally-saved responses to the server.
   api.postSavedResponses = function sendSavedResponses() {
     // FIXME: The responses could correspond to different surveys.
+    // FIXME: If we've attached image data, we need to create multipart form data and submit responses individually.
     responseDB.keys(function (keys) {
       if (keys.length === 0) {
         return;
@@ -115,45 +168,97 @@ define(function (require) {
         $.publish('syncingResponses');
 
         data = { responses: _.pluck(doc, 'response') };
-        $.ajax({
-          url: api.getSurveyURL() + '/responses',
-          type: 'POST',
-          data: data,
-          dataType: 'json'
-        })
-        .fail(function (error) {
-          api.online = false;
-        })
-        .done(function (data) {
-          if (data.responses.length !== keys.length) {
-            console.error('We tried to save ' + keys.length + ' responses but only got ' + data.responses.length + ' back from the server!');
-          }
-          // Remove the documents from the local DB.
-          responseDB.remove(keys, function () {
-            $.publish('syncedResponses');
-          });
+
+        var hasFiles = _.any(data.responses, function (item) {
+          return item.files !== undefined;
         });
+
+        if (!hasFiles) {
+          // No files to upload, so we can post the responses in one batch.
+          $.ajax({
+            url: api.getSurveyURL() + '/responses',
+            type: 'POST',
+            data: JSON.stringify(data),
+            headers: {
+              pragma: 'no-cache'
+            },
+            contentType: 'application/json; charset=utf-8'
+          })
+          .fail(function (error) {
+            api.online = false;
+          })
+          .done(function (data) {
+            // Sanity check
+            if (data.responses.length !== keys.length) {
+              console.error('We tried to save ' + keys.length + ' responses but only got ' + data.responses.length + ' back from the server!');
+            }
+            // Remove the documents from the local DB.
+            responseDB.remove(keys, function () {
+              $.publish('syncedResponses');
+            });
+          });
+        } else {
+          // We need to upload files, so we must post responses one by one.
+          var count = data.responses.length;
+          _.each(data.responses, function (response) {
+            var promise;
+
+            // POST a response.
+            if (response.files !== undefined) {
+              promise = postMultipart(response);
+            } else {
+              promise = postPlain(response);
+            }
+
+            // Handle completion of the POST.
+            promise
+            .fail(function (jqXHR, textStatus, errorThrown) {
+              // TODO: distinguish between errors (timeout vs. 500)
+              // TODO: If we've saved some entries, remove those from the local DB.
+              console.error('Failed to save an entry! Going offline. Error: ' + errorThrown);
+              api.online = false;
+            })
+            .always(function () {
+              count -= 1;
+              if (count === 0) {
+                // We've saved each response to the server. We can remove them from our local DB.
+
+                // Remove the documents from the local DB.
+                responseDB.remove(keys, function () {
+                  $.publish('syncedResponses');
+                });
+              }
+            });
+
+          });
+        }
+
       });
     });
   };
 
-  // Save a single response, for the current survey, to the server.
-  // @param {Object} response A response object for the API
-  api.postResponse = function postResponse(response) {
-    // Save the response locally, in case of failure.
+  // Save the response locally, in case of failure.
+  function saveAndPost(response) {
+    // First save the data locally.
     responseDB.save({ response: response }, function (doc) {
       // If we're offline, don't do anything.
       if (!api.online) {
         return;
       }
 
+      var url = api.getSurveyURL() + '/responses';
+      var promise;
+
       // We're online, so try POSTing the data.
-      $.ajax({
-        url: api.getSurveyURL() + '/responses',
-        type: 'POST',
-        data: { responses: [response] },
-        dataType: 'json'
-      })
+      if (response.files !== undefined) {
+        // Post a response and file as multipart form data.
+        promise = postMultipart(response);
+      } else {
+        promise = postPlain(response);
+      }
+
+      // Handle success and failure.
+      promise
       .fail(function (error) {
         // TODO: differentiate between serious errors (like 404 Not Found) and
         // connectivity issues.
@@ -168,7 +273,46 @@ define(function (require) {
           api.online = true;
         });
       });
+
     });
+  }
+
+  // Save a single response, for the current survey, to the server.
+  // @param {Object} response A response object for the API
+  // @param {Array} files An array of file objects to attach to the response
+  api.postResponse = function postResponse(response, files) {
+    if (files !== undefined && files.length > 0) {
+      if (files.length > 1) {
+        console.error('We do not yet support attaching multiple files!');
+      }
+
+      // Resize the image as needed
+      $.canvasResize(files[0].file, {
+        width: 800,
+        height: 0,
+        crop: false,
+        quality: 100,
+        callback: function(data, width, height) {
+          // Attach the resized image, as a data URI, to the response object.
+          response.files = [{
+            fieldName: files[0].fieldName,
+            name: files[0].file.name,
+            data: data
+          }];
+
+          saveAndPost(response);
+        }
+      });
+    } else {
+      // No files to attach.
+
+      // Sanity check
+      if (files !== undefined) {
+        console.error('Empty files array!');
+      }
+
+      saveAndPost(response);
+    }
   };
 
   // Returns a promise for the survey data.
@@ -181,13 +325,21 @@ define(function (require) {
     console.log('Retrieving survey id from ' + url);
     
     // Get the survey ID
-    return $.getJSON(url)
+    return $.ajax({
+      url: url,
+      dataType: 'json',
+      cache: cache
+    })
     .then(function (data) {
       settings.surveyId = data.survey;
 
       // Actually get the survey metadata
       var surveyUrl = api.getSurveyURL();
-      return $.getJSON(surveyUrl)
+      return $.ajax({
+        url: surveyUrl,
+        dataType: 'json',
+        cache: cache
+      })
       .then(function (survey) {
         settings.survey = survey.survey;
         console.log(settings.survey);
@@ -222,24 +374,28 @@ define(function (require) {
     
     console.log(url);
 
-    $.getJSON(url, function(data){
-      
-      // Get only the mobile forms
-      var mobileForms = _.filter(data.forms, function(form) {
-        if (_.has(form, 'type')) {
-          if (form.type === 'mobile'){
-            return true;
+    $.ajax({
+      url: url,
+      dataType: 'json',
+      cache: cache,
+      success: function (data){
+        // Get only the mobile forms
+        var mobileForms = _.filter(data.forms, function(form) {
+          if (_.has(form, 'type')) {
+            if (form.type === 'mobile'){
+              return true;
+            }
           }
-        }
-        return false;
-      });
-      settings.formData = mobileForms[0];
-      
-      console.log('Mobile forms');
-      console.log(mobileForms);
-      
-      // Endpoint should give the most recent form first.
-      callback();
+          return false;
+        });
+        settings.formData = mobileForms[0];
+        
+        console.log('Mobile forms');
+        console.log(mobileForms);
+        
+        // Endpoint should give the most recent form first.
+        callback();
+      }
     });
   };
 
@@ -258,25 +414,57 @@ define(function (require) {
   };
   
   // Take an address string.
-  // Add 'Detroit' to the end.
-  // Return the first result as a lat-lng for convenience.
-  // Or Null if Bing is being a jerk / we're dumb. 
-  api.codeAddress = function(address, callback) {
+  // callback(error, data)
+  // data contains addressLine and coords (a lng-lat array)
+  api.codeAddress = function (address, callback) {
     console.log('Coding an address');
 
-    // TODO: Append a locale to the address to make searching easier.
-    // Can we get the locale from the geolocation feature?
-    if(settings.survey.hasOwnProperty('location')) {
-      address = address + " " + settings.survey.location;
-    }
-    
-    var geocodeEndpoint = 'http://dev.virtualearth.net/REST/v1/Locations/' + address + '?o=json&key=' + settings.bing_key + '&jsonp=?';
+    // TODO: Can we get the locale from the geolocation feature?
+    // If the user-entered address does not include a city, append the survey location.
+    var addressWithLocale = address;
+    if (settings.survey.location !== undefined && settings.survey.location.length > 0) {
+      // If there is a comma in the address, assume the user added the city.
+      if (address.indexOf(',') === -1) {
+        // See if the survey location is part of the user-entered address.
+        // Assume survey location is of the form "City, State", "City, State, USA", or "City, State ZIP"
+        var addressLower = address.toLocaleLowerCase();
+        var locationComponents = settings.survey.location.split(',');
+        var containsLocale = false;
 
-    $.getJSON(geocodeEndpoint, function(data){
-      if(data.resourceSets.length > 0){
-        var point = data.resourceSets[0].resources[0].point;
-        var latlng = new L.LatLng(point.coordinates[0], point.coordinates[1]);
-        callback(latlng);
+        // TODO: Check the tail parts of the survey location.
+
+        // Check the first part of the survey location.
+        var city = locationComponents[0].toLocaleLowerCase().trim();
+        if (addressLower.length >= city.length && addressLower.substr(addressLower.length - city.length, city.length) === city) {
+          containsLocale = true;
+          // Add the remaining location components.
+          addressWithLocale = addressWithLocale + ', ' + locationComponents.slice(1).join(',');
+        }
+
+        if (!containsLocale) {
+          addressWithLocale = addressWithLocale + ', ' + settings.survey.location;
+        }
+      }
+    }
+    var geocodeEndpoint = 'http://dev.virtualearth.net/REST/v1/Locations/' + addressWithLocale + '?o=json&key=' + settings.bing_key + '&jsonp=?';
+
+    $.ajax({
+      url: geocodeEndpoint,
+      dataType: 'json',
+      cache: cache,
+      success: function (data) {
+        if (data.resourceSets.length > 0){
+          var result = data.resourceSets[0].resources[0];
+          callback(null, {
+            addressLine: result.address.addressLine,
+            coords: [result.point.coordinates[1], result.point.coordinates[0]]
+          });
+        } else {
+          callback({
+            type: 'GeocodingError',
+            message: 'No geocoding results found'
+          });
+        }
       }
     });
   };
@@ -305,7 +493,8 @@ define(function (require) {
       url: url,
       dataType: 'json',
       type: 'GET',
-      timeout: timeout
+      timeout: timeout,
+      cache: cache
     })
     .done(function (data) {
       callback(data.responses);
@@ -329,6 +518,8 @@ define(function (require) {
     // Given the bounds, generate a URL to ge the responses from the API.
     var url = api.getGeoBoundsObjectsURL(bbox);
 
+    // Get geo objects from the API. Don't force non-caching on IE, since these
+    // should rarely change and could be requested multiple times in a session.
     // If we're in offline mode, don't wait around forever for base layer
     // objects.
     var timeout = 0;
@@ -458,31 +649,38 @@ define(function (require) {
   api.getObjectsInBBoxFromESRI = function(bbox, options, callback) {
     var url = generateArcQueryURL(bbox, options);
 
-    // Fetch the data.
-    $.getJSON(url, function(data){
-      if(data) {
-        // Create a GeoJSON FeatureCollection from the ESRI-style data.
-        var featureCollection = {
-          type: 'FeatureCollection'
-        };
-        featureCollection.features = _.map(data.features, function (item) {
-          return {
-            type: 'Feature',
-            id: item.attributes[options.id],
-            geometry: generateGeoJSONFromESRIGeometry(item.geometry),
-            properties: {
-              address: generateNameFromAttributes(item.attributes, options)
-            }
+    // Get geo objects from the ArcServer API. Don't force non-caching on IE,
+    // since these should rarely change and could be requested multiple times
+    // in a session.
+    $.ajax({
+      url: url,
+      dataType: 'json',
+      cache: cache,
+      success: function (data){
+        if(data) {
+          // Create a GeoJSON FeatureCollection from the ESRI-style data.
+          var featureCollection = {
+            type: 'FeatureCollection'
           };
-        });
+          featureCollection.features = _.map(data.features, function (item) {
+            return {
+              type: 'Feature',
+              id: item.attributes[options.id],
+              geometry: generateGeoJSONFromESRIGeometry(item.geometry),
+              properties: {
+                address: generateNameFromAttributes(item.attributes, options)
+              }
+            };
+          });
 
-        // Pass the FeatureCollection to the callback.
-        callback(null, featureCollection);
-      } else {
-        callback({
-          type: 'APIError',
-          message: 'Got no data from the Arc Server endpoint'
-        });
+          // Pass the FeatureCollection to the callback.
+          callback(null, featureCollection);
+        } else {
+          callback({
+            type: 'APIError',
+            message: 'Got no data from the Arc Server endpoint'
+          });
+        }
       }
     });
 
