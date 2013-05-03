@@ -157,7 +157,6 @@ define(function (require) {
       // If there are files, handle them
       var fileItems = $('#parcelform input[type=file]');
       if (fileItems[0] !== undefined && fileItems[0].files !== undefined) {
-        console.log(fileItems);
         // Pull the actual File objects out.
         // TODO: Support more than one file
         var files;
