@@ -10,6 +10,12 @@ define(function (require) {
   var L = require('lib/leaflet');
   var Lawnchair = require('lawnchair');
 
+  var cache = true;
+
+  if (window.useCacheBuster) {
+    cache = false;
+  }
+
   var api = {};
 
   var PING_INTERVAL = 10000; // 10 seconds
@@ -319,13 +325,21 @@ define(function (require) {
     console.log('Retrieving survey id from ' + url);
     
     // Get the survey ID
-    return $.getJSON(url)
+    return $.ajax({
+      url: url,
+      dataType: 'json',
+      cache: cache
+    })
     .then(function (data) {
       settings.surveyId = data.survey;
 
       // Actually get the survey metadata
       var surveyUrl = api.getSurveyURL();
-      return $.getJSON(surveyUrl)
+      return $.ajax({
+        url: surveyUrl,
+        dataType: 'json',
+        cache: cache
+      })
       .then(function (survey) {
         settings.survey = survey.survey;
         console.log(settings.survey);
@@ -360,24 +374,28 @@ define(function (require) {
     
     console.log(url);
 
-    $.getJSON(url, function(data){
-      
-      // Get only the mobile forms
-      var mobileForms = _.filter(data.forms, function(form) {
-        if (_.has(form, 'type')) {
-          if (form.type === 'mobile'){
-            return true;
+    $.ajax({
+      url: url,
+      dataType: 'json',
+      cache: cache,
+      success: function (data){
+        // Get only the mobile forms
+        var mobileForms = _.filter(data.forms, function(form) {
+          if (_.has(form, 'type')) {
+            if (form.type === 'mobile'){
+              return true;
+            }
           }
-        }
-        return false;
-      });
-      settings.formData = mobileForms[0];
-      
-      console.log('Mobile forms');
-      console.log(mobileForms);
-      
-      // Endpoint should give the most recent form first.
-      callback();
+          return false;
+        });
+        settings.formData = mobileForms[0];
+        
+        console.log('Mobile forms');
+        console.log(mobileForms);
+        
+        // Endpoint should give the most recent form first.
+        callback();
+      }
     });
   };
 
@@ -396,25 +414,57 @@ define(function (require) {
   };
   
   // Take an address string.
-  // Add 'Detroit' to the end.
-  // Return the first result as a lat-lng for convenience.
-  // Or Null if Bing is being a jerk / we're dumb. 
-  api.codeAddress = function(address, callback) {
+  // callback(error, data)
+  // data contains addressLine and coords (a lng-lat array)
+  api.codeAddress = function (address, callback) {
     console.log('Coding an address');
 
-    // TODO: Append a locale to the address to make searching easier.
-    // Can we get the locale from the geolocation feature?
-    if(settings.survey.hasOwnProperty('location')) {
-      address = address + " " + settings.survey.location;
-    }
-    
-    var geocodeEndpoint = 'http://dev.virtualearth.net/REST/v1/Locations/' + address + '?o=json&key=' + settings.bing_key + '&jsonp=?';
+    // TODO: Can we get the locale from the geolocation feature?
+    // If the user-entered address does not include a city, append the survey location.
+    var addressWithLocale = address;
+    if (settings.survey.location !== undefined && settings.survey.location.length > 0) {
+      // If there is a comma in the address, assume the user added the city.
+      if (address.indexOf(',') === -1) {
+        // See if the survey location is part of the user-entered address.
+        // Assume survey location is of the form "City, State", "City, State, USA", or "City, State ZIP"
+        var addressLower = address.toLocaleLowerCase();
+        var locationComponents = settings.survey.location.split(',');
+        var containsLocale = false;
 
-    $.getJSON(geocodeEndpoint, function(data){
-      if(data.resourceSets.length > 0){
-        var point = data.resourceSets[0].resources[0].point;
-        var latlng = new L.LatLng(point.coordinates[0], point.coordinates[1]);
-        callback(latlng);
+        // TODO: Check the tail parts of the survey location.
+
+        // Check the first part of the survey location.
+        var city = locationComponents[0].toLocaleLowerCase().trim();
+        if (addressLower.length >= city.length && addressLower.substr(addressLower.length - city.length, city.length) === city) {
+          containsLocale = true;
+          // Add the remaining location components.
+          addressWithLocale = addressWithLocale + ', ' + locationComponents.slice(1).join(',');
+        }
+
+        if (!containsLocale) {
+          addressWithLocale = addressWithLocale + ', ' + settings.survey.location;
+        }
+      }
+    }
+    var geocodeEndpoint = 'http://dev.virtualearth.net/REST/v1/Locations/' + addressWithLocale + '?o=json&key=' + settings.bing_key + '&jsonp=?';
+
+    $.ajax({
+      url: geocodeEndpoint,
+      dataType: 'json',
+      cache: cache,
+      success: function (data) {
+        if (data.resourceSets.length > 0){
+          var result = data.resourceSets[0].resources[0];
+          callback(null, {
+            addressLine: result.address.addressLine,
+            coords: [result.point.coordinates[1], result.point.coordinates[0]]
+          });
+        } else {
+          callback({
+            type: 'GeocodingError',
+            message: 'No geocoding results found'
+          });
+        }
       }
     });
   };
@@ -443,7 +493,8 @@ define(function (require) {
       url: url,
       dataType: 'json',
       type: 'GET',
-      timeout: timeout
+      timeout: timeout,
+      cache: cache
     })
     .done(function (data) {
       callback(data.responses);
@@ -467,6 +518,8 @@ define(function (require) {
     // Given the bounds, generate a URL to ge the responses from the API.
     var url = api.getGeoBoundsObjectsURL(bbox);
 
+    // Get geo objects from the API. Don't force non-caching on IE, since these
+    // should rarely change and could be requested multiple times in a session.
     // If we're in offline mode, don't wait around forever for base layer
     // objects.
     var timeout = 0;
@@ -596,31 +649,38 @@ define(function (require) {
   api.getObjectsInBBoxFromESRI = function(bbox, options, callback) {
     var url = generateArcQueryURL(bbox, options);
 
-    // Fetch the data.
-    $.getJSON(url, function(data){
-      if(data) {
-        // Create a GeoJSON FeatureCollection from the ESRI-style data.
-        var featureCollection = {
-          type: 'FeatureCollection'
-        };
-        featureCollection.features = _.map(data.features, function (item) {
-          return {
-            type: 'Feature',
-            id: item.attributes[options.id],
-            geometry: generateGeoJSONFromESRIGeometry(item.geometry),
-            properties: {
-              address: generateNameFromAttributes(item.attributes, options)
-            }
+    // Get geo objects from the ArcServer API. Don't force non-caching on IE,
+    // since these should rarely change and could be requested multiple times
+    // in a session.
+    $.ajax({
+      url: url,
+      dataType: 'json',
+      cache: cache,
+      success: function (data){
+        if(data) {
+          // Create a GeoJSON FeatureCollection from the ESRI-style data.
+          var featureCollection = {
+            type: 'FeatureCollection'
           };
-        });
+          featureCollection.features = _.map(data.features, function (item) {
+            return {
+              type: 'Feature',
+              id: item.attributes[options.id],
+              geometry: generateGeoJSONFromESRIGeometry(item.geometry),
+              properties: {
+                address: generateNameFromAttributes(item.attributes, options)
+              }
+            };
+          });
 
-        // Pass the FeatureCollection to the callback.
-        callback(null, featureCollection);
-      } else {
-        callback({
-          type: 'APIError',
-          message: 'Got no data from the Arc Server endpoint'
-        });
+          // Pass the FeatureCollection to the callback.
+          callback(null, featureCollection);
+        } else {
+          callback({
+            type: 'APIError',
+            message: 'Got no data from the Arc Server endpoint'
+          });
+        }
       }
     });
 
