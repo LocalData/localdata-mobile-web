@@ -14,12 +14,18 @@ define(function (require) {
     var formQuestions = $('#questions');
     var repeatCounter = {};
     var timeStarted;
+    var $form = $('#form');
+    var $submitting = $('#submitting');
+    var $thanks = $('#thanks');
+    var $thanksOffline = $('#thanks-offline');
 
     this.init = function(){
       console.log("Initialize form");
 
       // Listen for objectedSelected, triggered when items on the map are tapped
       $.subscribe("objectSelected", setSelectedObjectInfo);
+
+      $.subscribe('readyForAddressForm', showObjectFreeForm);
 
       // Render the form
       api.getForm(renderForm);
@@ -43,9 +49,37 @@ define(function (require) {
       };
     };
 
+    function showForm() {
+      // Set any necessary form context.
+      // Right now, only address questions rely on context outside the form.
+      // Later, pieces of the form could condition on fields of the selected
+      // object.
+      var address = app.selectedObject.address;
+      if (address !== undefined) {
+        $('input:text[data-type="address"]').val(address);
+      } else {
+        $('input:text[data-type="address"]').val('');
+      }
+
+      if(!$form.is(":visible")) {
+        $form.slideToggle(400, function(){
+
+          // Make sure the form becomes visible
+          // when an object on the map is clicked
+          var offset = $form.offset();
+          offset.top -= 175; // Keep enough of the map visible
+                             // to give the user context
+          $('html, body').animate({
+            scrollTop: offset.top,
+            scrollLeft: offset.left
+          });
+        });
+      }
+    }
+
     // Update the form with information about the selected object.
     // Then, display the form.
-    var setSelectedObjectInfo = function(e) {
+    function setSelectedObjectInfo(e) {
       console.log("Showing the form");
       var $addressDOM = $('h2 .parcel_id');
 
@@ -55,45 +89,43 @@ define(function (require) {
       });
 
       // Record the time to track how long a submission takes
-      var timeStarted = new Date();
+      timeStarted = new Date();
 
       // Show/hide UI as needed
-      if(!$('#form').is(":visible")) {
-        $('#form').slideToggle(400, function(){
-
-          // Make sure the form becomes visible
-          // when an object on the map is clicked
-          var offset = $('#form').offset();
-          offset.top -= 175; // Keep enough of the map visible
-                             // to give the user context
-          $('html, body').animate({
-            scrollTop: offset.top,
-            scrollLeft: offset.left
-          });
-        });
-      }
+      showForm();
       if($('#startpoint').is(":visible")) {
         $('#startpoint').hide();
       }
-      if($('#thanks').is(":visible")) {
+      if($thanks.is(":visible")) {
+        $thanks.slideToggle();
+      }
+      if($thanksOffline.is(":visible")) {
+        $thanksOffline.slideToggle();
+      }
+
+    }
+
+    // Show the form. Used when the user creates an entry that doesn't
+    // correspond to a map object. For example, the form can allow entry of an
+    // address, which will later be displayed as a point on the map.
+    function showObjectFreeForm() {
+      // Record the time to track how long a submission takes
+      timeStarted = new Date();
+
+      // Show/hide UI as needed
+      showForm();
+      if ($('#startpoint').is(":visible")) {
+        $('#startpoint').hide();
+      }
+      if ($('#thanks').is(":visible")) {
         $('#thanks').slideToggle();
       }
-      
-    };
+    }
 
 
     // Form submission .........................................................
 
-    // Handle the parcel survey form being submitted
-    form.submit(function(event) {
-      console.log("Submitting survey results");
-
-      // Stop form from submitting normally
-      event.preventDefault();
-      submitStart();
-
-      var url = api.getSurveyURL() + form.attr('action');
-
+    function doSubmit() {
       // Serialize the form
       var serialized = form.serializeObject();
 
@@ -102,84 +134,88 @@ define(function (require) {
       var centroidLng = parseFloat(selectedCentroid.coordinates[0]);
       var centroidLat = parseFloat(selectedCentroid.coordinates[1]);
 
-      console.log("Selected object ID");
-
-      // Construct a response in the format we need it.
-      var responses = {responses: [{
-        "source": {
-          "type":"mobile",
-          "collector":app.collectorName,
-          "started": timeStarted,             // Time started
-          "finished": new Date()              // Time finished
+      var response = {
+        source: {
+          type: 'mobile',
+          collector: app.collectorName,
+          started: timeStarted,             // Time started
+          // FIXME: This could be artificially large if we take a while to look
+          // up an address. We should compute this earlier.
+          finished: new Date()              // Time finished
         },
-        "geo_info": {
-          "centroid":[centroidLng, centroidLat],
-          "geometry": app.selectedObject.geometry,
-          "humanReadableName": app.selectedObject.humanReadableName,
+        geo_info: {
+          centroid:[centroidLng, centroidLat],
+          geometry: app.selectedObject.geometry,
+          humanReadableName: app.selectedObject.humanReadableName,
           parcel_id: app.selectedObject.id // Soon to be deprecated
         },
-        "parcel_id": app.selectedObject.id, // Soon to be deprecated
-        "object_id": app.selectedObject.id, // Replaces parcel_id
-        "responses": serialized
-      }]};
+        parcel_id: app.selectedObject.id, // Soon to be deprecated
+        object_id: app.selectedObject.id, // Replaces parcel_id
+        responses: serialized
+      };
 
-      // Post the form
-      // TODO: This will need to use Prashant's browser-safe POSTing
-      // TODO: This is causing us to record numbers as strings
-      var jqxhr = $.post(url, responses, function() {
-        console.log('Form successfully posted');
-      }, 'text').error(function(){
-        var key;
-        var result = '';
-        for (key in jqxhr) {
-          result += key + ': ' + jqxhr[key] + '\n';
+      // If there are files, handle them
+      var fileItems = $('input[type=file]');
+      if (fileItems !== []) {
+        // Pull the actual File objects out.
+        // TODO: Support more than one file
+        var files;
+        if (fileItems[0].files.length > 0) {
+          files = [{
+            fieldName: $('#area input').attr('name'),
+            file: fileItems[0].files[0]
+          }];
         }
-        console.log('Error submitting result');
 
-        // Show the form again
-        $('#form').show(function(){
-          // Hide the submitting message
-          $('#submitting').slideToggle();
-
-          // Show an error message. 
-          $('#error').slideToggle();
-
-          // Roll down to the submit button so they can submit again.
-          var offset = $('#submitbutton').offset();
-          offset.top -= 100; // Keep enough of the map visible
-                             // to give the user context
-          $('html, body').animate({
-            scrollTop: offset.top,
-            scrollLeft: offset.left
-          });
-        });
-
-
-      }).success(function(){
-        successfulSubmit();
-      });
-    });
-
-    function submitStart() {
-      // Roll up the form & show the "now submitting" message
-      if($('#error').is(':visible')) {
-        $('#error').slideToggle();
+        // Post a response in the appropriate format.
+        api.postResponse(response, files);
+      } else {
+        // Post a response in the appropriate format.
+        api.postResponse(response);
       }
-      $('#form').slideToggle();
-      $('#submitting').slideToggle();
     }
 
-    // Clear the form and thank the user after a successful submission
-    // TODO: pass in selected_parcel_json
-    function successfulSubmit() {
-      console.log('Successful submit');
+    // Handle the parcel survey form being submitted
+    form.submit(function(event) {
+      console.log("Submitting survey results");
 
+      // Stop form from submitting normally
+      event.preventDefault();
+      submitFlash();
+
+      if (app.selectedObject && app.selectedObject.hasOwnProperty('centroid')) {
+        doSubmit();
+      } else {
+        var address = $('input:text[data-type="address"]').val();
+        api.codeAddress(address, function (error, data) {
+          // FIXME deal with offline mode properly in this situation.
+          // FIXME handle error
+
+          app.selectedObject = {
+            centroid: {
+              type: 'Point',
+              coordinates: data.coords
+            }
+          };
+
+          doSubmit();
+        });
+      }
+    });
+
+    
+
+    function submitThanks() {
       // Publish  a "form submitted" event
       $.publish('successfulSubmit');
 
       // Hide the form and show the thanks
-      $('#submitting').slideToggle();
-      $('#thanks').slideToggle();
+      $submitting.slideUp();
+      if (api.online) {
+        $thanks.slideDown();
+      } else {
+        $thanksOffline.slideDown();
+      }
 
       if($('#address-search-prompt').is(':hidden')) {
         $('#address-search-prompt').slideToggle();
@@ -192,6 +228,19 @@ define(function (require) {
       resetForm();
     }
 
+    // Show a brief thank-you message before bringing back a blank form.
+    function submitFlash() {
+      // Roll up the form & show the "now submitting" message
+      if ($('#error').is(':visible')) {
+        $('#error').slideToggle();
+      }
+
+      $form.slideUp();
+      $submitting.slideDown(function () {
+        setTimeout(submitThanks, 1000);
+      });
+    }
+
     // Reset the form: clear checkboxes, remove added option groups, hide
     // sub options.
     function resetForm() {
@@ -200,23 +249,36 @@ define(function (require) {
       // Clear all checkboxes and radio buttons
       $('input:checkbox').each(function(index){
         var $this = $(this);
-        if ($this.attr('checked')) {
-          $this.attr('checked', false).checkboxradio('refresh');
+        if ($this.prop('checked')) {
+          $this.prop('checked', false).checkboxradio('refresh');
         }
       });
       $('input:radio').each(function(index){
         var $this = $(this);
-        if ($this.attr('checked')) {
-          $this.attr('checked', false).checkboxradio('refresh');
+        if ($this.prop('checked')) {
+          $this.prop('checked', false).checkboxradio('refresh');
         }
       });
       $('fieldset').each(function(index){
         hideAndClearSubQuestionsFor($(this).attr('id'));
       });
 
+      // Clear text input
+      $('input:text').each(function (index) {
+        var $this = $(this);
+        $this.val('');
+      });
+
+      // Clear file upload selections
+      $('input[type=file]').each(function (index) {
+        $(this).val('');
+      });
+
       // Remove additional repeating groups
       $('.append-to').empty();
     }
+
+
 
 
     // Render the form ...........................................................
@@ -261,7 +323,6 @@ define(function (require) {
       };
     }
 
-
     /*
      * Render questions
      */
@@ -283,12 +344,18 @@ define(function (require) {
       // Load the templates
       if (templates === undefined) {
         templates = {
-          question: _.template($('#question').html()),
-          answerCheckbox: _.template($('#answer-checkbox').html()),
-          answerRadio: _.template($('#answer-radio').html()),
-          answerText: _.template($('#answer-text').html()),
-          repeatButton: _.template($('#repeat-button').html())
+          question: _.template($('#question').html().trim()),
+          answerCheckbox: _.template($('#answer-checkbox').html().trim()),
+          answerRadio: _.template($('#answer-radio').html().trim()),
+          answerText: _.template($('#answer-text').html().trim()),
+          answerFile: _.template($('#answer-file').html().trim()),
+          repeatButton: _.template($('#repeat-button').html().trim())
         };
+        if (settings.survey.type === 'address-point') {
+          templates.answerAddress = _.template($('#answer-address-map').html());
+        } else {
+          templates.answerAddress = _.template($('#answer-address').html());
+        }
       }
 
       // Give the question an ID based on its name
@@ -297,6 +364,7 @@ define(function (require) {
       // Collected the data needed to render the question
       var questionData = {
         text: question.text,
+        layout: question.layout,
         info: question.info,
         id: id,
         parentID: parentID,
@@ -346,6 +414,52 @@ define(function (require) {
       // }
 
       var questionID = id;
+
+      // Handle questions with no list of predefined answers
+      if (question.answers === undefined || question.answers.length === 0) {
+        var $answer;
+        var value = '';
+        var data;
+
+        if (question.type === 'text') {
+          if (question.value !== undefined) {
+            value = question.value;
+          }
+          data = {
+            questionName: suffixed_name,
+            id: _.uniqueId(question.name),
+            value: value
+          };
+
+          $answer = $(templates.answerText(data));
+        } else if (question.type === 'address') {
+          data = {
+            questionName: suffixed_name,
+            id: _.uniqueId(question.name),
+            value: ''
+          };
+
+          $answer = $(templates.answerAddress(data));
+          if (settings.survey.type === 'address-point') {
+            $answer.each(function (i, el) {
+              if ($(el).hasClass('address-map-button')) {
+                $(el).click(function (e) {
+                  e.preventDefault();
+                  $.publish('mapAddress', [$answer.val()]);
+                });
+              }
+            });
+          }
+        } else if (question.type === 'file') {
+          $answer = $(templates.answerFile({
+            questionName: suffixed_name,
+            id: _.uniqueId(question.name),
+          }));
+        }
+
+        $question.append($answer);
+      }
+
       // Add each answer to the question
       _.each(question.answers, function (answer) {
         // The triggerID is used to hide/show other question groups
@@ -375,9 +489,9 @@ define(function (require) {
         // or a radio group.
         if (question.answers.length > 1) {
 
-          if(question.type === "checkbox") {
+          if (question.type === "checkbox") {
             $answer = $(templates.answerCheckbox(data));
-          }else {
+          } else {
             $answer = $(templates.answerRadio(data));
           }
 
@@ -394,26 +508,21 @@ define(function (require) {
             referencesToAnswersForQuestion.push($(el));
           });
 
-        }else {
-          if(question.type === "text") {
-            $answer = $(templates.answerText(data));
-          }else {
-            $answer = $(templates.answerCheckbox(data));
+        } else {
+          $answer = $(templates.answerCheckbox(data));
 
-            // Store references to answers for quick retrieval later
-            referencesToAnswersForQuestion = app.boxAnswersByQuestionId[questionID];
-            if (referencesToAnswersForQuestion === undefined) {
-              referencesToAnswersForQuestion = [];
-              app.boxAnswersByQuestionId[questionID] = referencesToAnswersForQuestion;
-            }
-            $answer.filter('input[type="radio"]').each(function (i, el) {
-              referencesToAnswersForQuestion.push($(el));
-            });
-            $answer.filter('input[type="checkbox"]').each(function (i, el) {
-              referencesToAnswersForQuestion.push($(el));
-            });
-
+          // Store references to answers for quick retrieval later
+          referencesToAnswersForQuestion = app.boxAnswersByQuestionId[questionID];
+          if (referencesToAnswersForQuestion === undefined) {
+            referencesToAnswersForQuestion = [];
+            app.boxAnswersByQuestionId[questionID] = referencesToAnswersForQuestion;
           }
+          $answer.filter('input[type="radio"]').each(function (i, el) {
+            referencesToAnswersForQuestion.push($(el));
+          });
+          $answer.filter('input[type="checkbox"]').each(function (i, el) {
+            referencesToAnswersForQuestion.push($(el));
+          });
         }
 
         $question.append($answer);
@@ -476,7 +585,9 @@ define(function (require) {
     }
 
 
-    // Option group stuff ........................................................
+
+
+    // Option group stuff ......................................................
 
     // Show / hide sub questions for a given parent
     function hideAndClearSubQuestionsFor(parent) {
@@ -515,8 +626,8 @@ define(function (require) {
       var j;
       var answersToProcessLength = answersToProcess.length;
       for (j = 0; j < answersToProcessLength; j += 1) {
-        if (answersToProcess[j].attr('checked')) {
-          answersToProcess[j].attr('checked', false).checkboxradio("refresh");
+        if (answersToProcess[j].prop('checked')) {
+          answersToProcess[j].prop('checked', false).checkboxradio("refresh");
         }
       }
 

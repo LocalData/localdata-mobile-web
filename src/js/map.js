@@ -16,16 +16,16 @@ define(function (require) {
   function addBuffer(bounds, divisor) {
     var sw = bounds.getSouthWest();
     var ne = bounds.getNorthEast();
-    
+
     var lngDiff = ne.lng - sw.lng;
     var latDiff = ne.lat - sw.lat;
-    
+
     var lngMod = lngDiff / 4;
     var latMod = latDiff / 4;
-    
+
     var newSW = new L.LatLng(sw.lat - latMod, sw.lng - lngMod);
     var newNE = new L.LatLng(ne.lat + latMod, ne.lng + lngMod);
-    
+
     return new L.LatLngBounds(newSW, newNE);
   }
 
@@ -100,6 +100,7 @@ define(function (require) {
     var pointMarkersLayer = new L.LayerGroup();
     var completedParcelCount = 0;
     var completedParcelIds = {};
+    var pendingParcelIds = {};
 
     var crosshairLayer;
     var pointObjectLayer;
@@ -122,7 +123,7 @@ define(function (require) {
         iconAnchor: new L.Point(8, 8),
         popupAnchor: new L.Point(8, 8)
       }
-    });  
+    });
 
     var PlaceIcon = L.icon({
       className: 'PlaceIcon',
@@ -132,7 +133,7 @@ define(function (require) {
       shadowSize: new L.Point(25, 25),
       iconAnchor: new L.Point(13, 13),
       popupAnchor: new L.Point(13, 13)
-    });  
+    });
 
     var CrosshairIcon = L.icon({
       className: 'CrosshairIcon',
@@ -172,12 +173,24 @@ define(function (require) {
       dashArray: '1'
     };
 
+    var pendingStyle = {
+      opacity: 0.7,
+      fillOpacity: 0.25,
+      weight: 2,
+      color: '#2ACCD4',
+      fillColor: '#2ACCD4',
+      dashArray: '1'
+    };
+
     function parcelStyle(feature) {
       if (feature.properties.selected) {
         return selectedStyle;
       }
       if (_.has(completedParcelIds, feature.id)) {
         return completedStyle;
+      }
+      if (_.has(pendingParcelIds, feature.id)) {
+        return pendingStyle;
       }
       return defaultStyle;
     }
@@ -229,6 +242,40 @@ define(function (require) {
       }
     }
 
+    function mapAddress(e, address) {
+      api.codeAddress(address, function (error, data) {
+        if (error) {
+          if (error.type === 'GeocodingError') {
+            console.warn('We could not geocode the address: '  + address);
+          } else {
+            console.error('Unexpected error of type ' + error.type);
+            console.error(error.message);
+          }
+          settings.address = '';
+          return;
+        }
+
+        if (circle !== null) {
+          map.removeLayer(circle);
+        }
+
+        // Add the accuracy circle to the map
+        var radius = 4;
+        var latlng = new L.LatLng(data.coords[1], data.coords[0]);
+        circle = new L.Circle(latlng, radius);
+        map.addLayer(circle);
+        map.setView(latlng, 17);
+
+        delete app.selectedObject;
+        app.selectedObject = {
+          centroid: {
+            type: 'Point',
+            coordinates: data.coords
+          }
+        };
+      });
+    }
+
     this.init = function() {
       console.log('Initialize map');
       console.log(settings.survey);
@@ -260,6 +307,31 @@ define(function (require) {
         });
 
         $('#point').show();
+      } else if (settings.survey.type === 'address-point') {
+        api.codeAddress(settings.survey.location, function (error, data) {
+          if (error) {
+            if (error.type === 'GeocodingError') {
+              console.warn('We could not geocode the address: '  + address);
+            } else {
+              console.error('Unexpected error of type ' + error.type);
+              console.error(error.message);
+            }
+            return;
+          }
+          crosshairLayer = L.marker([0,0], {icon: CrosshairIcon});
+          map.addLayer(crosshairLayer);
+
+          // Move the crosshairs as the map moves
+          map.on('move', function(e){
+            crosshairLayer.setLatLng(map.getCenter());
+          });
+        });
+
+        $.subscribe('mapAddress', mapAddress);
+
+        $('#address-search-toggle').hide();
+        $('#geolocate').hide();
+        $('#entry').show();
       }
 
       $.subscribe('successfulSubmit', getResponsesInMap);
@@ -280,15 +352,17 @@ define(function (require) {
       map.on('locationfound', onLocationFound);
       map.on('locationerror', onLocationError);
 
+      var initialLocate = true;
       map.locate({
         setView: true,
         maxZoom: 19,
         enableHighAccuracy: true
       });
 
-      // Mark a location on the map. 
+      // Mark a location on the map.
       // Primarily used with browser-based geolocation (aka 'where am I?')
       function onLocationFound(e) {
+        initialLocate = false;
         // Remove the old circle if we have one
         if (circle !== null) {
           map.removeLayer(circle);
@@ -308,7 +382,36 @@ define(function (require) {
       }
 
       function onLocationError(e) {
-        alert(e.message);
+        if (initialLocate) {
+          initialLocate = false;
+          api.codeAddress(settings.survey.location, function (error, data) {
+            if (error) {
+              if (error.type === 'GeocodingError') {
+                console.warn('We could not geocode the address: '  + address);
+              } else {
+                console.error('Unexpected error of type ' + error.type);
+                console.error(error.message);
+              }
+              return;
+            }
+
+            if (circle !== null) {
+              map.removeLayer(circle);
+            }
+
+            // Add the accuracy circle to the map
+            var radius = 4;
+            var latlng = new L.LatLng(data.coords[1], data.coords[0]);
+            circle = new L.Circle(latlng, radius);
+            map.addLayer(circle);
+            map.setView(latlng, 19);
+
+            // Scroll to the top
+            window.scrollTo(0,0);
+          });
+        } else {
+          alert(e.message);
+        }
       }
 
 
@@ -346,9 +449,12 @@ define(function (require) {
         app.selectedObject = {};
         app.selectedObject.id = '';
         app.selectedObject.humanReadableName = 'Custom location';
-        app.selectedObject.centroid = { coordinates: lnglat };
 
-        // Select the current layer
+        app.selectedObject.centroid = { coordinates: lnglat };
+        app.selectedObject.geometry = {
+          type: 'Point',
+          coordinates: lnglat
+        };
 
         newPoint = L.marker(latlng, {icon: PlaceIcon});
         map.addLayer(newPoint);
@@ -358,6 +464,13 @@ define(function (require) {
         // Let other parts of the app know that we've selected something.
         $.publish('objectSelected');
 
+      });
+
+      $('#entry').click(function () {
+        app.selectedObject = {};
+
+        // Indicate that we're ready for a form
+        $.publish('readyForAddressForm');
       });
 
     }; // end init
@@ -373,32 +486,47 @@ define(function (require) {
     this.getMapBounds = function() {
       var bounds = '';
       bounds += map.getBounds().getNorthWest().toString();
-      bounds += ' ' + map.getBounds().getSouthEast().toString();  
+      bounds += ' ' + map.getBounds().getSouthEast().toString();
       return bounds;
     };
 
 
     // Move the map ............................................................
-    // Attempt to center the map on an address using Google's geocoder.
+    // Attempt to center the map on an address using Bing's geocoder.
     // This should probably live in APIs. 
     var goToAddress = function(address) {
-      api.codeAddress(address, function(latlng){
-        if (circle !== undefined) {
+      api.codeAddress(address, function (error, data) {
+        if (error) {
+          if (error.type === 'GeocodingError') {
+            console.warn('We could not geocode the address: '  + address);
+          } else {
+            console.error('Unexpected error of type ' + error.type);
+            console.error(error.message);
+          }
+          settings.address = '';
+          return;
+        }
+
+        if (circle !== null) {
           map.removeLayer(circle);
         }
 
         // Add the accuracy circle to the map
         var radius = 4;
+        var latlng = new L.LatLng(data.coords[1], data.coords[0]);
         circle = new L.Circle(latlng, radius);
         map.addLayer(circle);
         map.setView(latlng, 19);
 
-        // Scroll to the top so users can 
+        // Scroll to the top so users can
         window.scrollTo(0,0);
         $('#address-search').slideToggle();
         $('#address-search-prompt').slideToggle();
 
+        // Record the address, for potential later use by the survey questions.
+        settings.address = data.addressLine;
 
+        // TODO: Select an object, if appropriate
       });
     };
 
@@ -417,7 +545,7 @@ define(function (require) {
       parcelsLayerGroup.eachLayer(function (layer) {
         layer.setStyle(parcelStyle);
       });
-      
+
       // Keep track of the selected object centrally
       app.selectedObject.id = selectedLayer.feature.id;
       app.selectedObject.humanReadableName = selectedLayer.feature.properties.address;
@@ -431,7 +559,19 @@ define(function (require) {
         };
       }
 
-      app.selectedObject.geometry = selectedLayer.feature.geometry; 
+      app.selectedObject.geometry = selectedLayer.feature.geometry;
+
+      // If there is an address associated with the selected object, save that.
+      // TODO: For now, if the survey type is "address", we assume the object
+      // name indicates the address.
+      // TODO: This is Houston-specific for beta testing.
+      if (settings.survey.type === 'address') {
+        var address = selectedLayer.feature.properties.address;
+        var city = 'houston';
+        if (address.length > city.length && address.substr(address.length - city.length).toLocaleLowerCase() === city) {
+          app.selectedObject.address = address.substr(0, address.length - city.length - 1).titleCase();
+        }
+      }
 
       // Let other parts of the app know that we've selected something.
       $.publish('objectSelected');
@@ -443,10 +583,10 @@ define(function (require) {
       console.log('Map: getting & rendering parcels in bounds');
 
       // Don't load and render a basemap if the survey is point-based
-      if (settings.survey.type === 'point') {
+      if (settings.survey.type === 'point' || settings.survey.type === 'address-point') {
         return;
       }
- 
+
       // Don't add any parcels if the zoom is really far out.
       var zoom = map.getZoom();
       if(zoom < zoomLevels.parcelCutoff) {
@@ -493,6 +633,8 @@ define(function (require) {
               $.mobile.hidePageLoadingMsg();
             }
             console.log(error.message);
+            // TODO: we should subscribe to the 'online' event and refetch
+            // parcels if appropriate
             return;
           }
 
@@ -514,7 +656,7 @@ define(function (require) {
             return true;
           });
 
-          // Create a new GeoJSON layer and style it. 
+          // Create a new GeoJSON layer and style it.
           var geoJSONLayer = new L.geoJson(featureCollection, {
             style: parcelStyle
           });
@@ -546,7 +688,7 @@ define(function (require) {
     }
 
     // Adds a checkbox marker to the given point
-    var addDoneMarker = function(latlng, id) {
+    function addDoneMarker(latlng, id) {
       // Only add markers if they aren't already on the map.
       if (markers[id] == undefined  || id === ''){
         var doneIcon = new CheckIcon();
@@ -554,13 +696,54 @@ define(function (require) {
         doneMarkersLayer.addLayer(doneMarker);
         markers[id] = doneMarker;
       }
-    };
+    }
 
-    // Get all the responses in a map 
-    var getResponsesInMap = function () {  
+    // Flag existing responses, so we can style them appropriately on the map.
+    function markResponses(responses, type) {
+      if (type === 'pending') {
+        pendingParcelIds = {};
+      } else if (type === 'completed') {
+        // TODO: This should be greater than the maximum number of completed
+        // parcels we expect to display on the screen at one time.
+        if (completedParcelCount > 2000) {
+          completedParcelIds = {};
+          completedParcelCount = 0;
+        }
+      }
+
+      var zoom = map.getZoom();
+
+      _.each(responses, function (response) {
+        var parcelId = response.parcel_id;
+        var treatAsPoint = parcelId === '';
+
+        // For address-based surveys, the checkmarks can be misleading, since
+        // they will correspond to lots/parcels and not individual units.
+        if ((zoom >= zoomLevels.checkmarkCutoff && settings.survey.type !== 'address')
+            || treatAsPoint) {
+          var point = new L.LatLng(response.geo_info.centroid[1], response.geo_info.centroid[0]);
+          addDoneMarker(point, parcelId);
+        }
+
+        if (parcelId !== undefined) {
+          if (type === 'completed') {
+            completedParcelIds[parcelId] = true;
+            completedParcelCount += 1;
+          } else if (type === 'pending') {
+            pendingParcelIds[parcelId] = true;
+          }
+        }
+      });
+    }
+
+    // Get all the responses in a map
+    function getResponsesInMap() {
       console.log('Getting responses in the map');
+      // Unsubscribe to the syncedResponses event. We'll resubscribe later if
+      // it's appropriate.
+      $.unsubscribe('syncedResponses', getResponsesInMap);
 
-      // Don't add any markers if the zoom is really far out. 
+      // Don't add any markers if the zoom is really far out.
       var zoom = map.getZoom();
       if(zoom < zoomLevels.completedCutoff) {
         completedParcelIds = {};
@@ -575,7 +758,8 @@ define(function (require) {
       // checkmarks. Of course, for point-based surveys, we always want checkmarks.
       if (zoom < zoomLevels.checkmarkCutoff && (
           settings.survey.type !== 'point' &&
-          settings.survey.type !== 'pointandparcel'
+          settings.survey.type !== 'pointandparcel' &&
+          settings.survey.type !== 'address-point'
         ) ) {
         doneMarkersLayer.clearLayers();
         markers = [];
@@ -586,38 +770,31 @@ define(function (require) {
         bounds = addBuffer(bounds);
       }
 
-      // TODO: make these requests according to tile boundaries
-      api.getResponsesInBounds(bounds, function (results) {
-        // TODO: This should be greater than the maximum number of completed
-        // parcels we expect to display on the screen at one time.
-        if (completedParcelCount > 2000) {
-          completedParcelIds = {};
-          completedParcelCount = 0;
+      // For now we assume there are not many saved responses, so we can just grab them all.
+      api.getSavedResponses(function (error, pendingResponses) {
+        if (!error) {
+          markResponses(pendingResponses, 'pending');
         }
 
-        // Track the responses that we've added.
-        _.each(results, function (response) {
-          var parcelId = response.parcel_id;
+        // TODO: make these requests according to tile boundaries
+        api.getResponsesInBounds(bounds, function (completedResponses) {
 
-          if (zoom >= zoomLevels.checkmarkCutoff) {
-            var point = new L.LatLng(response.geo_info.centroid[1], response.geo_info.centroid[0]);
-            addDoneMarker(point, parcelId);
+          markResponses(completedResponses, 'completed');
+          if (completedResponses.length > 0 || pendingResponses.length > 0) {
+            // Restyle
+            parcelsLayerGroup.eachLayer(function (layer) {
+              layer.setStyle(parcelStyle);
+            });
           }
-
-          if (parcelId !== undefined) {
-            completedParcelIds[parcelId] = true;
-            completedParcelCount += 1;
+          if (pendingResponses.length > 0) {
+            // When the pending responses are synced, we want to get new
+            // response data and refresh the map.
+            $.subscribe('syncedResponses', getResponsesInMap);
           }
         });
-
-        if (results.length > 0) {
-          parcelsLayerGroup.eachLayer(function (layer) {
-            layer.setStyle(parcelStyle);
-          });
-        }
       });
 
-    };
+    }
 
     // Map init ================================================================
     this.init();

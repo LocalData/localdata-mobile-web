@@ -1,16 +1,16 @@
 <!doctype html>
-<html lang="en" manifest="manifest.appcache">
+<html lang="en" manifest="manifest.appcache" class="no-js ui-mobile-rendering">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE">
     <META HTTP-EQUIV="PRAGMA" CONTENT="NO-CACHE">
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
-      
+
     <title>LocalData Survey</title>
 
     <script data-main="js/main" src="js/require.js"></script>
-    
+
     <!-- Styles -->
 <!--
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
@@ -19,41 +19,58 @@
     <style type="text/css" media="screen">
       @import url(css/reset.css);
       @import url(js/lib/leaflet/leaflet.css);
-      @import url(css/mobile.css);      
+      @import url(css/mobile.css);
     </style>
-    
-    
+
+
     <!--[if lt IE 9]>
     <script type="text/javascript" src="js/lib/aight.min.js"></script>
+    <![endif]-->
+    <!--[if lte IE 9]>
+    <script type="text/javascript">
+      window.useCacheBuster = true;
+    </script>
     <![endif]-->
 
 </head>
 
 <body id="home">
-  <div class="container" id="home-container">
+  <div class="container" id="loading-container">
+      <h1>
+        LocalData<br>
+      </h1>
+      <div id="loading-msg">Loading application...</div>
+  </div><!-- end home -->
+
+  <div class="container" id="home-container" style="display:none;">
       <h1>
         LocalData<br>
       </h1>
 
-      <div id="notfound">
+      <div style="width: 75%;" id="notfound">
         <h2>
-            We couldn't find this survey. 
+            We couldn't find this survey.
             Are you sure the URL is correct?
         </h2>
       </div>
-  
-      <div id="login">
-        <input type="text" name="name" id="collector_name" style="width:70%" value="" data-mini="true" placeholder="Your name">
+
+      <div style="width: 75%;" id="login">
+        <input type="text" name="name" id="collector_name" value="" data-mini="true" placeholder="Your name">
         <input id="collector-name-submit" type="submit" data-icon="arrow-r" data-iconpos="right" data-inline="true" data-theme="e" value="Get started">
       </div>
+
   </div><!-- end home -->
-    
+
   <div class="container" id="survey-container">
     <div id="tools">
       <a href='#' id='address-search-toggle' data-icon="search" data-role="button" data-inline="true" >Address</a>
       <a href='#' id='geolocate' data-icon="star" data-role="button" data-inline="true" >Locate me</a>
       <a href='#' id='point' data-icon="plus" data-role="button" data-inline="true" style="display:none;">Add point</a>
+      <a href='#' id='entry' data-icon="plus" data-role="button" data-inline="true" style="display:none;">Add entry</a>
+      <a href="#popupOffline" id="net-status-offline" data-icon="alert" data-iconpos="notext" data-role="button" data-theme="e" data-rel="popup" data-transition="pop"></a>
+      <a href="#popupBackOnline" id="net-status-back" data-icon="info" data-iconpos="notext" data-role="button" data-theme="d" data-rel="popup" data-transition="pop"></a>
     </div>
+
     <div id="address-search">
       <input type="text" name="address-input" id="address-input" style="width:70%" value="" data-mini="true" placeholder="Address">
       <input id="address-submit" type="submit" data-icon="arrow-r" data-iconpos="right" data-inline="true" data-theme="e" value="Find address">
@@ -62,14 +79,18 @@
     <div id='map-div' style="height:250px;"></div>
     <div id="startpoint">
         <h2>Select a location to begin.</h2>
-    </div> 
+    </div>
     <div id="submitting">
         <h2>Submitting data...</h2>
     </div>
     <div id="thanks">
         <h2>Thank you! Select another location to continue.</h2>
     </div>
-    
+    <div id="thanks-offline">
+      <h2>You're offline, so we saved the entry on your device.</h2>
+      <h2>Please continue, and we'll upload when you have converage again. Thanks!</h2>
+    </div>
+
     <div id="form">
       <h2>
           <span class="parcel_id">&nbsp;</span>
@@ -81,7 +102,7 @@
         <div id="questions">
         </div>
         <script type="text/template" id="question">
-        <fieldset data-role="controlgroup" class="control-group" id="<%= id %>" data-parent="<%= parentID %>" data-trigger="<%= triggerID %>">
+        <fieldset data-role="controlgroup" class="control-group" id="<%= id %>" data-parent="<%= parentID %>" data-trigger="<%= triggerID %>" <% if (layout && layout === 'horizontal') { %>data-type="horizontal" <% } %>>
           <legend class="control-legend"><%= text %></legend>
           <% if(info !== undefined) { %>
             <a href="" class="show-info" data-role="button" data-inline="true" data-icon="info" data-trigger="info-<%= id %>">More info</a>
@@ -104,15 +125,26 @@
         </script>
 
         <script type="text/template" id="answer-text">
-          <label for="<%= id %>"><%= text %></label>
           <input type="text" name="<%= questionName %>" id="<%= id %>" value="<%= value %>">
         </script>
-        
+
+        <script type="text/template" id="answer-address">
+          <input type="text" name="<%= questionName %>" id="<%= id %>" value="<%= value %>" data-type="address">
+        </script>
+
+        <script type="text/template" id="answer-address-map">
+          <input type="text" name="<%= questionName %>" id="<%= id %>" value="<%= value %>" data-type="address">
+          <a class="address-map-button button" href="#" data-role="button" data-inline="true">Show on map</a>
+        </script>
+
         <script type="text/template" id="answer-texarea">
           <label for="<%= id %>"><%= text %></label>
           <input type="text" name="<%= questionName %>" id="<%= id %>" value="<%= value %>">
         </script>
-        
+
+        <script type="text/template" id="answer-file">
+          <input type="file" name="<%= questionName %>" id="<%= id %>">
+        </script>
 
         <script type="text/template" id="repeat-button">
           <div class="repeating-button" style="display:none" data-parent="<%= parentID %>" data-trigger="<%= triggerID %>">
@@ -120,7 +152,7 @@
             <a class="repeating-button button" href="#" data-icon="plus" data-role="button" data-inline="true">Add another</a>
           </div>
         </script>
-        
+
         <div id="error">
           <h2>
             There was an error submitting your answer.<br>
@@ -129,8 +161,28 @@
         </div>
         <input type="submit" data-theme="b" data-icon="check" value="Submit answers" id="submitbutton">
       </form>
-    </div><!-- end form -->    
+    </div><!-- end form -->
+
   </div><!-- end survey -->
-  
+
+  <div data-role="popup" id="popupOffline" data-theme="e" data-overlay-theme="a">
+    <p>You're currently offline. We'll upload your responses when you go back online.<p>
+  </div>
+
+  <div data-role="popup" id="popupBackOnline" data-theme="e" data-overlay-theme="a">
+    <p>We're uploading the responses you added while you were offline.<p>
+  </div>
+
+
+
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-39867070-2', 'localdata.com');
+    ga('send', 'pageview');
+  </script>
   </body>
 </html>
