@@ -415,16 +415,9 @@ define(function (require) {
   };
 
   // Take an address string.
-<<<<<<< HEAD
-  // Add 'Detroit' to the end.
-  // Return the first result as a lat-lng for convenience.
-  // Or Null if Bing is being a jerk / we're dumb.
-  api.codeAddress = function(address, callback) {
-=======
   // callback(error, data)
   // data contains addressLine and coords (a lng-lat array)
   api.codeAddress = function (address, callback) {
->>>>>>> master
     console.log('Coding an address');
 
     // TODO: Can we get the locale from the geolocation feature?
