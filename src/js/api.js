@@ -22,8 +22,6 @@ define(function (require) {
     // use Q
     return $.getJSON(url)
     .pipe(function (data, error) {
-      console.log("here we're:", data, error);
-
       settings.surveyId = data.survey;
 
       // Actually get the survey metadata
@@ -45,28 +43,28 @@ define(function (require) {
   api.getSurveyURL = function() {
     return settings.api.baseurl + '/surveys/' + settings.surveyId;
   };
-  
+
   api.getParcelDataURL = function(parcel_id) {
     return settings.api.baseurl + '/surveys/' + settings.surveyId + '/responses?objectId=' + parcel_id;
   };
-  
+
   // Deprecated
   // api.getGeoPointInfoURL = function(lat, lng) {
   //   return settings.api.geo + '/parcels/parcel?lat=' + lat + '&lng=' + lng;
   // };
-  
+
   api.getGeoBoundsObjectsURL = function(bbox) {
     return settings.api.geo + '/parcels.geojson?bbox=' + bbox.join(',');
   };
-  
+
   api.getForm = function(callback) {
     console.log('Getting form data');
     var url = api.getSurveyURL() + '/forms';
-    
+
     console.log(url);
 
     $.getJSON(url, function(data){
-      
+
       // Get only the mobile forms
       var mobileForms = _.filter(data.forms, function(form) {
         if (_.has(form, 'type')) {
@@ -77,16 +75,16 @@ define(function (require) {
         return false;
       });
       settings.formData = mobileForms[0];
-      
+
       console.log('Mobile forms');
       console.log(mobileForms);
-      
+
       // Endpoint should give the most recent form first.
       callback();
     });
   };
 
-  
+
   // Deal with the formatting of the geodata API.
   // In the future, this will be more genericized.
   // parcel_id => object_id
@@ -99,11 +97,11 @@ define(function (require) {
       centroid: data.centroid
     };
   };
-  
+
   // Take an address string.
   // Add 'Detroit' to the end.
   // Return the first result as a lat-lng for convenience.
-  // Or Null if Bing is being a jerk / we're dumb. 
+  // Or Null if Bing is being a jerk / we're dumb.
   api.codeAddress = function(address, callback) {
     console.log('Coding an address');
     console.log(address);
@@ -121,7 +119,7 @@ define(function (require) {
       }
     });
   };
-  
+
   // Get responses to the survey recorded in the given bounds
   //
   // @param {Object} bounds A leaflet map bounds object
@@ -129,7 +127,7 @@ define(function (require) {
   api.getResponsesInBounds = function(bounds, callback) {
     var southwest = bounds.getSouthWest();
     var northeast = bounds.getNorthEast();
-    
+
     // Given the bounds, generate a URL to ge the responses from the API.
     var serializedBounds = southwest.lng + ',' + southwest.lat + ',' + northeast.lng + ',' + northeast.lat;
     var url = api.getSurveyURL() + '/responses?bbox=' + serializedBounds;
@@ -141,7 +139,7 @@ define(function (require) {
       }
     });
   };
-  
+
   // Query the GeoAPI for features in the given bounding box
   //
   // @param {Object} bbox A bounding box specified as an array of coordinates:
@@ -292,6 +290,6 @@ define(function (require) {
     });
 
   };
-    
+
   return api;
 });

@@ -1,8 +1,8 @@
 /*jslint nomen: true */
 /*globals define: true */
 
-/* 
- * Basic app functionality for the mobile survey. 
+/*
+ * Basic app functionality for the mobile survey.
  */
 
 define(function (require) {
@@ -14,8 +14,8 @@ define(function (require) {
   var MapView = require('map');
 
   var app = {
-    /* 
-     * Show the survey & hide the front page after the sign-in form has been 
+    /*
+     * Show the survey & hide the front page after the sign-in form has been
      * submitted
      */
     init: function () {
@@ -48,7 +48,7 @@ define(function (require) {
 
         // Wait until we have the survey data
         surveyPromise.done(function (error, survey) {
-          console.log("DONE", error, survey);
+
           // If we don't have a survey, let the user know there's a problem
           if (error) {
             console.log("Survey not found");
