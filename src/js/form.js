@@ -155,8 +155,8 @@ define(function (require) {
       };
 
       // If there are files, handle them
-      var fileItems = $('input[type=file]');
-      if (fileItems !== []) {
+      var fileItems = $('#parcelform input[type=file]');
+      if (fileItems[0] !== undefined && fileItems[0].files !== undefined) {
         // Pull the actual File objects out.
         // TODO: Support more than one file
         var files;
@@ -203,7 +203,7 @@ define(function (require) {
       }
     });
 
-    
+
 
     function submitThanks() {
       // Publish  a "form submitted" event
@@ -453,7 +453,7 @@ define(function (require) {
         } else if (question.type === 'file') {
           $answer = $(templates.answerFile({
             questionName: suffixed_name,
-            id: _.uniqueId(question.name),
+            id: _.uniqueId(question.name)
           }));
         }
 
