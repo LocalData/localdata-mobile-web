@@ -352,9 +352,9 @@ define(function (require) {
           repeatButton: _.template($('#repeat-button').html().trim())
         };
         if (settings.survey.type === 'address-point') {
-          templates.answerAddress = _.template($('#answer-address-map').html());
+          templates.answerAddress = _.template($('#answer-address-map').html().trim());
         } else {
-          templates.answerAddress = _.template($('#answer-address').html());
+          templates.answerAddress = _.template($('#answer-address').html().trim());
         }
       }
 
