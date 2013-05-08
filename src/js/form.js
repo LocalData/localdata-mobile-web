@@ -478,7 +478,7 @@ define(function (require) {
 
         if(question.type === 'checkbox') {
           // Slugify the text if there isn't a name
-          // (old surveys have a name, and we defer to that)
+          // (checkbox answers on old surveys have a name, and we defer to that)
           if (answer.name === undefined) {
             answer.name = slugify(answer.text);
           }
