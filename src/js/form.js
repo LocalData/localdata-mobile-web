@@ -483,7 +483,6 @@ define(function (require) {
             answer.name = slugify(answer.text);
           }
           suffixed_name = answer.name + suffix(answer.name);
-          // suffixed_name = answer.value + suffix(answer.value);
           triggerID = suffixed_name;
           id = suffixed_name;
         }
