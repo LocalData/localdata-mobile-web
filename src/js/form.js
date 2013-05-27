@@ -154,6 +154,11 @@ define(function (require) {
         responses: serialized
       };
 
+      // Make sure we have a responses property, even if it is empty
+      if(!response.hasOwnProperty('responses')) {
+        response.responses = {};
+      }
+
       // If there are files, handle them
       var fileItems = $('#parcelform input[type=file]');
       if (fileItems[0] !== undefined && fileItems[0].files !== undefined) {
