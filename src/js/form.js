@@ -328,6 +328,17 @@ define(function (require) {
       };
     }
 
+
+    // Slugify a string
+    // Used to generate the name attribute of forms
+    function slugify(text) {
+      text = text.replace(/[^-a-zA-Z0-9,&\s]+/ig, '');
+      text = text.replace(/\s/gi, "-");
+      text = text.replace(/,/gi, '');
+      return text;
+    }
+
+
     /*
      * Render questions
      */
@@ -470,11 +481,15 @@ define(function (require) {
         // The triggerID is used to hide/show other question groups
         var triggerID = _.uniqueId(question.name);
 
-        // TODO: checkbox questions should be consistent with other answer groups
-        if(question.type === "checkbox") {
+        if(question.type === 'checkbox') {
+          // Slugify the text if there isn't a name
+          // (checkbox answers on old surveys have a name, and we defer to that)
+          if (answer.name === undefined) {
+            answer.name = slugify(answer.text);
+          }
           suffixed_name = answer.name + suffix(answer.name);
-          triggerID = suffixed_name; //_.uniqueId(answer.name);
-          id = suffixed_name; //_.uniqueId(answer.name);
+          triggerID = suffixed_name;
+          id = suffixed_name;
         }
 
         // Set the data used to render the answer
