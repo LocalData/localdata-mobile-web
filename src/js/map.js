@@ -776,21 +776,45 @@ define(function (require) {
           markResponses(pendingResponses, 'pending');
         }
 
-        // TODO: make these requests according to tile boundaries
-        api.getResponsesInBounds(bounds, function (completedResponses) {
+        // TODO: factor out the tile computation, which we also use for parcels.
+        // Compute the tiles that we need to cover the current map bounds.
+        // TODO: When we upgrade Leaflet, we can just use bounds.getSouth(), bounds.getEast(), etc.
+        var sw = bounds.getSouthWest();
+        var ne = bounds.getNorthEast();
+        var tiles = maptiles.getTileCoords(vectorTileZoom, [[sw.lng, sw.lat], [ne.lng, ne.lat]]);
 
-          markResponses(completedResponses, 'completed');
-          if (completedResponses.length > 0 || pendingResponses.length > 0) {
-            // Restyle
+        var loadingCount = tiles.length;
+        var responseCount = pendingResponses.length;
+
+        // When we're done with all of the tiles, restyle and wrap things up.
+        function doneLoadingResponseTile(count) {
+          responseCount += count;
+          loadingCount -= 1;
+          if (loadingCount > 0) {
+            return;
+          }
+
+          // If we got responses, we need to restyle, so they show up.
+          if (responseCount > 0) {
             parcelsLayerGroup.eachLayer(function (layer) {
               layer.setStyle(parcelStyle);
             });
           }
+
           if (pendingResponses.length > 0) {
             // When the pending responses are synced, we want to get new
             // response data and refresh the map.
             $.subscribe('syncedResponses', getResponsesInMap);
           }
+        }
+
+        // Fetch each tile.
+        _.each(tiles, function (tile) {
+          api.getResponsesInBBox(maptiles.tileToBBox(tile), function (completedResponses) {
+            markResponses(completedResponses, 'completed');
+            // We're done with this tile.
+            doneLoadingResponseTile(completedResponses.length);
+          });
         });
       });
 

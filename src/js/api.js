@@ -471,14 +471,12 @@ define(function (require) {
   
   // Get responses to the survey recorded in the given bounds
   //
-  // @param {Object} bounds A leaflet map bounds object
+  // @param {Object} bbox A bounding box specified as an array of coordinates:
+  // [[west, south], [east, north]]
   // @param {Function} callback Expects a list of features & attributes
-  api.getResponsesInBounds = function(bounds, callback) {
-    var southwest = bounds.getSouthWest();
-    var northeast = bounds.getNorthEast();
-    
+  api.getResponsesInBBox = function(bbox, callback) {
     // Given the bounds, generate a URL to ge the responses from the API.
-    var serializedBounds = southwest.lng + ',' + southwest.lat + ',' + northeast.lng + ',' + northeast.lat;
+    var serializedBounds = bbox.join(',');
     var url = api.getSurveyURL() + '/responses?bbox=' + serializedBounds;
 
     // If we likely have poor connectivity, let's not spend forever waiting for
