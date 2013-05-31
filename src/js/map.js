@@ -70,6 +70,20 @@ define(function (require) {
     return null;
   }
 
+  // We request parcel shape data using tile names, even though they are not
+  // rendered tiles. Since we're getting shape data, we can work with whatever
+  // zoom level produces a convenient spatial chunk of data.
+  var vectorTileZoom = 17;
+
+  // Compute a list of tiles that cover the given bounds.
+  function boundsToTiles(bounds) {
+    // TODO: When we upgrade Leaflet, we can just use bounds.getSouth(), bounds.getEast(), etc.
+    var sw = bounds.getSouthWest();
+    var ne = bounds.getNorthEast();
+    return maptiles.getTileCoords(vectorTileZoom, [[sw.lng, sw.lat], [ne.lng, ne.lat]]);
+  }
+
+
   var zoomLevels = {
     // Don't show parcels if we're zoomed out farther than 16.
     parcelCutoff: 16,
@@ -82,11 +96,6 @@ define(function (require) {
     // closer.
     bufferParcels: 17
   };
-
-  // We request parcel shape data using tile names, even though they are not
-  // rendered tiles. Since we're getting shape data, we can work with whatever
-  // zoom level produces a convenient spatial chunk of data.
-  var vectorTileZoom = 17;
 
   return function (app, mapContainerId) {
 
@@ -616,10 +625,8 @@ define(function (require) {
       }
 
       // Compute the tiles that we need to cover the current map bounds.
-      // TODO: When we upgrade Leaflet, we can just use bounds.getSouth(), bounds.getEast(), etc.
-      var sw = bounds.getSouthWest();
-      var ne = bounds.getNorthEast();
-      var tiles = maptiles.getTileCoords(vectorTileZoom, [[sw.lng, sw.lat], [ne.lng, ne.lat]]);
+      var tiles = boundsToTiles(bounds);
+
       // Fetch each tile.
       var loadingCount = tiles.length;
       _.each(tiles, function (tile) {
@@ -791,12 +798,8 @@ define(function (require) {
           }
         }
 
-        // TODO: factor out the tile computation, which we also use for parcels.
         // Compute the tiles that we need to cover the current map bounds.
-        // TODO: When we upgrade Leaflet, we can just use bounds.getSouth(), bounds.getEast(), etc.
-        var sw = bounds.getSouthWest();
-        var ne = bounds.getNorthEast();
-        var tiles = maptiles.getTileCoords(vectorTileZoom, [[sw.lng, sw.lat], [ne.lng, ne.lat]]);
+        var tiles = boundsToTiles(bounds);
 
         var loadingCount = tiles.length;
 
