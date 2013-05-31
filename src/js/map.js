@@ -705,7 +705,7 @@ define(function (require) {
       } else if (type === 'completed') {
         // TODO: This should be greater than the maximum number of completed
         // parcels we expect to display on the screen at one time.
-        if (completedParcelCount > 2000) {
+        if (completedParcelCount > 15000) {
           completedParcelIds = {};
           completedParcelCount = 0;
         }
@@ -770,10 +770,25 @@ define(function (require) {
         bounds = addBuffer(bounds);
       }
 
+      // Debounce the restyling code, in case we get data tiles in quick
+      // succession.
+      var restyle = _.debounce(function () {
+        parcelsLayerGroup.eachLayer(function (layer) {
+          layer.setStyle(parcelStyle);
+        });
+      }, 200);
+
       // For now we assume there are not many saved responses, so we can just grab them all.
       api.getSavedResponses(function (error, pendingResponses) {
+        // We're refetching everything in the visible map area, so we can
+        // safely throw away the old IDs.
+        completedParcelIds = {};
+        completedParcelCount = 0;
         if (!error) {
           markResponses(pendingResponses, 'pending');
+          if (pendingResponses.length > 0) {
+            restyle();
+          }
         }
 
         // TODO: factor out the tile computation, which we also use for parcels.
@@ -784,21 +799,12 @@ define(function (require) {
         var tiles = maptiles.getTileCoords(vectorTileZoom, [[sw.lng, sw.lat], [ne.lng, ne.lat]]);
 
         var loadingCount = tiles.length;
-        var responseCount = pendingResponses.length;
 
         // When we're done with all of the tiles, restyle and wrap things up.
-        function doneLoadingResponseTile(count) {
-          responseCount += count;
+        function doneLoadingResponseTile() {
           loadingCount -= 1;
           if (loadingCount > 0) {
             return;
-          }
-
-          // If we got responses, we need to restyle, so they show up.
-          if (responseCount > 0) {
-            parcelsLayerGroup.eachLayer(function (layer) {
-              layer.setStyle(parcelStyle);
-            });
           }
 
           if (pendingResponses.length > 0) {
@@ -812,8 +818,12 @@ define(function (require) {
         _.each(tiles, function (tile) {
           api.getResponsesInBBox(maptiles.tileToBBox(tile), function (completedResponses) {
             markResponses(completedResponses, 'completed');
+            // If we got responses, we need to restyle, so they show up.
+            if (completedResponses.length > 0) {
+              restyle();
+            }
             // We're done with this tile.
-            doneLoadingResponseTile(completedResponses.length);
+            doneLoadingResponseTile();
           });
         });
       });
