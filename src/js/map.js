@@ -70,6 +70,20 @@ define(function (require) {
     return null;
   }
 
+  // We request parcel shape data using tile names, even though they are not
+  // rendered tiles. Since we're getting shape data, we can work with whatever
+  // zoom level produces a convenient spatial chunk of data.
+  var vectorTileZoom = 17;
+
+  // Compute a list of tiles that cover the given bounds.
+  function boundsToTiles(bounds) {
+    // TODO: When we upgrade Leaflet, we can just use bounds.getSouth(), bounds.getEast(), etc.
+    var sw = bounds.getSouthWest();
+    var ne = bounds.getNorthEast();
+    return maptiles.getTileCoords(vectorTileZoom, [[sw.lng, sw.lat], [ne.lng, ne.lat]]);
+  }
+
+
   var zoomLevels = {
     // Don't show parcels if we're zoomed out farther than 16.
     parcelCutoff: 16,
@@ -82,11 +96,6 @@ define(function (require) {
     // closer.
     bufferParcels: 17
   };
-
-  // We request parcel shape data using tile names, even though they are not
-  // rendered tiles. Since we're getting shape data, we can work with whatever
-  // zoom level produces a convenient spatial chunk of data.
-  var vectorTileZoom = 17;
 
   return function (app, mapContainerId) {
 
@@ -616,10 +625,8 @@ define(function (require) {
       }
 
       // Compute the tiles that we need to cover the current map bounds.
-      // TODO: When we upgrade Leaflet, we can just use bounds.getSouth(), bounds.getEast(), etc.
-      var sw = bounds.getSouthWest();
-      var ne = bounds.getNorthEast();
-      var tiles = maptiles.getTileCoords(vectorTileZoom, [[sw.lng, sw.lat], [ne.lng, ne.lat]]);
+      var tiles = boundsToTiles(bounds);
+
       // Fetch each tile.
       var loadingCount = tiles.length;
       _.each(tiles, function (tile) {
@@ -705,7 +712,7 @@ define(function (require) {
       } else if (type === 'completed') {
         // TODO: This should be greater than the maximum number of completed
         // parcels we expect to display on the screen at one time.
-        if (completedParcelCount > 2000) {
+        if (completedParcelCount > 15000) {
           completedParcelIds = {};
           completedParcelCount = 0;
         }
@@ -770,27 +777,57 @@ define(function (require) {
         bounds = addBuffer(bounds);
       }
 
+      // Debounce the restyling code, in case we get data tiles in quick
+      // succession.
+      var restyle = _.debounce(function () {
+        parcelsLayerGroup.eachLayer(function (layer) {
+          layer.setStyle(parcelStyle);
+        });
+      }, 200);
+
       // For now we assume there are not many saved responses, so we can just grab them all.
       api.getSavedResponses(function (error, pendingResponses) {
+        // We're refetching everything in the visible map area, so we can
+        // safely throw away the old IDs.
+        completedParcelIds = {};
+        completedParcelCount = 0;
         if (!error) {
           markResponses(pendingResponses, 'pending');
+          if (pendingResponses.length > 0) {
+            restyle();
+          }
         }
 
-        // TODO: make these requests according to tile boundaries
-        api.getResponsesInBounds(bounds, function (completedResponses) {
+        // Compute the tiles that we need to cover the current map bounds.
+        var tiles = boundsToTiles(bounds);
 
-          markResponses(completedResponses, 'completed');
-          if (completedResponses.length > 0 || pendingResponses.length > 0) {
-            // Restyle
-            parcelsLayerGroup.eachLayer(function (layer) {
-              layer.setStyle(parcelStyle);
-            });
+        var loadingCount = tiles.length;
+
+        // When we're done with all of the tiles, restyle and wrap things up.
+        function doneLoadingResponseTile() {
+          loadingCount -= 1;
+          if (loadingCount > 0) {
+            return;
           }
+
           if (pendingResponses.length > 0) {
             // When the pending responses are synced, we want to get new
             // response data and refresh the map.
             $.subscribe('syncedResponses', getResponsesInMap);
           }
+        }
+
+        // Fetch each tile.
+        _.each(tiles, function (tile) {
+          api.getResponsesInBBox(maptiles.tileToBBox(tile), function (completedResponses) {
+            markResponses(completedResponses, 'completed');
+            // If we got responses, we need to restyle, so they show up.
+            if (completedResponses.length > 0) {
+              restyle();
+            }
+            // We're done with this tile.
+            doneLoadingResponseTile();
+          });
         });
       });
 
