@@ -40,7 +40,7 @@ define(function (require) {
   function startPinging() {
     pingId = setInterval(function ping() {
       $.ajax({
-        url: '/index.html',
+        url: '/mobile/index.html',
         cache: false,
         type: 'HEAD',
         timeout: PING_TIMEOUT
