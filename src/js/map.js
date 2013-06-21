@@ -85,16 +85,16 @@ define(function (require) {
 
 
   var zoomLevels = {
-    // Don't show parcels if we're zoomed out farther than 16.
-    parcelCutoff: 16,
-    // Don't indicate completed parcels if we're zoomed out farther than 16.
-    completedCutoff: 16,
+    // Don't show parcels if we're zoomed out farther than 17.
+    parcelCutoff: 17,
+    // Don't indicate completed parcels if we're zoomed out farther than 17.
+    completedCutoff: 17,
     // Don't show the checkmark completion markers if we're zoomed out farther
     // than 19.
     checkmarkCutoff: 19,
     // Buffer the area for which we request objects if we're zoomed in to 17 or
     // closer.
-    bufferParcels: 17
+    bufferParcels: 18
   };
 
   return function (app, mapContainerId) {
