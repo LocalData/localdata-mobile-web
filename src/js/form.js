@@ -501,8 +501,6 @@ define(function (require) {
           selected: answer.selected || false
         };
 
-        console.log(answer.selected);
-
         // Render the answer and append it to the fieldset.
         var $answer;
         var referencesToAnswersForQuestion;
@@ -512,7 +510,6 @@ define(function (require) {
         if (question.answers.length > 1) {
 
           if (question.type === "checkbox") {
-            console.log('----', data.selected);
             $answer = $(templates.answerCheckbox(data));
           } else {
             $answer = $(templates.answerRadio(data));
