@@ -346,18 +346,10 @@ define(function (require) {
     app.questionsByParentId = {};
     var templates;
     function addQuestion(question, visible, parentID, triggerID, appendTo) {
-      // Set default values for questions
-      if (visible === undefined) {
-        visible = true;
-      }
-      if (parentID === undefined) {
-        parentID = '';
-      }
-      if (triggerID === undefined) {
-        triggerID = '';
-      }
+      // Give the question an ID based on its name
+      var id = _.uniqueId(question.name);
 
-      // Load the templates
+      // Load the templates if we don't have them already
       if (templates === undefined) {
         templates = {
           question: _.template($('#question').html().trim()),
@@ -374,25 +366,29 @@ define(function (require) {
         }
       }
 
-      // Give the question an ID based on its name
-      var id = _.uniqueId(question.name);
-
       // Collected the data needed to render the question
       var questionData = {
         text: question.text,
         layout: question.layout,
         info: question.info,
         id: id,
-        parentID: parentID,
-        triggerID: triggerID
+        parentID: parentID || '',
+        triggerID: triggerID || ''
       };
 
-      // Render the questions's fieldset
+
+      // Render the question
       var $question = $(templates.question(questionData));
+
+      // Make the question visible by default
+      if (visible === undefined) {
+        visible = true;
+      }
       if (!visible) {
         $question.hide();
       }
 
+      // Record all questions by parent
       var siblings = app.questionsByParentId[parentID];
       if (siblings === undefined) {
         siblings = [];
@@ -401,6 +397,8 @@ define(function (require) {
       siblings.push($question);
 
 
+      // We may know what element we want to append to;
+      // Otherwise, here's a default value
       if (appendTo !== undefined) {
         $(appendTo).append($question);
       }else {
@@ -432,6 +430,7 @@ define(function (require) {
       var questionID = id;
 
       // Handle questions with no list of predefined answers
+      // These typically are text fields or file uploads
       if (question.answers === undefined || question.answers.length === 0) {
         var $answer;
         var value = '';
@@ -498,8 +497,11 @@ define(function (require) {
           id: triggerID,
           theme: (answer.theme || "c"),
           value: answer.value,
-          text: answer.text
+          text: answer.text,
+          selected: answer.selected || false
         };
+
+        console.log(answer.selected);
 
         // Render the answer and append it to the fieldset.
         var $answer;
@@ -510,6 +512,7 @@ define(function (require) {
         if (question.answers.length > 1) {
 
           if (question.type === "checkbox") {
+            console.log('----', data.selected);
             $answer = $(templates.answerCheckbox(data));
           } else {
             $answer = $(templates.answerRadio(data));
@@ -558,6 +561,7 @@ define(function (require) {
         // If there are conditional questions, add them.
         // They are hidden by default.
         if (answer.questions !== undefined) {
+
           // If users can repeat those conditional questions:
           if(answer.repeatQuestions !== undefined) {
             var $repeatButton;
@@ -586,14 +590,16 @@ define(function (require) {
               addQuestion(subq, false, id, triggerID, $appendTo);
             });
 
-
           }else {
+            // Render each sub-question.
+            // Show the sub-questions if the answer is selected by default
+            var show = answer.selected || false;
+
             _.each(answer.questions, function (subq) {
-              // Add the sub questions before the repeatButton
               if(appendTo !== undefined){
-                addQuestion(subq, false, id, triggerID, appendTo);
+                addQuestion(subq, show, id, triggerID, appendTo);
               }else {
-                addQuestion(subq, false, id, triggerID);
+                addQuestion(subq, show, id, triggerID);
               }
             });
 
@@ -643,13 +649,13 @@ define(function (require) {
       }
 
       // Uncheck all the things!
-      var j;
-      var answersToProcessLength = answersToProcess.length;
-      for (j = 0; j < answersToProcessLength; j += 1) {
-        if (answersToProcess[j].prop('checked')) {
-          answersToProcess[j].prop('checked', false).checkboxradio("refresh");
-        }
-      }
+      // var j;
+      // var answersToProcessLength = answersToProcess.length;
+      // for (j = 0; j < answersToProcessLength; j += 1) {
+      //   if (answersToProcess[j].prop('checked')) {
+      //     answersToProcess[j].prop('checked', false).checkboxradio("refresh");
+      //   }
+      // }
 
       $('.repeating-button[data-parent=' + parent + ']').hide();
     }

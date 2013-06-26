@@ -12,9 +12,6 @@
     <script data-main="js/main" src="js/require.js"></script>
 
     <!-- Styles -->
-<!--
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
--->
     <link rel="stylesheet" href="css/jquery.mobile.css">
     <style type="text/css" media="screen">
       @import url(css/reset.css);
@@ -129,12 +126,12 @@
   </script>
 
   <script type="text/template" id="answer-radio">
-    <input type="radio" name="<%= questionName %>" id="<%= id %>" value="<%= value %>">
+    <input type="radio" name="<%= questionName %>" id="<%= id %>" value="<%= value %>" <% if(selected){ %>checked="checked"<% } %>>
     <label for="<%= id %>"><%= text %></label>
   </script>
 
   <script type="text/template" id="answer-checkbox">
-    <input type="checkbox" name="<%= questionName %>" id="<%= id %>" value="<%= value %>" data-theme="<%= theme %>">
+    <input type="checkbox" name="<%= questionName %>" id="<%= id %>" value="<%= value %>" <% if(selected){ %>checked="checked"<% } %> data-theme="<%= theme %>">
     <label for="<%= id %>"><%= text %></label>
   </script>
 
