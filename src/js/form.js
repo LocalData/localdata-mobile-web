@@ -246,6 +246,7 @@ define(function (require) {
       });
     }
 
+
     /**
      * Reset the form: clear checkboxes, remove added option groups, hide sub
      * options.
@@ -253,35 +254,28 @@ define(function (require) {
     function resetForm() {
       console.log("Resetting form");
 
-      // Clear all checkboxes and radio buttons
-      $('input:checkbox').each(function(index){
-        var $this = $(this);
-
-        if ($this.prop('checked')) {
-          $this.prop('checked', false).checkboxradio('refresh');
-        }
-
-        // If the element is checked by default, keep it that way.
-        if ($this.attr('data-checked') === 'checked') {
-          $this.prop('checked', true).checkboxradio('refresh');
-        }
-      });
-      $('input:radio').each(function(index){
-        var $this = $(this);
-
-        if ($this.prop('checked')) {
-          $this.prop('checked', false).checkboxradio('refresh');
-        }
-
-        // If the element is checked by default, keep it that way.
-        if ($this.attr('data-checked') === 'checked') {
-          $this.prop('checked', true).checkboxradio('refresh');
-        }
-      });
-
       $('fieldset').each(function(index){
-        hideAndClearSubQuestionsFor($(this).attr('id'));
+        hideAndClearSubQuestionsFor($(this));
       });
+
+      // Clear all checkboxes and radio buttons
+      function uncheckInput (index) {
+        var $this = $(this);
+
+        // First, uncheck
+        $this.prop('checked', false).checkboxradio('refresh');
+
+        // If the element is checked by default, keep it that way.
+        if ($this.attr('data-checked') === 'checked') {
+          $this.prop('checked', true);
+
+          showSubQuestions($this);
+        }
+
+        $this.checkboxradio('refresh');
+      }
+      $('input:checkbox').each(uncheckInput);
+      $('input:radio').each(uncheckInput);
 
       // Clear text input
       $('input:text').each(function (index) {
@@ -325,29 +319,17 @@ define(function (require) {
       return "";
     }
 
-    function makeClickHandler(id, triggerID) {
+    function makeClickHandler($el) {
       return function handleClick(e) {
-        // Hide all of the conditional questions
-        hideAndClearSubQuestionsFor(id);
+        hideAndClearSubQuestionsFor($el);
 
         // Show the conditional questions for this response.
         if($(this).prop("checked")) {
-          // Show the forms
-          $('.control-group[data-trigger=' + triggerID + ']').each(function (i) {
+          showSubQuestions($(this));
+
+          $('.repeating-button[data-trigger=' + $el.attr('id') + ']').each(function (i) {
             $(this).show();
           });
-
-          $('.repeating-button[data-trigger=' + id + ']').each(function (i) {
-            $(this).show();
-          });
-
-          // Check answers that are checked by default
-          $('input:visible').each(function(i) {
-            if ($(this).attr('data-checked') === 'true') {
-              $(this).prop('checked', true).checkboxradio('refresh');
-            }
-          });
-
         }
       };
     }
@@ -586,7 +568,7 @@ define(function (require) {
           input = $answer;
         }
 
-        input.click(makeClickHandler(id, triggerID));
+        input.click(makeClickHandler($answer.parent(), triggerID));
 
         // If there are conditional questions, add them.
         // They are hidden by default.
@@ -642,12 +624,30 @@ define(function (require) {
 
 
     // Option group stuff ......................................................
+    /**
+     * Show the sub questions for a given question
+     * @param  {Object} $el JQuery object for an input field
+     */
+    function showSubQuestions($el) {
+      var id = $el.attr('id');
+      $('.control-group[data-trigger=' + id + ']').each(function (i) {
+        $(this).show();
+
+        // Check answers that are checked by default
+        $('input:visible', $(this)).each(function(i) {
+          if ($(this).attr('data-checked') === 'checked') {
+            $(this).prop('checked', true).checkboxradio('refresh');
+          }
+        });
+      });
+    }
 
     // Show / hide sub questions for a given parent
-    function hideAndClearSubQuestionsFor(parent) {
+    function hideAndClearSubQuestionsFor($parent) {
+      var parentId = $parent.attr('id');
 
       // Get the list of questions associated with that parent
-      var questionsToProcess = app.questionsByParentId[parent]; // was var controlGroupQueue
+      var questionsToProcess = app.questionsByParentId[parentId];
       var answersToProcess = [];
 
       function handleQuestion(question) {
@@ -668,6 +668,7 @@ define(function (require) {
         }
       }
 
+      // Handle each question
       var i = 0;
       var question;
       while (questionsToProcess !== undefined && i < questionsToProcess.length) {
@@ -681,11 +682,11 @@ define(function (require) {
       var answersToProcessLength = answersToProcess.length;
       for (j = 0; j < answersToProcessLength; j += 1) {
         if (answersToProcess[j].prop('checked')) {
-          answersToProcess[j].prop('checked', false).checkboxradio("refresh");
+          answersToProcess[j].prop('checked', false).checkboxradio('refresh');
         }
       }
 
-      $('.repeating-button[data-parent=' + parent + ']').hide();
+      $('.repeating-button[data-parent=' + parentId + ']').hide();
     }
 
     // Trigger form init .........................................................
