@@ -246,24 +246,39 @@ define(function (require) {
       });
     }
 
-    // Reset the form: clear checkboxes, remove added option groups, hide
-    // sub options.
+    /**
+     * Reset the form: clear checkboxes, remove added option groups, hide sub
+     * options.
+     */
     function resetForm() {
       console.log("Resetting form");
 
       // Clear all checkboxes and radio buttons
       $('input:checkbox').each(function(index){
         var $this = $(this);
+
         if ($this.prop('checked')) {
           $this.prop('checked', false).checkboxradio('refresh');
+        }
+
+        // If the element is checked by default, keep it that way.
+        if ($this.attr('data-checked') === 'checked') {
+          $this.prop('checked', true).checkboxradio('refresh');
         }
       });
       $('input:radio').each(function(index){
         var $this = $(this);
+
         if ($this.prop('checked')) {
           $this.prop('checked', false).checkboxradio('refresh');
         }
+
+        // If the element is checked by default, keep it that way.
+        if ($this.attr('data-checked') === 'checked') {
+          $this.prop('checked', true).checkboxradio('refresh');
+        }
       });
+
       $('fieldset').each(function(index){
         hideAndClearSubQuestionsFor($(this).attr('id'));
       });
@@ -312,11 +327,12 @@ define(function (require) {
 
     function makeClickHandler(id, triggerID) {
       return function handleClick(e) {
-        // Hide all of the conditional questions, recursively.
+        // Hide all of the conditional questions
         hideAndClearSubQuestionsFor(id);
 
         // Show the conditional questions for this response.
         if($(this).prop("checked")) {
+          // Show the forms
           $('.control-group[data-trigger=' + triggerID + ']').each(function (i) {
             $(this).show();
           });
@@ -324,6 +340,14 @@ define(function (require) {
           $('.repeating-button[data-trigger=' + id + ']').each(function (i) {
             $(this).show();
           });
+
+          // Check answers that are checked by default
+          $('input:visible').each(function(i) {
+            if ($(this).attr('data-checked') === 'true') {
+              $(this).prop('checked', true).checkboxradio('refresh');
+            }
+          });
+
         }
       };
     }
@@ -515,6 +539,15 @@ define(function (require) {
             $answer = $(templates.answerRadio(data));
           }
 
+          // If the question is visible and the answer is checked by default,
+          // set it as checked.
+          if (visible) {
+            var $input = $answer.filter('input');
+            if ($input.attr('data-checked') === 'checked') {
+              $input.prop('checked', true);
+            }
+          }
+
           // Store references to the questions for quick retrieval later
           referencesToAnswersForQuestion = app.boxAnswersByQuestionId[questionID];
           if (referencesToAnswersForQuestion === undefined) {
@@ -608,8 +641,6 @@ define(function (require) {
     }
 
 
-
-
     // Option group stuff ......................................................
 
     // Show / hide sub questions for a given parent
@@ -646,13 +677,13 @@ define(function (require) {
       }
 
       // Uncheck all the things!
-      // var j;
-      // var answersToProcessLength = answersToProcess.length;
-      // for (j = 0; j < answersToProcessLength; j += 1) {
-      //   if (answersToProcess[j].prop('checked')) {
-      //     answersToProcess[j].prop('checked', false).checkboxradio("refresh");
-      //   }
-      // }
+      var j;
+      var answersToProcessLength = answersToProcess.length;
+      for (j = 0; j < answersToProcessLength; j += 1) {
+        if (answersToProcess[j].prop('checked')) {
+          answersToProcess[j].prop('checked', false).checkboxradio("refresh");
+        }
+      }
 
       $('.repeating-button[data-parent=' + parent + ']').hide();
     }
