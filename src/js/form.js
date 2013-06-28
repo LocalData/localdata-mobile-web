@@ -246,27 +246,36 @@ define(function (require) {
       });
     }
 
-    // Reset the form: clear checkboxes, remove added option groups, hide
-    // sub options.
+
+    /**
+     * Reset the form: clear checkboxes, remove added option groups, hide sub
+     * options.
+     */
     function resetForm() {
       console.log("Resetting form");
 
-      // Clear all checkboxes and radio buttons
-      $('input:checkbox').each(function(index){
-        var $this = $(this);
-        if ($this.prop('checked')) {
-          $this.prop('checked', false).checkboxradio('refresh');
-        }
-      });
-      $('input:radio').each(function(index){
-        var $this = $(this);
-        if ($this.prop('checked')) {
-          $this.prop('checked', false).checkboxradio('refresh');
-        }
-      });
       $('fieldset').each(function(index){
-        hideAndClearSubQuestionsFor($(this).attr('id'));
+        hideAndClearSubQuestionsFor($(this));
       });
+
+      // Clear all checkboxes and radio buttons
+      function uncheckInput (index) {
+        var $this = $(this);
+
+        // First, uncheck
+        $this.prop('checked', false).checkboxradio('refresh');
+
+        // If the element is checked by default, keep it that way.
+        if ($this.attr('data-checked') === 'checked') {
+          $this.prop('checked', true);
+
+          showSubQuestions($this);
+        }
+
+        $this.checkboxradio('refresh');
+      }
+      $('input:checkbox').each(uncheckInput);
+      $('input:radio').each(uncheckInput);
 
       // Clear text input
       $('input:text').each(function (index) {
@@ -310,18 +319,15 @@ define(function (require) {
       return "";
     }
 
-    function makeClickHandler(id, triggerID) {
+    function makeClickHandler($el) {
       return function handleClick(e) {
-        // Hide all of the conditional questions, recursively.
-        hideAndClearSubQuestionsFor(id);
+        hideAndClearSubQuestionsFor($el);
 
         // Show the conditional questions for this response.
         if($(this).prop("checked")) {
-          $('.control-group[data-trigger=' + triggerID + ']').each(function (i) {
-            $(this).show();
-          });
+          showSubQuestions($(this));
 
-          $('.repeating-button[data-trigger=' + id + ']').each(function (i) {
+          $('.repeating-button[data-trigger=' + $el.attr('id') + ']').each(function (i) {
             $(this).show();
           });
         }
@@ -346,18 +352,10 @@ define(function (require) {
     app.questionsByParentId = {};
     var templates;
     function addQuestion(question, visible, parentID, triggerID, appendTo) {
-      // Set default values for questions
-      if (visible === undefined) {
-        visible = true;
-      }
-      if (parentID === undefined) {
-        parentID = '';
-      }
-      if (triggerID === undefined) {
-        triggerID = '';
-      }
+      // Give the question an ID based on its name
+      var id = _.uniqueId(question.name);
 
-      // Load the templates
+      // Load the templates if we don't have them already
       if (templates === undefined) {
         templates = {
           question: _.template($('#question').html().trim()),
@@ -374,25 +372,29 @@ define(function (require) {
         }
       }
 
-      // Give the question an ID based on its name
-      var id = _.uniqueId(question.name);
-
       // Collected the data needed to render the question
       var questionData = {
         text: question.text,
         layout: question.layout,
         info: question.info,
         id: id,
-        parentID: parentID,
-        triggerID: triggerID
+        parentID: parentID || '',
+        triggerID: triggerID || ''
       };
 
-      // Render the questions's fieldset
+
+      // Render the question
       var $question = $(templates.question(questionData));
+
+      // Make the question visible by default
+      if (visible === undefined) {
+        visible = true;
+      }
       if (!visible) {
         $question.hide();
       }
 
+      // Record all questions by parent
       var siblings = app.questionsByParentId[parentID];
       if (siblings === undefined) {
         siblings = [];
@@ -401,6 +403,8 @@ define(function (require) {
       siblings.push($question);
 
 
+      // We may know what element we want to append to;
+      // Otherwise, here's a default value
       if (appendTo !== undefined) {
         $(appendTo).append($question);
       }else {
@@ -432,6 +436,7 @@ define(function (require) {
       var questionID = id;
 
       // Handle questions with no list of predefined answers
+      // These typically are text fields or file uploads
       if (question.answers === undefined || question.answers.length === 0) {
         var $answer;
         var value = '';
@@ -498,7 +503,8 @@ define(function (require) {
           id: triggerID,
           theme: (answer.theme || "c"),
           value: answer.value,
-          text: answer.text
+          text: answer.text,
+          selected: answer.selected || false
         };
 
         // Render the answer and append it to the fieldset.
@@ -513,6 +519,15 @@ define(function (require) {
             $answer = $(templates.answerCheckbox(data));
           } else {
             $answer = $(templates.answerRadio(data));
+          }
+
+          // If the question is visible and the answer is checked by default,
+          // set it as checked.
+          if (visible) {
+            var $input = $answer.filter('input');
+            if ($input.attr('data-checked') === 'checked') {
+              $input.prop('checked', true);
+            }
           }
 
           // Store references to the questions for quick retrieval later
@@ -553,11 +568,12 @@ define(function (require) {
           input = $answer;
         }
 
-        input.click(makeClickHandler(id, triggerID));
+        input.click(makeClickHandler($answer.parent(), triggerID));
 
         // If there are conditional questions, add them.
         // They are hidden by default.
         if (answer.questions !== undefined) {
+
           // If users can repeat those conditional questions:
           if(answer.repeatQuestions !== undefined) {
             var $repeatButton;
@@ -586,14 +602,16 @@ define(function (require) {
               addQuestion(subq, false, id, triggerID, $appendTo);
             });
 
-
           }else {
+            // Render each sub-question.
+            // Show the sub-questions if the answer is selected by default
+            var show = answer.selected || false;
+
             _.each(answer.questions, function (subq) {
-              // Add the sub questions before the repeatButton
               if(appendTo !== undefined){
-                addQuestion(subq, false, id, triggerID, appendTo);
+                addQuestion(subq, show, id, triggerID, appendTo);
               }else {
-                addQuestion(subq, false, id, triggerID);
+                addQuestion(subq, show, id, triggerID);
               }
             });
 
@@ -605,15 +623,31 @@ define(function (require) {
     }
 
 
-
-
     // Option group stuff ......................................................
+    /**
+     * Show the sub questions for a given question
+     * @param  {Object} $el JQuery object for an input field
+     */
+    function showSubQuestions($el) {
+      var id = $el.attr('id');
+      $('.control-group[data-trigger=' + id + ']').each(function (i) {
+        $(this).show();
+
+        // Check answers that are checked by default
+        $('input:visible', $(this)).each(function(i) {
+          if ($(this).attr('data-checked') === 'checked') {
+            $(this).prop('checked', true).checkboxradio('refresh');
+          }
+        });
+      });
+    }
 
     // Show / hide sub questions for a given parent
-    function hideAndClearSubQuestionsFor(parent) {
+    function hideAndClearSubQuestionsFor($parent) {
+      var parentId = $parent.attr('id');
 
       // Get the list of questions associated with that parent
-      var questionsToProcess = app.questionsByParentId[parent]; // was var controlGroupQueue
+      var questionsToProcess = app.questionsByParentId[parentId];
       var answersToProcess = [];
 
       function handleQuestion(question) {
@@ -634,6 +668,7 @@ define(function (require) {
         }
       }
 
+      // Handle each question
       var i = 0;
       var question;
       while (questionsToProcess !== undefined && i < questionsToProcess.length) {
@@ -647,11 +682,11 @@ define(function (require) {
       var answersToProcessLength = answersToProcess.length;
       for (j = 0; j < answersToProcessLength; j += 1) {
         if (answersToProcess[j].prop('checked')) {
-          answersToProcess[j].prop('checked', false).checkboxradio("refresh");
+          answersToProcess[j].prop('checked', false).checkboxradio('refresh');
         }
       }
 
-      $('.repeating-button[data-parent=' + parent + ']').hide();
+      $('.repeating-button[data-parent=' + parentId + ']').hide();
     }
 
     // Trigger form init .........................................................
