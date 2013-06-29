@@ -346,14 +346,29 @@ define(function (require) {
       $.subscribe('successfulSubmit', getResponsesInMap);
 
       // Show which parcels have responses when the map is moved.
-      map.on('moveend', function(event) {
+      var lastBounds = null;
+      map.on('moveend', _.debounce(function(event) {
+        // Workaround. On Android Browser we sometimes get repeated moveend
+        // events. If the bounds haven't changed, we shouldn't keep handling
+        // the event.
+        var bounds = null;
+        try {
+          bounds = map.getBounds();
+        } catch (e) {
+        }
+        if (lastBounds !== null && lastBounds.equals(bounds)) {
+          console.log('avoiding duplicate moveend action');
+          return;
+        }
+        lastBounds = bounds;
+
         try {
           getResponsesInMap();
           renderParcelsInBounds();
         } catch(exception){
 
         }
-      });
+      }, 50));
 
 
       // Location handlers
