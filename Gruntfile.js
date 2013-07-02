@@ -46,10 +46,11 @@ module.exports = function(grunt) {
     requirejs: {
       compile: {
         options: {
-          name: 'main',
+          name: 'almond',
+          include: 'main',
           baseUrl: 'src/js',
           mainConfigFile: 'src/js/main.js',
-          out: '<%= dirs.staging %>/js/main.js',
+          out: '<%= dirs.staging %>/js/require.js',
           optimize: 'uglify2',
           uglify2: {
             // Preserve license/copyright comments
@@ -81,8 +82,8 @@ module.exports = function(grunt) {
         banner: '/* v <%= version.toString() %> <%= grunt.template.today("isoDateTime") %> */\n'
       },
       build: {
-        src: ['<%= dirs.staging %>/js/main.js'],
-        dest: '<%= dirs.build %>/js/main.js'
+        src: ['<%= dirs.staging %>/js/require.js'],
+        dest: '<%= dirs.build %>/js/require.js'
       }
     },
 
@@ -94,7 +95,6 @@ module.exports = function(grunt) {
             expand: true,
             cwd: 'src/',
             src: [
-              'js/require.js',
               'js/lib/aight.js',
               '*.html',
               'img/**',
@@ -111,7 +111,6 @@ module.exports = function(grunt) {
             expand: true,
             cwd: '<%= dirs.staging %>',
             src: [
-              'js/require.js',
               'js/lib/aight.js',
               '**/*.css',
               'css/**',
