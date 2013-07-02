@@ -18,11 +18,20 @@ define(function (require) {
   // @param {Function} done Gets called when we've determined that there are no
   // updates. Takes no arguments.
   manager.init = function init(done) {
+    console.log('Initializing app cache manager');
+
+    var timeout = null;
+
     if (!appCache) {
+      console.log('This platform has no application cache');
       return done();
     }
 
     function handleUpdate(e) {
+      if (timeout !== null) {
+        clearTimeout(timeout);
+      }
+
       if (appCache.status === window.applicationCache.UPDATEREADY) {
         // We got a new app cache.
         // Swap in the new cache and reload the page, so we're using the new
@@ -38,10 +47,26 @@ define(function (require) {
 
     // Nothing to do. Proceed with current app code.
     function proceed(e) {
+      if (timeout !== null) {
+        clearTimeout(timeout);
+      }
+
       console.info(e.type);
       console.log('Proceeding');
       done();
     }
+
+    // If things are taking too long, skip the app cache stuff.
+    timeout = setTimeout(function () {
+      console.log('Timed out! Not using application cache.');
+      appCache.removeEventListener('updateready');
+      appCache.removeEventListener('error');
+      appCache.removeEventListener('noupdate');
+      appCache.removeEventListener('obsolete');
+      appCache.removeEventListener('cached');
+      timeout = null;
+      done();
+    }, 1000);
 
     // New versions of the manifest resources have been downloaded.
     appCache.addEventListener('updateready', handleUpdate, false);
