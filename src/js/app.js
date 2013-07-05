@@ -54,10 +54,6 @@ define(function (require) {
         var $collectorName = $('#collector_name');
         var $collectorNameSubmit = $('#collector-name-submit');
 
-        // $('#loading-msg').hide();
-        // $collectorName.show();
-        // $collectorNameSubmit.show();
-
         // Set the collector name, if we already know it.
         if ($.cookie('collectorName') !== null){
           $collectorName.val($.cookie('collectorName'));
