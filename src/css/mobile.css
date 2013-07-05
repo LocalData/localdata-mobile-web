@@ -39,6 +39,7 @@ small {
 
 h2,
 #startpoint,
+#address-search-active,
 #thanks,
 #submitting,
 #error,
@@ -90,6 +91,7 @@ h2 {
 }
 
 #submitting,
+#address-search-active,
 #error,
 #thanks,
 #thanks-offline {

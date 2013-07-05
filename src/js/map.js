@@ -517,8 +517,9 @@ define(function (require) {
 
     // Move the map ............................................................
     // Attempt to center the map on an address using Bing's geocoder.
-    // This should probably live in APIs. 
+    // This should probably live in APIs.
     var goToAddress = function(address) {
+      $('#address-search-active').show();
       api.codeAddress(address, function (error, data) {
         if (error) {
           if (error.type === 'GeocodingError') {
@@ -531,6 +532,8 @@ define(function (require) {
           return;
         }
 
+        $('#address-search-active').hide();
+
         if (circle !== null) {
           map.removeLayer(circle);
         }
@@ -542,10 +545,7 @@ define(function (require) {
         map.addLayer(circle);
         map.setView(latlng, 19);
 
-        // Scroll to the top so users can
-        window.scrollTo(0,0);
-        $('#address-search').slideToggle();
-        $('#address-search-prompt').slideToggle();
+        $('#address-search').hide();
 
         // Record the address, for potential later use by the survey questions.
         settings.address = data.addressLine;
