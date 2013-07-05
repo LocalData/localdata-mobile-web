@@ -216,3 +216,12 @@ input[type="submit"] {
 .leaflet-overlay-pane {
   z-index: 7;
 }
+
+body {
+    -webkit-perspective: none;
+    -webkit-transform-style: flat;
+}
+body > * {
+    -webkit-backface-visibility: visible;
+    -webkit-transform: none;
+}

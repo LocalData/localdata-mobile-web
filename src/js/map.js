@@ -399,12 +399,15 @@ define(function (require) {
           circle = new L.Circle(e.latlng, radius);
           map.addLayer(circle);
         }
-        map.panTo(e.latlng);
+        map.setView(e.latlng, 19);
 
         getResponsesInMap();
         renderParcelsInBounds();
       }
 
+      /**
+       * If geolocation fails, move the user to the survey's default location
+       */
       function onLocationError(e) {
         if (initialLocate) {
           initialLocate = false;
@@ -429,9 +432,6 @@ define(function (require) {
             circle = new L.Circle(latlng, radius);
             map.addLayer(circle);
             map.setView(latlng, 19);
-
-            // Scroll to the top
-            window.scrollTo(0,0);
           });
         } else {
           alert(e.message);
