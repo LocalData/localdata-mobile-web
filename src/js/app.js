@@ -1,8 +1,8 @@
 /*jslint nomen: true */
 /*globals define: true */
 
-/* 
- * Basic app functionality for the mobile survey. 
+/*
+ * Basic app functionality for the mobile survey.
  */
 
 define(function (require) {
@@ -38,14 +38,17 @@ define(function (require) {
   }
 
   var app = {
-    /* 
-     * Show the survey & hide the front page after the sign-in form has been 
+    /*
+     * Show the survey & hide the front page after the sign-in form has been
      * submitted
      */
     init: function () {
       console.log("Initialize NSB");
 
       appCacheManager.init(function () {
+        console.log("APPCACHE DONE");
+      });
+
         // Get the survey, slug, etv.
         var surveyPromise = api.getSurveyFromSlug();
 
@@ -65,7 +68,7 @@ define(function (require) {
         $collectorNameSubmit.click(function(event) {
           console.log("Setting collector name");
 
-          app.collectorName = $collectorName.val();      
+          app.collectorName = $collectorName.val();
 
           $('#startpoint h2').html('Loading...');
 
@@ -115,8 +118,8 @@ define(function (require) {
               $('#startpoint h2').html('Sorry, something has gone wrong. Please try again in a bit or contact the survey organizer.');
             }
           });
-        }); 
-      });
+        });
+      // });
     },
 
     // We'll use this to keep track of the object currently selected in the app

@@ -214,3 +214,18 @@ input[type="submit"] {
 .leaflet-overlay-pane {
   z-index: 7;
 }
+
+.loading-bar,
+.loading-progress {
+  height: 20px;
+  background:#fff;
+}
+
+.loading-bar {
+  border: 4px solid #fff;
+}
+
+.loading-progress {
+  background: #ffad00;
+  width: 0;
+}
