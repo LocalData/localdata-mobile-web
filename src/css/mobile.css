@@ -215,17 +215,14 @@ input[type="submit"] {
   z-index: 7;
 }
 
-.loading-bar,
-.loading-progress {
-  height: 20px;
-  background:#fff;
+.update-prompt {
+  background: #fff;
+  width: auto;
+  padding: 10px;
+  overflow: auto;
 }
 
-.loading-bar {
-  border: 4px solid #fff;
-}
-
-.loading-progress {
-  background: #ffad00;
-  width: 0;
+.update-prompt .btn {
+  padding: 3px 5px;
+  background :#ffe;
 }
