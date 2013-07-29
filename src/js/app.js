@@ -56,9 +56,6 @@ define(function (require) {
         $('#home-container').show();
         var $collectorName = $('#collector_name');
         var $collectorNameSubmit = $('#collector-name-submit');
-        $('#loading-msg').hide();
-        $collectorName.show();
-        $collectorNameSubmit.show();
 
         // Set the collector name, if we already know it.
         if ($.cookie('collectorName') !== null){
@@ -66,20 +63,18 @@ define(function (require) {
         }
 
         $collectorNameSubmit.click(function(event) {
-          console.log("Setting collector name");
-
-          app.collectorName = $collectorName.val();
-
           $('#startpoint h2').html('Loading...');
 
-          $('.collector').val(app.collectorName);
-
           // Set a cookie with the collector's name
+          console.log("Setting collector name");
+          app.collectorName = $collectorName.val();
           $.cookie('collectorName', app.collectorName, { path: '/' });
 
           // Hide the homepage, show the survey
-          $('#home-container').slideToggle();
-          $('#survey-container').slideToggle();
+          $('#home-container').hide();
+          $('#survey-container').show();
+
+          // TODO: think this is deprecated / no longer necessary.
           $('body').attr('id', 'survey');
 
           // Wait until we have the survey data
