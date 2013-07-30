@@ -216,13 +216,25 @@ input[type="submit"] {
 }
 
 .update-prompt {
+  display: none;
   background: #fff;
-  width: auto;
-  padding: 10px;
+  border: 5px solid #829bc5;
+  padding: 0px 15px;
+  line-height: 50px;
   overflow: auto;
+  margin-bottom: 20px;
 }
 
 .update-prompt .btn {
+  font-size: 18px;
   padding: 3px 5px;
-  background :#ffe;
+  background: #fff;
+  border: 5px solid #ffad00;
+  cursor: pointer;
+  line-height:30px;
+}
+
+.reload {
+  margin-left: 10px;
+  margin-right: 20px;
 }
