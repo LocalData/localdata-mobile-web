@@ -1,8 +1,8 @@
 /*jslint nomen: true */
 /*globals define: true */
 
-/* 
- * Basic app functionality for the mobile survey. 
+/*
+ * Basic app functionality for the mobile survey.
  */
 
 define(function (require) {
@@ -14,8 +14,8 @@ define(function (require) {
   var MapView = require('map');
 
   var app = {
-    /* 
-     * Show the survey & hide the front page after the sign-in form has been 
+    /*
+     * Show the survey & hide the front page after the sign-in form has been
      * submitted
      */
     init: function () {
@@ -32,7 +32,7 @@ define(function (require) {
       $("#collector-name-submit").click(function(event) {
         console.log("Setting collector name");
 
-        app.collectorName = $("#collector_name").val();      
+        app.collectorName = $("#collector_name").val();
 
         $('#startpoint h2').html('Loading...');
 
@@ -42,8 +42,8 @@ define(function (require) {
         $.cookie('collectorName', app.collectorName, { path: '/' });
 
         // Hide the homepage, show the survey
-        $('#home-container').slideToggle();
-        $('#survey-container').slideToggle();
+        $('#home-container').slideUp();
+        $('#survey-container').slideDown();
         $('body').attr('id', 'survey');
 
         // Wait until we have the survey data
@@ -57,7 +57,7 @@ define(function (require) {
           app.map = new MapView(app, 'map-div');
           app.f = new FormView(app, '#form');
         });
-      }); 
+      });
     },
 
     // We'll use this to keep track of the object currently selected in the app
