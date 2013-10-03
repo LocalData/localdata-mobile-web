@@ -359,6 +359,10 @@ define(function (require) {
     return settings.api.baseurl + '/surveys/' + settings.surveyId + '/responses?objectId=' + parcel_id;
   };
 
+  api.getObjectDataURL = function(options) {
+    return settings.api.baseurl + '/objects.geojson?source=' + options.source;
+  };
+
   api.getForm = function(callback) {
     console.log('Getting form data');
     var url = api.getSurveyURL() + '/forms';
@@ -507,7 +511,7 @@ define(function (require) {
     // Given the bounds, generate a URL to ge the responses from the API.
     var url;
     if (options.source) {
-      url = settings.api.geo + '/objects/' + options.source + '.geojson?bbox=' + bbox.join(',');
+      url = api.getObjectDataURL(options) + '&bbox=' + bbox.join(',');
     } else {
       url = settings.api.geo + '/parcels.geojson?bbox=' + bbox.join(',');
     }
