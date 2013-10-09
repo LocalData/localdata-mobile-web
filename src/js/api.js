@@ -503,7 +503,8 @@ define(function (require) {
   //
   // @param {Object} bbox A bounding box specified as an array of coordinates:
   // [[west, south], [east, north]]
-  // @param {Object} options Not currently used; here for consistency
+  // @param {Object} options Can include a source, which defines the data source as a URL
+  //    Source must include a string like ?bbox={{bbox}}
   // @param {Function} callback Expects a list of features & attributes
   // @param {Function} callback With two parameters, error and results, a
   // GeoJSON FeatureCollection
@@ -511,7 +512,7 @@ define(function (require) {
     // Given the bounds, generate a URL to ge the responses from the API.
     var url;
     if (options.source) {
-      url = api.getObjectDataURL(options) + '&bbox=' + bbox.join(',');
+      url = options.source.replace("{{bbox}}", bbox.join(','));
     } else {
       url = settings.api.geo + '/parcels.geojson?bbox=' + bbox.join(',');
     }
@@ -537,7 +538,7 @@ define(function (require) {
       } else {
         callback({
           type: 'APIError',
-          message: 'Got no data from the LocalData geo endpoint'
+          message: 'Got no data from the getObjectsInBBoxFromLocalData geo endpoint'
         });
       }
     })
