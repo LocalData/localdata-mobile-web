@@ -132,8 +132,6 @@ define(function (require) {
       // Serialize the form
       var serialized = form.serializeObject();
 
-
-
       // Get some info about the centroid as floats.
       var selectedCentroid = app.selectedObject.centroid;
       var centroidLng = parseFloat(selectedCentroid.coordinates[0]);
