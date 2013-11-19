@@ -44,6 +44,9 @@ define(function (require) {
           } else {
             o[this.name] = this.value || '';
           }
+
+          // Don't store blank values for text fields
+          if (this.value === '') delete o[this.name];
         });
         return o;
       };
@@ -128,6 +131,8 @@ define(function (require) {
     function doSubmit() {
       // Serialize the form
       var serialized = form.serializeObject();
+
+
 
       // Get some info about the centroid as floats.
       var selectedCentroid = app.selectedObject.centroid;
