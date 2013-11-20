@@ -44,6 +44,9 @@ define(function (require) {
           } else {
             o[this.name] = this.value || '';
           }
+
+          // Don't store blank values for text fields
+          if (this.value === '') delete o[this.name];
         });
         return o;
       };
