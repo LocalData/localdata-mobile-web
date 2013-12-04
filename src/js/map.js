@@ -521,6 +521,8 @@ define(function (require) {
     var goToAddress = function(address) {
       $('#address-search-active').show();
       api.codeAddress(address, function (error, data) {
+        $('#address-search-active').hide();
+
         if (error) {
           if (error.type === 'GeocodingError') {
             console.warn('We could not geocode the address: '  + address);
@@ -531,8 +533,6 @@ define(function (require) {
           settings.address = '';
           return;
         }
-
-        $('#address-search-active').hide();
 
         if (circle !== null) {
           map.removeLayer(circle);
