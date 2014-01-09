@@ -70,6 +70,7 @@ define(function (require) {
           // Hide the homepage, show the survey
           $('#home-container').hide();
           $('#survey-container').show();
+          $('#home-container').html('');
 
           // TODO: think this is deprecated / no longer necessary.
           $('body').attr('id', 'survey');

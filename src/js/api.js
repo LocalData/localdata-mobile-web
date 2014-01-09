@@ -598,8 +598,10 @@ define(function (require) {
     url += '&inSR=4326';
     url += '&outSR=4326';
 
-    // And finally, set a callback:
-    url += '&callback=?';
+    // Use comfortless.herokuapp.com to add CORS headers
+    url = 'http://comfortless.herokuapp.com/?url=' + encodeURIComponent(url);
+    // // And finally, set a callback:
+    // url += '&callback=?';
 
     console.log(url);
     return url;

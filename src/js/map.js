@@ -370,22 +370,61 @@ define(function (require) {
         }
       }, 50));
 
-
       // Location handlers
       // Used for centering the map when we're using geolocation.
-      map.on('locationfound', onLocationFound);
-      map.on('locationerror', onLocationError);
+      map.on('locationfound', fakeLocation);
+      map.on('locationerror', fakeLocation);
 
       var initialLocate = true;
       map.locate({
         setView: true,
-        maxZoom: 19,
+        //maxZoom: 19,
+        maxZoom: 17,
         enableHighAccuracy: true
       });
+
+      // Mark a predefined location on the map.
+      function fakeLocation(e) {
+        // Fake location: N Broad and W Winghocking, Philadelphia, PA
+        e.accuracy = 30;
+        //e.latlng = L.latLng(40.0214763, -75.14852979999999);
+        // Fake location: 745 Haight St, San Francisco, CA
+        //e.latlng = L.latLng(37.77154929935932, -122.43448376655579);
+        // Fake location: S Mount St and W Howard St, Muncie, IN
+        //e.latlng = L.latLng(40.190217284137, -85.39427697658539);
+        // Fake location: Island and Main, Rockford, IL
+        e.latlng = L.latLng(42.25497057893525, -89.1026884317398);
+
+        // Remove the old circle if we have one
+        if (circle !== null) {
+          map.removeLayer(circle);
+          circle = null;
+        }
+
+        // Add the accuracy circle to the map, unless it's huge.
+        var radius = e.accuracy / 2;
+        if (radius < 60) {
+          circle = new L.Circle(e.latlng, radius);
+          map.addLayer(circle);
+        }
+
+        if (initialLocate) {
+          map.setView(e.latlng, 17);
+        } else {
+          map.panTo(e.latlng);
+        }
+        initialLocate = false;
+
+        getResponsesInMap();
+        renderParcelsInBounds();
+      }
 
       // Mark a location on the map.
       // Primarily used with browser-based geolocation (aka 'where am I?')
       function onLocationFound(e) {
+        // Fake location: N Broad and W Winghocking, Philadelphia, PA
+        e.accuracy = 30;
+        e.latlng = L.latLng(40.0214763, -75.14852979999999);
         initialLocate = false;
         // Remove the old circle if we have one
         if (circle !== null) {
