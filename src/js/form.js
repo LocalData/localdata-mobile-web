@@ -196,7 +196,6 @@ define(function (require) {
       // Check for required answers
       $('.required').each(function() {
         // Check if any of the radio buttons are checked
-        console.log("Checking");
         if(! $('input:radio', this).is(':checked')) {
           valid = false;
           $('.required-error', this).show();
