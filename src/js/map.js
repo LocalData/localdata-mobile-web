@@ -393,7 +393,10 @@ define(function (require) {
         // Fake location: S Mount St and W Howard St, Muncie, IN
         //e.latlng = L.latLng(40.190217284137, -85.39427697658539);
         // Fake location: Island and Main, Rockford, IL
-        e.latlng = L.latLng(42.25497057893525, -89.1026884317398);
+        //e.latlng = L.latLng(42.25497057893525, -89.1026884317398);
+
+        // Fake location: Capitol Hill, Seattle, WA
+        e.latlng = L.latLng(47.631358931022056, -122.30684280395508);
 
         // Remove the old circle if we have one
         if (circle !== null) {
