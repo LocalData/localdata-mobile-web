@@ -614,7 +614,13 @@ define(function (require) {
 
       // Keep track of the selected object centrally
       app.selectedObject.id = selectedLayer.feature.id;
-      app.selectedObject.humanReadableName = selectedLayer.feature.properties.address;
+      if (_.has(selectedLayer.feature.properties, 'address')) {
+        app.selectedObject.humanReadableName = selectedLayer.feature.properties.address;
+      } else if (_.has(selectedLayer.feature.properties, 'shortName')) {
+        app.selectedObject.humanReadableName = selectedLayer.feature.properties.shortName;
+      } else {
+        app.selectedObject.humanReadableName = 'Unknown Location';
+      }
 
       if (selectedLayer.feature.properties.centroid !== undefined) {
         app.selectedObject.centroid = selectedLayer.feature.properties.centroid;
