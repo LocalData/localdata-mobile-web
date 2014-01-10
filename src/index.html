@@ -3,8 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE">
-    <META HTTP-EQUIV="PRAGMA" CONTENT="NO-CACHE">
+    <meta http-equiv="CACHE-CONTROL" content="NO-CACHE">
+    <meta http-equiv="PRAGMA" content="NO-CACHE">
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
 
     <title>LocalData Survey</title>
@@ -19,7 +19,6 @@
       @import url(css/mobile.css);
     </style>
 
-
     <!--[if lt IE 9]>
     <script type="text/javascript" src="js/lib/aight.min.js"></script>
     <![endif]-->
@@ -28,7 +27,6 @@
       window.useCacheBuster = true;
     </script>
     <![endif]-->
-
 </head>
 
 <body id="home">
@@ -113,8 +111,14 @@
   </div>
 
   <script type="text/template" id="question">
-  <fieldset data-role="controlgroup" class="control-group" id="<%= id %>" data-parent="<%= parentID %>" data-trigger="<%= triggerID %>" <% if (layout && layout === 'horizontal') { %>data-type="horizontal" <% } %>>
+  <fieldset data-role="controlgroup" class="control-group <%= required %>" id="<%= id %>" data-parent="<%= parentID %>" data-trigger="<%= triggerID %>" <% if (layout && layout === 'horizontal') { %>data-type="horizontal" <% } %>>
+
     <legend class="control-legend"><%= text %></legend>
+
+    <% if(required === 'required') { %>
+      <div class="required-error">This question is required</div>
+    <% } %>
+
     <% if(info !== undefined) { %>
       <a href="" class="show-info" data-role="button" data-inline="true" data-icon="info" data-trigger="info-<%= id %>">More info</a>
       <div id="info-<%= id %>" class="info">

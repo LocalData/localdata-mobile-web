@@ -185,12 +185,31 @@ define(function (require) {
 
     // Handle the parcel survey form being submitted
     form.submit(function(event) {
+      var valid;
       console.log("Submitting survey results");
 
       // Stop form from submitting normally
       event.preventDefault();
+      $('.required-error').hide();
+
+      // Check for required answers
+      $('.required').each(function() {
+        // Check if any of the radio buttons are checked
+        if(! $('input:radio', this).is(':checked')) {
+          valid = false;
+          $('.required-error', this).show();
+        }
+      });
+
+      if (valid === false) {
+        // $('.required-submit-error').show();
+        return;
+      }
+
+      // Thank the user for submitting
       submitFlash();
 
+      // Actually submit the results
       if (app.selectedObject && app.selectedObject.hasOwnProperty('centroid')) {
         doSubmit();
       } else {
@@ -209,8 +228,8 @@ define(function (require) {
           doSubmit();
         });
       }
-    });
 
+    });
 
 
     function submitThanks() {
@@ -382,7 +401,8 @@ define(function (require) {
         info: question.info,
         id: id,
         parentID: parentID || '',
-        triggerID: triggerID || ''
+        triggerID: triggerID || '',
+        required: question.required || ''
       };
 
 
