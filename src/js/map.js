@@ -559,7 +559,7 @@ define(function (require) {
 
     // Move the map ............................................................
     // Attempt to center the map on an address using Bing's geocoder.
-    // This should probably live in APIs. 
+    // This should probably live in APIs.
     var goToAddress = function(address) {
       api.codeAddress(address, function (error, data) {
         if (error) {
@@ -677,6 +677,10 @@ define(function (require) {
       if(_.has(settings.survey, 'geoObjectSource')) {
         if (settings.survey.geoObjectSource.type === 'ArcGIS Server') {
           getParcels = api.getObjectsInBBoxFromESRI;
+          options = settings.survey.geoObjectSource;
+        }
+        if (settings.survey.geoObjectSource.type === 'LocalData') {
+          getParcels = api.getObjectsInBBoxFromLocalData;
           options = settings.survey.geoObjectSource;
         }
       }
