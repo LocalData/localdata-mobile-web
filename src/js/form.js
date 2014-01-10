@@ -191,7 +191,6 @@ define(function (require) {
       // Stop form from submitting normally
       event.preventDefault();
       $('.required-error').hide();
-      $('.required-submit-error').hide();
 
       // Check for required answers
       $('.required').each(function() {
