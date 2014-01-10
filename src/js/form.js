@@ -467,14 +467,13 @@ define(function (require) {
             $(el).click(function () {
               var $input = $answer.find('input');
               var text = $input.val();
-              try {
-                var num = parseInt(text, 10);
-                num -= 1;
-                $input.val(num);
-              } catch (e) {
+              var num = parseInt(text, 10);
+              if (isNaN(num)) {
                 console.error('Invalid numeric input');
-                $input.val(0);
+                num = 1;
               }
+              num -= 1;
+              $input.val(num);
             });
           });
 
@@ -482,14 +481,13 @@ define(function (require) {
             $(el).click(function () {
               var $input = $answer.find('input');
               var text = $input.val();
-              try {
-                var num = parseInt(text, 10);
-                num += 1;
-                $input.val(num);
-              } catch (e) {
+              var num = parseInt(text, 10);
+              if (isNaN(num)) {
+                num = 0;
                 console.error('Invalid numeric input');
-                $input.val(1);
               }
+              num += 1;
+              $input.val(num);
             });
           });
 
