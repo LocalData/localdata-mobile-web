@@ -362,6 +362,7 @@ define(function (require) {
           answerCheckbox: _.template($('#answer-checkbox').html().trim()),
           answerRadio: _.template($('#answer-radio').html().trim()),
           answerText: _.template($('#answer-text').html().trim()),
+          answerCounter: _.template($('#answer-counter').html().trim()),
           answerFile: _.template($('#answer-file').html().trim()),
           repeatButton: _.template($('#repeat-button').html().trim())
         };
@@ -453,6 +454,45 @@ define(function (require) {
           };
 
           $answer = $(templates.answerText(data));
+        } else if (question.type === 'counter') {
+          data = {
+            questionName: suffixed_name,
+            id: _.uniqueId(question.name),
+            value: 0
+          };
+
+          $answer = $(templates.answerCounter(data));
+
+          $answer.find('a[data-counter=minus]').each(function (i, el) {
+            $(el).click(function () {
+              var $input = $answer.find('input');
+              var text = $input.val();
+              try {
+                var num = parseInt(text, 10);
+                num -= 1;
+                $input.val(num);
+              } catch (e) {
+                console.error('Invalid numeric input');
+                $input.val(0);
+              }
+            });
+          });
+
+          $answer.find('a[data-counter=plus]').each(function (i, el) {
+            $(el).click(function () {
+              var $input = $answer.find('input');
+              var text = $input.val();
+              try {
+                var num = parseInt(text, 10);
+                num += 1;
+                $input.val(num);
+              } catch (e) {
+                console.error('Invalid numeric input');
+                $input.val(1);
+              }
+            });
+          });
+
         } else if (question.type === 'address') {
           data = {
             questionName: suffixed_name,
