@@ -378,8 +378,8 @@ define(function (require) {
       var initialLocate = true;
       map.locate({
         setView: true,
-        //maxZoom: 19,
-        maxZoom: 17,
+        maxZoom: 19,
+        //maxZoom: 17,
         enableHighAccuracy: true
       });
 
@@ -394,9 +394,11 @@ define(function (require) {
         //e.latlng = L.latLng(40.190217284137, -85.39427697658539);
         // Fake location: Island and Main, Rockford, IL
         //e.latlng = L.latLng(42.25497057893525, -89.1026884317398);
-
         // Fake location: Capitol Hill, Seattle, WA
-        e.latlng = L.latLng(47.631358931022056, -122.30684280395508);
+        //e.latlng = L.latLng(47.631358931022056, -122.30684280395508);
+
+        // Fake location: 6th Ave and Weller, Seattle, WA
+        e.latlng = L.latLng(47.59753033518791, -122.32635989785194);
 
         // Remove the old circle if we have one
         if (circle !== null) {
