@@ -321,7 +321,7 @@ define(function (require) {
 
     function makeClickHandler($el) {
       return function handleClick(e) {
-        hideAndClearSubQuestionsFor($el);
+        hideAndClearSubQuestionsFor($(this));
 
         // Show the conditional questions for this response.
         if($(this).prop("checked")) {
