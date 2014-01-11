@@ -344,14 +344,15 @@ define(function (require) {
 
     function makeClickHandler($el) {
       return function handleClick(e) {
-        hideAndClearSubQuestionsFor($el);
+        var $this = $(this);
+        hideAndClearSubQuestionsFor($this);
 
         // Show the conditional questions for this response.
-        if($(this).prop("checked")) {
-          showSubQuestions($(this));
+        if($this.prop("checked")) {
+          showSubQuestions($this);
 
           $('.repeating-button[data-trigger=' + $el.attr('id') + ']').each(function (i) {
-            $(this).show();
+            $this.show();
           });
         }
       };
