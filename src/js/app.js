@@ -49,7 +49,7 @@ define(function (require) {
         // Get the survey, slug, etv.
         var surveyPromise = api.getSurveyFromSlug();
 
-        $('#loading-container').hide();
+        $('#loading-container').remove();
         $('#home-container').show();
         var $collectorName = $('#collector_name');
         var $collectorNameSubmit = $('#collector-name-submit');
