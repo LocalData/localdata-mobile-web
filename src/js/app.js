@@ -60,7 +60,7 @@ define(function (require) {
         }
 
         $collectorNameSubmit.click(function(event) {
-          $('#startpoint h2').html('Loading...');
+          $('#startpoint h2').html('Loading your survey');
 
           // Set a cookie with the collector's name
           console.log("Setting collector name");
