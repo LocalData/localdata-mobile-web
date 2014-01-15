@@ -12,11 +12,9 @@
     <script data-main="js/main" src="js/require.js"></script>
 
     <!-- Styles -->
-    <link rel="stylesheet" href="css/jquery.mobile.css">
+    <link rel="stylesheet" href="//code.jquery.com/mobile/1.4.0/jquery.mobile-1.4.0.min.css" />
     <style type="text/css" media="screen">
-      @import url(css/reset.css);
       @import url(js/lib/leaflet/leaflet.css);
-      @import url(css/mobile.css);
     </style>
 
     <!--[if lt IE 9]>
@@ -30,7 +28,7 @@
 </head>
 
 <body id="home">
-  <div class="container" id="loading-container">
+  <div class="container" id="loading-container" data-role="page">
       <h1>
         LocalData<br>
       </h1>
@@ -38,31 +36,32 @@
       <div id="loading-msg">Loading application...</div>
 
   </div><!-- end home -->
-  <div class="container" id="home-container" style="display:none;">
+
+  <div class="container" id="home-container" data-role="page">
       <h1>
         LocalData<br>
       </h1>
 
       <div style="width: 75%;">
         <input type="text" name="name" id="collector_name" value="" data-mini="true" placeholder="Your name">
-        <input id="collector-name-submit" type="submit" data-icon="arrow-r" data-iconpos="right" data-inline="true" data-theme="e" value="Get started">
+        <input id="collector-name-submit" type="submit" data-icon="arrow-r" data-iconpos="right" data-inline="true" value="Get started">
       </div>
 
   </div><!-- end home -->
 
-  <div class="container" id="survey-container">
+  <div class="container" id="survey-container" data-role="page">
     <div id="tools">
       <a href='#' id='address-search-toggle' data-icon="search" data-role="button" data-inline="true" >Address</a>
       <a href='#' id='geolocate' data-icon="star" data-role="button" data-inline="true" >Locate me</a>
       <a href='#' id='point' data-icon="plus" data-role="button" data-inline="true" style="display:none;">Add point</a>
       <a href='#' id='entry' data-icon="plus" data-role="button" data-inline="true" style="display:none;">Add entry</a>
-      <a href="#popupOffline" id="net-status-offline" data-icon="alert" data-iconpos="notext" data-role="button" data-theme="e" data-rel="popup" data-transition="pop"></a>
-      <a href="#popupBackOnline" id="net-status-back" data-icon="info" data-iconpos="notext" data-role="button" data-theme="d" data-rel="popup" data-transition="pop"></a>
+      <a href="#popupOffline" id="net-status-offline" data-icon="alert" data-iconpos="notext" data-role="button" data-theme="a" data-rel="popup" data-transition="pop"></a>
+      <a href="#popupBackOnline" id="net-status-back" data-icon="info" data-iconpos="notext" data-role="button" data-theme="b" data-rel="popup" data-transition="pop"></a>
     </div>
 
     <div id="address-search">
       <input type="text" name="address-input" id="address-input" style="width:70%" value="" data-mini="true" placeholder="Address">
-      <input id="address-submit" type="submit" data-icon="arrow-r" data-iconpos="right" data-inline="true" data-theme="e" value="Find address">
+      <input id="address-submit" type="submit" data-icon="arrow-r" data-iconpos="right" data-inline="true" data-theme="a" value="Find address">
     </div>
 
     <div id='map-div' style="height:250px;"></div>
@@ -102,11 +101,11 @@
 
   </div><!-- end survey -->
 
-  <div data-role="popup" id="popupOffline" data-theme="e" data-overlay-theme="a">
+  <div data-role="popup" id="popupOffline" data-theme="a" data-overlay-theme="a">
     <p>You're currently offline. We'll upload your responses when you go back online.<p>
   </div>
 
-  <div data-role="popup" id="popupBackOnline" data-theme="e" data-overlay-theme="a">
+  <div data-role="popup" id="popupBackOnline" data-theme="a" data-overlay-theme="a">
     <p>We're uploading the responses you added while you were offline.<p>
   </div>
 
