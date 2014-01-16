@@ -1,9 +1,7 @@
 body {
   padding: 0;
   margin: 0;
-  background:#3f5b88;
   font-size:14px;
-  font-family: Helvetica, Arial, 'Open Sans', Helvetica, Arial, sans-serif
 }
 
 html, body {
@@ -18,31 +16,16 @@ small {
   font-size:.7em;
 }
 
-.ui-page  {
-  /* This is a jquery mobile container */
-  background:#eee;
-  font-family: Helvetica, Arial, 'Open Sans', sans-serif;
-}
-
-#home .ui-page {
-  padding:20px;
-  background:#3f5b88;
-}
-
 .ui-content {
   padding:0;
 }
 
-#survey-container {
-  display:none;
-}
 
 h2,
 #startpoint,
 #thanks,
 #submitting,
-#error,
-#form fieldset {
+#error {
   padding:1em;
 }
 
@@ -55,20 +38,8 @@ h2,
   margin-top:0;
 }
 
-#startpoint,
-#startpoint h2,
-#tools {
-  padding-bottom:0;
-}
-
 h2 {
   padding-bottom:0;
-}
-
-#tools,
-#address-search {
-  background:#3f5b88;
-  padding:5px;
 }
 
 #status-bar {
@@ -84,8 +55,6 @@ h2 {
 }
 
 #form {
-  background:#fff;
-  border-bottom:2px solid #ddd;
   display:none;
 }
 
@@ -108,8 +77,6 @@ h2 {
 #head {
   height:20px;
   padding:.5em 1em;
-  border-bottom:2px solid #fff;
-  background:#eee;
 }
 
 #map-div {
@@ -118,17 +85,18 @@ h2 {
 }
 
 h1 {
-  font-size:.9em;
-  font-weight: bold;
-  font-family: Helvetica, Arial, 'Open Sans', sans-serif;
 }
 
-#home h1 {
-  font-size:3em;
-  color:#fff;
-  text-shadow: 0pt 1px 1pt rgba(0,0,0, 0.75);
-  margin-bottom:3em;
-  line-height:1.3;
+#home-container h1,
+#loading-container h1 {
+  margin-top: 0;
+  background: #fff;
+  text-align: center;
+}
+
+h1 img {
+  width: 100%;
+  max-width: 300px;
 }
 
 #loading-msg {

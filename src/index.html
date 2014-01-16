@@ -12,9 +12,12 @@
     <script data-main="js/main" src="js/require.js"></script>
 
     <!-- Styles -->
-    <link rel="stylesheet" href="//code.jquery.com/mobile/1.4.0/jquery.mobile-1.4.0.min.css" />
+    <link rel="stylesheet" href="css/localdata.css" />
+    <link rel="stylesheet" href="css/jquery.mobile.icons.min.css" />
+    <link rel="stylesheet" href="css/jquery.mobile.structure-1.4.0.min.css" />
     <style type="text/css" media="screen">
       @import url(js/lib/leaflet/leaflet.css);
+      @import url(css/mobile.css);
     </style>
 
     <!--[if lt IE 9]>
@@ -28,32 +31,33 @@
 </head>
 
 <body id="home">
-  <div class="container" id="loading-container" data-role="page">
+  <div id="loading-container" data-role="page">
       <h1>
-        LocalData<br>
+        <img src="img/logo.png">
       </h1>
 
       <div id="loading-msg">Loading application...</div>
-
   </div><!-- end home -->
 
-  <div class="container" id="home-container" data-role="page">
+  <div id="home-container" data-role="page">
       <h1>
-        LocalData<br>
+        <img src="img/logo.png">
       </h1>
 
-      <div style="width: 75%;">
-        <input type="text" name="name" id="collector_name" value="" data-mini="true" placeholder="Your name">
-        <input id="collector-name-submit" type="submit" data-icon="arrow-r" data-iconpos="right" data-inline="true" value="Get started">
+      <div  role="main" class="ui-content jqm-content" data-theme="b">
+        <form>
+          <input type="text" name="name" id="collector_name" value="" placeholder="Your name">
+          <a href="#survey-container" id="collector-name-submit" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-r ui-btn-icon-right">Get started</a>
+        </form>
       </div>
-
   </div><!-- end home -->
 
   <div class="container" id="survey-container" data-role="page">
-    <div id="tools">
-      <a href='#' id='address-search-toggle' data-icon="search" data-role="button" data-inline="true" >Address</a>
+    <div id="tools" data-role="header" >
+      ---
+      <a href='#' id='address-search-toggle' class="ui-btn-left ui-btn ui-btn-inline ui-mini ui-corner-all" data-icon="search">Address</a>
       <a href='#' id='geolocate' data-icon="star" data-role="button" data-inline="true" >Locate me</a>
-      <a href='#' id='point' data-icon="plus" data-role="button" data-inline="true" style="display:none;">Add point</a>
+      <a href='#' id='point' class="ui-btn-left ui-btn ui-btn-inline ui-mini ui-corner-all" data-icon="plus" style="display:none;">Add point</a>
       <a href='#' id='entry' data-icon="plus" data-role="button" data-inline="true" style="display:none;">Add entry</a>
       <a href="#popupOffline" id="net-status-offline" data-icon="alert" data-iconpos="notext" data-role="button" data-theme="a" data-rel="popup" data-transition="pop"></a>
       <a href="#popupBackOnline" id="net-status-back" data-icon="info" data-iconpos="notext" data-role="button" data-theme="b" data-rel="popup" data-transition="pop"></a>
@@ -95,7 +99,7 @@
             Please try submitting again.
           </h2>
         </div>
-        <input type="submit" data-theme="b" data-icon="check" value="Submit answers" id="submitbutton">
+        <input type="submit" data-theme="c" data-icon="check" value="Submit answers" id="submitbutton">
       </form>
     </div><!-- end form -->
 

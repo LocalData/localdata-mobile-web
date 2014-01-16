@@ -7,13 +7,13 @@
    * Trim function: strips whitespace from a string.
    * Use: " dog".trim() === "dog" //true
    */
-  if(typeof(String.prototype.trim) === "undefined") {
+  if(String.prototype.trim === undefined) {
     String.prototype.trim = function() {
       return String(this).replace(/^\s+|\s+$/g, '');
     };
   }
 
-  if(typeof(String.prototype.titleCase) === "undefined") {
+  if(String.prototype.titleCase === undefined) {
     String.prototype.titleCase = function() {
       return this.toLowerCase().replace(/^.|\s\S/g, function(a) { return a.toUpperCase(); });
     };
@@ -47,9 +47,9 @@ require(['jquery', 'app', 'lib/jquery.mobile', 'lib/jquery.cookie',
 
   logLevel('verbose'); // silent or verbose
   // $(document).trigger('mobileinit');
-  $(document).on("ready", function () {
-    console.log("getting started");
-    $('div').trigger('create');
+  console.log("Hi");
+  $(document).ready(function() {
+    console.log("OK?");
     app.init();
   });
 });
