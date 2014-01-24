@@ -320,10 +320,10 @@ define(function (require) {
   // and can just look for an error named NotFoundError or similar.
   api.getSurveyFromSlug = function getSurveyFromSlug() {
     var slug = window.location.hash.slice(1);
-    
+
     var url = settings.api.baseurl +  '/slugs/' + slug;
     console.log('Retrieving survey id from ' + url);
-    
+
     // Get the survey ID
     return $.ajax({
       url: url,
@@ -347,31 +347,31 @@ define(function (require) {
       });
     });
   };
-  
+
   /*
    * Generates the URL to retrieve results for a given parcel
    */
   api.getSurveyURL = function() {
     return settings.api.baseurl + '/surveys/' + settings.surveyId;
   };
-  
+
   api.getParcelDataURL = function(parcel_id) {
     return settings.api.baseurl + '/surveys/' + settings.surveyId + '/responses?objectId=' + parcel_id;
   };
-  
+
   // Deprecated
   // api.getGeoPointInfoURL = function(lat, lng) {
   //   return settings.api.geo + '/parcels/parcel?lat=' + lat + '&lng=' + lng;
   // };
-  
+
   api.getGeoBoundsObjectsURL = function(bbox) {
     return settings.api.geo + '/parcels.geojson?bbox=' + bbox.join(',');
   };
-  
+
   api.getForm = function(callback) {
     console.log('Getting form data');
     var url = api.getSurveyURL() + '/forms';
-    
+
     console.log(url);
 
     $.ajax({
@@ -389,17 +389,17 @@ define(function (require) {
           return false;
         });
         settings.formData = mobileForms[0];
-        
+
         console.log('Mobile forms');
         console.log(mobileForms);
-        
+
         // Endpoint should give the most recent form first.
         callback();
       }
     });
   };
 
-  
+
   // Deal with the formatting of the geodata API.
   // In the future, this will be more genericized.
   // parcel_id => object_id
@@ -412,7 +412,7 @@ define(function (require) {
       centroid: data.centroid
     };
   };
-  
+
   // Take an address string.
   // callback(error, data)
   // data contains addressLine and coords (a lng-lat array)
@@ -446,7 +446,7 @@ define(function (require) {
         }
       }
     }
-    var geocodeEndpoint = 'http://dev.virtualearth.net/REST/v1/Locations/' + addressWithLocale + '?o=json&key=' + settings.bing_key + '&jsonp=?';
+    var geocodeEndpoint = '//dev.virtualearth.net/REST/v1/Locations/' + addressWithLocale + '?o=json&key=' + settings.bing_key + '&jsonp=?';
 
     $.ajax({
       url: geocodeEndpoint,
@@ -468,7 +468,7 @@ define(function (require) {
       }
     });
   };
-  
+
   // Get responses to the survey recorded in the given bounds
   //
   // @param {Object} bbox A bounding box specified as an array of coordinates:
@@ -503,7 +503,7 @@ define(function (require) {
       callback([]);
     });
   };
-  
+
   // Query the GeoAPI for features in the given bounding box
   //
   // @param {Object} bbox A bounding box specified as an array of coordinates:
@@ -683,6 +683,6 @@ define(function (require) {
     });
 
   };
-    
+
   return api;
 });
