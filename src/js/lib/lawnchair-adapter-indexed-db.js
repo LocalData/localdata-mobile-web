@@ -29,7 +29,7 @@ define(['lawnchair'], function (Lawnchair) {
           var win = function(){ return cb.call(self, self); }
 
           request.onsuccess = function(event) {
-             self.db = request.result;
+              self.db = request.result;
 
               if(self.db.version != "1.0") {
                 var setVrequest = self.db.setVersion("1.0");
