@@ -59,11 +59,11 @@ define(function (require) {
     // If things are taking too long, skip the app cache stuff.
     timeout = setTimeout(function () {
       console.log('Timed out! Not using application cache.');
-      appCache.removeEventListener('updateready');
-      appCache.removeEventListener('error');
-      appCache.removeEventListener('noupdate');
-      appCache.removeEventListener('obsolete');
-      appCache.removeEventListener('cached');
+      // appCache.removeEventListener('updateready');
+      // appCache.removeEventListener('error');
+      // appCache.removeEventListener('noupdate');
+      // appCache.removeEventListener('obsolete');
+      // appCache.removeEventListener('cached');
       timeout = null;
       done();
     }, 1000);
