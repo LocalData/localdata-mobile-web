@@ -127,7 +127,7 @@ define(['lawnchair'], function (Lawnchair) {
               }
           }
           request.onerror = function(ev) {
-              if (request.errorCode === getIDBDatabaseException().VERSION_ERR) {
+              if (ev.target.error.name === 'VersionError') {
                   // xxx blow it away
                   self.idb.deleteDatabase(self.name);
                   // try it again.
