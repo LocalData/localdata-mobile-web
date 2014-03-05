@@ -684,7 +684,10 @@ define(function (require) {
 
           // Create a new GeoJSON layer and style it.
           var geoJSONLayer = new L.geoJson(featureCollection, {
-            style: parcelStyle
+            style: parcelStyle,
+            pointToLayer: function (feature, latlng) {
+              return L.circleMarker(latlng);
+            }
           });
 
           // Add click handler
