@@ -90,7 +90,7 @@ define(function (require) {
               } else if (survey.type === 'address-point') {
                 $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Enter an address to begin');
               } else {
-                $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Tap a parcel to begin');
+                $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Select a location to begin');
               }
 
               app.map = new MapView(app, 'map-div');
