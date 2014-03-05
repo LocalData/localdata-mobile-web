@@ -49,7 +49,7 @@ define(function (require) {
         // Get the survey, slug, etv.
         var surveyPromise = api.getSurveyFromSlug();
 
-        $('#loading-container').hide();
+        $('#loading-container').remove();
         $('#home-container').show();
         var $collectorName = $('#collector_name');
         var $collectorNameSubmit = $('#collector-name-submit');
@@ -60,7 +60,7 @@ define(function (require) {
         }
 
         $collectorNameSubmit.click(function(event) {
-          $('#startpoint h2').html('Loading...');
+          $('#startpoint h2').html('Loading your survey');
 
           // Set a cookie with the collector's name
           console.log("Setting collector name");

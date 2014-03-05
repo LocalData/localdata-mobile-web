@@ -218,10 +218,17 @@ input[type="submit"] {
 }
 
 body {
-    -webkit-perspective: none;
-    -webkit-transform-style: flat;
+  -webkit-perspective: none;
+  -webkit-transform-style: flat;
 }
 body > * {
-    -webkit-backface-visibility: visible;
-    -webkit-transform: none;
+  -webkit-backface-visibility: visible;
+  -webkit-transform: none;
+}
+
+.required-error {
+  display: none;
+  margin-bottom: 0.5em;
+  color: #ef6d4a;
+  font-weight: bold;
 }

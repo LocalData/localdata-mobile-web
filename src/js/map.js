@@ -637,6 +637,10 @@ define(function (require) {
           getParcels = api.getObjectsInBBoxFromESRI;
           options = settings.survey.geoObjectSource;
         }
+        if (settings.survey.geoObjectSource.type === 'LocalData') {
+          getParcels = api.getObjectsInBBoxFromLocalData;
+          options = settings.survey.geoObjectSource;
+        }
       }
 
       // Compute the tiles that we need to cover the current map bounds.
