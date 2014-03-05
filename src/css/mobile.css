@@ -214,3 +214,10 @@ input[type="submit"] {
 .leaflet-overlay-pane {
   z-index: 7;
 }
+
+.required-error {
+  display: none;
+  margin-bottom: 0.5em;
+  color: #ef6d4a;
+  font-weight: bold;
+}

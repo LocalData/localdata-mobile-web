@@ -441,7 +441,7 @@ define(function (require) {
         }
       }
     }
-    var geocodeEndpoint = 'http://dev.virtualearth.net/REST/v1/Locations/' + addressWithLocale + '?o=json&key=' + settings.bing_key + '&jsonp=?';
+    var geocodeEndpoint = '//dev.virtualearth.net/REST/v1/Locations/' + addressWithLocale + '?o=json&key=' + settings.bing_key + '&jsonp=?';
 
     $.ajax({
       url: geocodeEndpoint,
