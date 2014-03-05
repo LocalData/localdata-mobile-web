@@ -68,7 +68,7 @@ define(function (require) {
           $.cookie('collectorName', app.collectorName, { path: '/' });
 
           // Hide the homepage, show the survey
-          $('#home-container').hide();
+          $('#home-container').remove();
           $('#survey-container').show();
 
           // TODO: think this is deprecated / no longer necessary.
