@@ -399,12 +399,15 @@ define(function (require) {
           circle = new L.Circle(e.latlng, radius);
           map.addLayer(circle);
         }
-        map.panTo(e.latlng);
+        map.setView(e.latlng, 19);
 
         getResponsesInMap();
         renderParcelsInBounds();
       }
 
+      /**
+       * If geolocation fails, move the user to the survey's default location
+       */
       function onLocationError(e) {
         if (initialLocate) {
           initialLocate = false;
@@ -429,9 +432,6 @@ define(function (require) {
             circle = new L.Circle(latlng, radius);
             map.addLayer(circle);
             map.setView(latlng, 19);
-
-            // Scroll to the top
-            window.scrollTo(0,0);
           });
         } else {
           alert(e.message);
@@ -519,7 +519,10 @@ define(function (require) {
     // Attempt to center the map on an address using Bing's geocoder.
     // This should probably live in APIs.
     var goToAddress = function(address) {
+      $('#address-search-active').show();
       api.codeAddress(address, function (error, data) {
+        $('#address-search-active').hide();
+
         if (error) {
           if (error.type === 'GeocodingError') {
             console.warn('We could not geocode the address: '  + address);
@@ -542,10 +545,7 @@ define(function (require) {
         map.addLayer(circle);
         map.setView(latlng, 19);
 
-        // Scroll to the top so users can
-        window.scrollTo(0,0);
-        $('#address-search').slideToggle();
-        $('#address-search-prompt').slideToggle();
+        $('#address-search').hide();
 
         // Record the address, for potential later use by the survey questions.
         settings.address = data.addressLine;
