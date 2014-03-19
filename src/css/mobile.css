@@ -23,6 +23,7 @@ small {
 
 h2,
 #startpoint,
+#address-search-active,
 #thanks,
 #submitting,
 #error {
@@ -60,6 +61,7 @@ h2 {
 }
 
 #submitting,
+#address-search-active,
 #error,
 #thanks,
 #thanks-offline {
@@ -167,6 +169,15 @@ input[type="text"] {
 
 .leaflet-overlay-pane {
   z-index: 7;
+}
+
+body {
+  -webkit-perspective: none;
+  -webkit-transform-style: flat;
+}
+body > * {
+  -webkit-backface-visibility: visible;
+  -webkit-transform: none;
 }
 
 .required-error {

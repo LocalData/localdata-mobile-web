@@ -286,8 +286,7 @@ define(function (require) {
     }
 
     this.init = function() {
-      console.log('Initialize map');
-      console.log(settings.survey);
+      console.log('Initializing map');
       map = new L.Map(mapContainerId, {minZoom:11, maxZoom:21});
 
       map.addLayer(parcelsLayerGroup);
@@ -320,7 +319,7 @@ define(function (require) {
         api.codeAddress(settings.survey.location, function (error, data) {
           if (error) {
             if (error.type === 'GeocodingError') {
-              console.warn('We could not geocode the address: '  + address);
+              console.warn('We could not geocode the address: '  + settings.survey.location);
             } else {
               console.error('Unexpected error of type ' + error.type);
               console.error(error.message);
@@ -343,6 +342,7 @@ define(function (require) {
         $('#entry').show();
       }
 
+      // Check for new responses when we submit
       $.subscribe('successfulSubmit', getResponsesInMap);
 
       // Show which parcels have responses when the map is moved.
@@ -354,8 +354,9 @@ define(function (require) {
         var bounds = null;
         try {
           bounds = map.getBounds();
-        } catch (e) {
         }
+        catch (e) {  }
+
         if (lastBounds !== null && lastBounds.equals(bounds)) {
           console.log('avoiding duplicate moveend action');
           return;
@@ -369,19 +370,6 @@ define(function (require) {
 
         }
       }, 50));
-
-
-      // Location handlers
-      // Used for centering the map when we're using geolocation.
-      map.on('locationfound', onLocationFound);
-      map.on('locationerror', onLocationError);
-
-      var initialLocate = true;
-      map.locate({
-        setView: true,
-        maxZoom: 19,
-        enableHighAccuracy: true
-      });
 
       // Mark a location on the map.
       // Primarily used with browser-based geolocation (aka 'where am I?')
@@ -399,19 +387,64 @@ define(function (require) {
           circle = new L.Circle(e.latlng, radius);
           map.addLayer(circle);
         }
-        map.panTo(e.latlng);
+        map.setView(e.latlng, 19);
 
         getResponsesInMap();
         renderParcelsInBounds();
       }
 
+      // Move the map ............................................................
+      // Attempt to center the map on an address using Bing's geocoder.
+      // This should probably live in APIs.
+      var goToAddress = function(address) {
+        $('#address-search-active').show();
+        api.codeAddress(address, function (error, data) {
+          $('#address-search-active').hide();
+
+          if (error) {
+            if (error.type === 'GeocodingError') {
+              console.warn('We could not geocode the address: '  + address);
+            } else {
+              console.error('Unexpected error of type ' + error.type);
+              console.error(error.message);
+            }
+            settings.address = '';
+            return;
+          }
+
+          if (circle !== null) {
+            map.removeLayer(circle);
+          }
+
+          // Add the accuracy circle to the map
+          var radius = 4;
+          var latlng = new L.LatLng(data.coords[1], data.coords[0]);
+          circle = new L.Circle(latlng, radius);
+          map.addLayer(circle);
+          map.setView(latlng, 19);
+
+          $('#address-search').hide();
+
+          // Record the address, for potential later use by the survey questions.
+          settings.address = data.addressLine;
+
+          // TODO: Select an object, if appropriate
+        });
+      };
+
+      /**
+       * If geolocation fails, move the user to the survey's default location
+       */
       function onLocationError(e) {
+        // Don't move the user to the default location if they
+        // have already moved away from it.
+        // TODO: We should just abstract and call the "goToAddress" code here
         if (initialLocate) {
           initialLocate = false;
           api.codeAddress(settings.survey.location, function (error, data) {
             if (error) {
               if (error.type === 'GeocodingError') {
-                console.warn('We could not geocode the address: '  + address);
+                console.warn('We could not geocode the address: '  + settings.survey.location);
               } else {
                 console.error('Unexpected error of type ' + error.type);
                 console.error(error.message);
@@ -429,15 +462,23 @@ define(function (require) {
             circle = new L.Circle(latlng, radius);
             map.addLayer(circle);
             map.setView(latlng, 19);
-
-            // Scroll to the top
-            window.scrollTo(0,0);
           });
         } else {
-          alert(e.message);
+          console.error("Unexpected geoloation error", e);
         }
       }
 
+      // Location handlers
+      // Used for centering the map when we're using geolocation.
+      map.on('locationfound', onLocationFound);
+      map.on('locationerror', onLocationError);
+
+      var initialLocate = true; // is this our first attempt to locate?
+      map.locate({
+        setView: true,
+        maxZoom: 19,
+        enableHighAccuracy: true
+      });
 
       // Map tools ...............................................................
 
@@ -515,45 +556,6 @@ define(function (require) {
     };
 
 
-    // Move the map ............................................................
-    // Attempt to center the map on an address using Bing's geocoder.
-    // This should probably live in APIs. 
-    var goToAddress = function(address) {
-      api.codeAddress(address, function (error, data) {
-        if (error) {
-          if (error.type === 'GeocodingError') {
-            console.warn('We could not geocode the address: '  + address);
-          } else {
-            console.error('Unexpected error of type ' + error.type);
-            console.error(error.message);
-          }
-          settings.address = '';
-          return;
-        }
-
-        if (circle !== null) {
-          map.removeLayer(circle);
-        }
-
-        // Add the accuracy circle to the map
-        var radius = 4;
-        var latlng = new L.LatLng(data.coords[1], data.coords[0]);
-        circle = new L.Circle(latlng, radius);
-        map.addLayer(circle);
-        map.setView(latlng, 19);
-
-        // Scroll to the top so users can
-        window.scrollTo(0,0);
-        $('#address-search').slideToggle();
-        $('#address-search-prompt').slideToggle();
-
-        // Record the address, for potential later use by the survey questions.
-        settings.address = data.addressLine;
-
-        // TODO: Select an object, if appropriate
-      });
-    };
-
     function selectParcel(event) {
       var oldSelectedLayer = selectedLayer;
 
@@ -604,7 +606,7 @@ define(function (require) {
     // Render parcels that are currently visible in the map
     // Gets geodata from our api
     function renderParcelsInBounds() {
-      console.log('Map: getting & rendering parcels in bounds');
+      console.log('Map: getting & rendering features in bounds');
 
       // Don't load and render a basemap if the survey is point-based
       if (settings.survey.type === 'point' || settings.survey.type === 'address-point') {
@@ -635,6 +637,10 @@ define(function (require) {
       if(_.has(settings.survey, 'geoObjectSource')) {
         if (settings.survey.geoObjectSource.type === 'ArcGIS Server') {
           getParcels = api.getObjectsInBBoxFromESRI;
+          options = settings.survey.geoObjectSource;
+        }
+        if (settings.survey.geoObjectSource.type === 'LocalData') {
+          getParcels = api.getObjectsInBBoxFromLocalData;
           options = settings.survey.geoObjectSource;
         }
       }
@@ -680,7 +686,10 @@ define(function (require) {
 
           // Create a new GeoJSON layer and style it.
           var geoJSONLayer = new L.geoJson(featureCollection, {
-            style: parcelStyle
+            style: parcelStyle,
+            pointToLayer: function (feature, latlng) {
+              return L.circleMarker(latlng);
+            }
           });
 
           // Add click handler
@@ -712,7 +721,7 @@ define(function (require) {
     // Adds a checkbox marker to the given point
     function addDoneMarker(latlng, id) {
       // Only add markers if they aren't already on the map.
-      if (markers[id] == undefined  || id === ''){
+      if (markers[id] === undefined  || id === ''){
         var doneIcon = new CheckIcon();
         var doneMarker = new L.Marker(latlng, {icon: doneIcon});
         doneMarkersLayer.addLayer(doneMarker);

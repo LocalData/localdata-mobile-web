@@ -47,9 +47,7 @@ require(['jquery', 'app', 'lib/jquery.mobile', 'lib/jquery.cookie',
 
   logLevel('verbose'); // silent or verbose
   // $(document).trigger('mobileinit');
-  console.log("Hi");
   $(document).ready(function() {
-    console.log("OK?");
     app.init();
   });
 });

@@ -51,7 +51,7 @@ define(function (require) {
         clearTimeout(timeout);
       }
 
-      console.info(e.type);
+      console.info("Proceed event error:", e.type);
       console.log('Proceeding');
       done();
     }
@@ -59,11 +59,11 @@ define(function (require) {
     // If things are taking too long, skip the app cache stuff.
     timeout = setTimeout(function () {
       console.log('Timed out! Not using application cache.');
-      appCache.removeEventListener('updateready');
-      appCache.removeEventListener('error');
-      appCache.removeEventListener('noupdate');
-      appCache.removeEventListener('obsolete');
-      appCache.removeEventListener('cached');
+      appCache.removeEventListener('updateready', handleUpdate);
+      appCache.removeEventListener('error', proceed);
+      appCache.removeEventListener('noupdate', proceed);
+      appCache.removeEventListener('obsolete', proceed);
+      appCache.removeEventListener('cached', proceed);
       timeout = null;
       done();
     }, 1000);

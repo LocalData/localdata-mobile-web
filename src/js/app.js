@@ -13,6 +13,7 @@ define(function (require) {
   var FormView = require('form');
   var MapView = require('map');
   var appCacheManager = require('app-cache-manager');
+  var settings = require('settings');
 
   // Listen for status-change events and adjust the UI accordingly.
   function setupEventHandlers() {
@@ -40,9 +41,13 @@ define(function (require) {
   var app = {
 
     getStarted: function(event) {
+      var $collectorName = $('#collector_name');
+
+      // Switch to the survey container
       $('body').pagecontainer('change', '#survey-container ', {changeHash: false});
 
-      $('#startpoint h2').html('Loading your survey');
+      // Tell the user we're getting started
+      // $('#startpoint h2').html('Loading your survey');
 
       // Set a cookie with the collector's name
       console.log("Setting collector name");
@@ -52,9 +57,9 @@ define(function (require) {
       // Wait until we have the survey data
       setupEventHandlers();
 
-      if (survey.type === 'point') {
+      if (settings.survey.type === 'point') {
         $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Pan and add a point to begin');
-      } else if (survey.type === 'address-point') {
+      } else if (settings.survey.type === 'address-point') {
         $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Enter an address to begin');
       } else {
         $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Tap a parcel to begin');
@@ -63,15 +68,16 @@ define(function (require) {
       app.map = new MapView(app, 'map-div');
       app.f = new FormView(app, '#form');
 
-      if (survey.type === 'address-point') {
+      if (settings.survey.type === 'address-point') {
         $.publish('readyForAddressForm');
       }
     },
 
     /*
-     * Handle the survey data
+     * We got the survey data
+     * The survey is exposed via settings.survey
      */
-    success: function(survey) {
+    success: function() {
       api.init(function (error) {
         if (error) {
           $('body').html('Sorry, something went wrong. Please reload the page.');
@@ -112,7 +118,7 @@ define(function (require) {
      * has been submitted
      */
     init: function () {
-      console.log("Initialize NSB");
+      console.log("Initializing app");
 
       appCacheManager.init(function () {
         // Get the survey, slug, etv.
