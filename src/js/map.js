@@ -293,8 +293,11 @@ define(function (require) {
       map.addLayer(doneMarkersLayer);
 
       // Add bing maps
-      var bing = new L.BingLayer(settings.bing_key, {maxZoom:21, type:'AerialWithLabels'});
-      map.addLayer(bing);
+      // var bing = new L.BingLayer(settings.bing_key, {maxZoom:21, type:'AerialWithLabels'});
+      // map.addLayer(bing);
+
+      var  baseLayer = L.tileLayer('//a.tiles.mapbox.com/v3/matth.map-yyr7jb6r/{z}/{x}/{y}.png');
+      map.addLayer(baseLayer);
 
       if (_.has(settings.survey, 'zones')) {
         var zoneLayer = new L.geoJson(settings.survey.zones, {
