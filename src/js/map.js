@@ -287,13 +287,13 @@ define(function (require) {
 
     this.init = function() {
       console.log('Initializing map');
-      map = new L.Map(mapContainerId, {minZoom:11, maxZoom:21});
+      map = new L.Map(mapContainerId, {minZoom: 11, maxZoom: 19});
 
       map.addLayer(parcelsLayerGroup);
       map.addLayer(doneMarkersLayer);
 
       // Add bing maps
-      // var bing = new L.BingLayer(settings.bing_key, {maxZoom:21, type:'AerialWithLabels'});
+      // var bing = new L.BingLayer(settings.bing_key, {maxZoom: 21, type:'AerialWithLabels'});
       // map.addLayer(bing);
 
       var  baseLayer = L.tileLayer('//a.tiles.mapbox.com/v3/matth.map-yyr7jb6r/{z}/{x}/{y}.png');
@@ -351,6 +351,7 @@ define(function (require) {
       // Show which parcels have responses when the map is moved.
       var lastBounds = null;
       map.on('moveend', _.debounce(function(event) {
+        console.log(map.getZoom());
         // Workaround. On Android Browser we sometimes get repeated moveend
         // events. If the bounds haven't changed, we shouldn't keep handling
         // the event.

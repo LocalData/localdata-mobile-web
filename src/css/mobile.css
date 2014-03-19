@@ -41,6 +41,7 @@ h2,
 
 h2 {
   padding-bottom:0;
+  font-weight: normal;
 }
 
 #status-bar {
@@ -185,4 +186,9 @@ body > * {
   margin-bottom: 0.5em;
   color: #ef6d4a;
   font-weight: bold;
+}
+
+#popupOffline,
+#popupBackOnline {
+  display: none;
 }
