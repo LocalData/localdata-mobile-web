@@ -77,12 +77,6 @@ h2 {
   border-bottom:2px solid #ddd;
 }
 
-
-#head {
-  height:20px;
-  padding:.5em 1em;
-}
-
 #map-div {
   -ms-touch-action: pinch-zoom;
   height: 250px;
