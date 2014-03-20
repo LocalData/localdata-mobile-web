@@ -44,19 +44,23 @@ define(function (require) {
       var $collectorName = $('#collector_name');
 
       // Switch to the survey container
+      // We wait until the page is successfully created to initialize the map
+      $('body').on( "pageinit", "#survey-container", function( event ) {
+        console.log("Survey container created");
+        app.map = new MapView(app, 'map-div');
+        app.form = new FormView(app, '#form');
+      });
       $('body').pagecontainer('change', '#survey-container ', {changeHash: false});
 
-      // Tell the user we're getting started
-      // $('#startpoint h2').html('Loading your survey');
-
       // Set a cookie with the collector's name
-      console.log("Setting collector name");
       app.collectorName = $collectorName.val();
       $.cookie('collectorName', app.collectorName, { path: '/' });
 
-      // Wait until we have the survey data
+      // Set up the online / offline event handlers
       setupEventHandlers();
 
+      // Give the correct welcome
+      // TODO: templatize for i18n
       if (settings.survey.type === 'point') {
         $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Pan and add a point to begin');
       } else if (settings.survey.type === 'address-point') {
@@ -65,9 +69,6 @@ define(function (require) {
         $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Tap a parcel to begin');
       }
 
-      app.map = new MapView(app, 'map-div');
-      app.f = new FormView(app, '#form');
-
       if (settings.survey.type === 'address-point') {
         $.publish('readyForAddressForm');
       }
@@ -75,7 +76,7 @@ define(function (require) {
 
     /*
      * We got the survey data
-     * The survey is exposed via settings.survey
+     * The survey is now exposed via settings.survey
      */
     success: function() {
       api.init(function (error) {

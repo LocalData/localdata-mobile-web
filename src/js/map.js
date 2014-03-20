@@ -286,8 +286,11 @@ define(function (require) {
     }
 
     this.init = function() {
-      console.log('Initializing map');
-      map = new L.Map(mapContainerId, {minZoom: 11, maxZoom: 19});
+      console.log('Initializing map', $('#' + mapContainerId).width());
+      map = new L.Map(mapContainerId, {
+        minZoom: 11,
+        maxZoom: 19
+      });
 
       map.addLayer(parcelsLayerGroup);
       map.addLayer(doneMarkersLayer);

@@ -84,8 +84,8 @@ h2 {
 }
 
 #map-div {
-  border-bottom: 2px solid #eee;
   -ms-touch-action: pinch-zoom;
+  height: 250px;
 }
 
 h1 {
