@@ -152,6 +152,7 @@ define(function (require) {
           humanReadableName: app.selectedObject.humanReadableName,
           parcel_id: app.selectedObject.id // Soon to be deprecated
         },
+        info: app.selectedObject.info,
         parcel_id: app.selectedObject.id, // Soon to be deprecated
         object_id: app.selectedObject.id, // Replaces parcel_id
         responses: serialized
