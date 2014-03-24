@@ -572,8 +572,17 @@ define(function (require) {
 
       // Keep track of the selected object centrally
       app.selectedObject.id = selectedLayer.feature.id;
-      app.selectedObject.humanReadableName = selectedLayer.feature.properties.address;
 
+      // Store the human-readable name (often the address).
+      if (_.has(selectedLayer.feature.properties, 'address')) {
+        app.selectedObject.humanReadableName = selectedLayer.feature.properties.address;
+      } else if (_.has(selectedLayer.feature.properties, 'shortName')) {
+        app.selectedObject.humanReadableName = selectedLayer.feature.properties.shortName;
+      } else {
+        app.selectedObject.humanReadableName = 'Unknown Location';
+      }
+
+      // Store the centroid.
       if (selectedLayer.feature.properties.centroid !== undefined) {
         app.selectedObject.centroid = selectedLayer.feature.properties.centroid;
       } else {
@@ -581,6 +590,11 @@ define(function (require) {
           type: 'Point',
           coordinates: computeCentroid(selectedLayer.feature.geometry)
         };
+      }
+
+      // If the base feature has other info properties, store those.
+      if (selectedLayer.feature.properties.info !== undefined) {
+        app.selectedObject.info = selectedLayer.feature.properties.info;
       }
 
       app.selectedObject.geometry = selectedLayer.feature.geometry;
