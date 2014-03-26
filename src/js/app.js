@@ -13,6 +13,7 @@ define(function (require) {
   var FormView = require('form');
   var MapView = require('map');
   var appCacheManager = require('app-cache-manager');
+  var mc = require('map-cache');
 
   // Listen for status-change events and adjust the UI accordingly.
   function setupEventHandlers() {
@@ -44,6 +45,16 @@ define(function (require) {
      */
     init: function () {
       console.log("Initialize NSB");
+
+      function initMisc(done) {
+        api.init(function (error) {
+          if (error) { return done(error); }
+          mc.init(function (error) {
+            if (error) { return done(error); }
+            done();
+          });
+        });
+      }
 
       appCacheManager.init(function () {
         // Get the survey, slug, etv.
@@ -77,7 +88,7 @@ define(function (require) {
           // Wait until we have the survey data
           surveyPromise
           .done(function (survey) {
-            api.init(function (error) {
+            initMisc(function (error) {
               if (error) {
                 $('#startpoint h2').html('Sorry, something went wrong. Please reload the page.');
                 return;

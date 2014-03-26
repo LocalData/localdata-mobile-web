@@ -10,6 +10,7 @@ define(function (require) {
   var api = require('api');
   var L = require('lib/leaflet');
   var maptiles = require('maptiles');
+  var mc = require('map-cache');
 
   // Add a buffer to a bounds object.
   // Makes parcels render faster when the map is moved
@@ -293,9 +294,13 @@ define(function (require) {
       map.addLayer(parcelsLayerGroup);
       map.addLayer(doneMarkersLayer);
 
-      // Add bing maps
-      var bing = new L.BingLayer(settings.bing_key, {maxZoom:21, type:'AerialWithLabels'});
-      map.addLayer(bing);
+      if (settings.survey.offline) {
+        // Add cacheable map
+        map.addLayer(mc.layer, { maxZoom: 21 });
+      } else {
+        // Add bing maps
+        map.addLayer(new L.BingLayer(settings.bing_key, {maxZoom:21, type:'AerialWithLabels'}));
+      }
 
       if (_.has(settings.survey, 'zones')) {
         var zoneLayer = new L.geoJson(settings.survey.zones, {
