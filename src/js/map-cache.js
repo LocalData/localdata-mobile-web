@@ -70,7 +70,8 @@ define(function (require) {
   };
 
   mc.layer = L.tileLayer.canvas({
-    async: true
+    async: true,
+    maxZoom: 21
   });
 
   function onloading(e) {
