@@ -29,7 +29,7 @@ define(function (require) {
 
   mc.bingOptions = {
 		subdomains: [0, 1, 2, 3],
-		type: 'Aerial',
+		type: 'AerialWithLabels',
 		attribution: 'Bing'
   };
 
