@@ -14,6 +14,7 @@ define(function (require) {
   var MapView = require('map');
   var appCacheManager = require('app-cache-manager');
   var settings = require('settings');
+  var L = require('lib/leaflet');
 
   // Listen for status-change events and adjust the UI accordingly.
   function setupEventHandlers() {
@@ -45,14 +46,14 @@ define(function (require) {
 
       // Switch to the survey container
       // We wait until the page is successfully created to initialize the map
-      $('body').on( "pageinit", "#survey-container", function( event ) {
-        console.log("Survey container created");
+      $('#survey-container').on("pageshow", function(event) {
         app.map = new MapView(app, 'map-div');
         app.form = new FormView(app, '#form');
       });
       $('body').pagecontainer('change', '#survey-container ', {changeHash: false});
 
       // Set a cookie with the collector's name
+      // TODO make sure this
       app.collectorName = $collectorName.val();
       $.cookie('collectorName', app.collectorName, { path: '/' });
 

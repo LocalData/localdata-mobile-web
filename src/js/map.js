@@ -286,14 +286,19 @@ define(function (require) {
     }
 
     this.init = function() {
-      console.log('Initializing map', $('#' + mapContainerId).width());
-      map = new L.Map(mapContainerId, {
+      console.log('Initializing map');
+      map = L.map('map-div', {
         minZoom: 11,
         maxZoom: 19
       });
 
       map.addLayer(parcelsLayerGroup);
       map.addLayer(doneMarkersLayer);
+
+      // Hack to show the map with JQuery mobile
+      setTimeout(function(){
+        map.invalidateSize();
+      }, 0);
 
       // Add bing maps
       // var bing = new L.BingLayer(settings.bing_key, {maxZoom: 21, type:'AerialWithLabels'});
@@ -354,7 +359,6 @@ define(function (require) {
       // Show which parcels have responses when the map is moved.
       var lastBounds = null;
       map.on('moveend', _.debounce(function(event) {
-        console.log(map.getZoom());
         // Workaround. On Android Browser we sometimes get repeated moveend
         // events. If the bounds haven't changed, we shouldn't keep handling
         // the event.
@@ -364,8 +368,8 @@ define(function (require) {
         }
         catch (e) {  }
 
+        // Avoid those duplicate moveend events
         if (lastBounds !== null && lastBounds.equals(bounds)) {
-          console.log('avoiding duplicate moveend action');
           return;
         }
         lastBounds = bounds;
@@ -544,7 +548,6 @@ define(function (require) {
         // Indicate that we're ready for a form
         $.publish('readyForAddressForm');
       });
-
     }; // end init
 
 
@@ -614,7 +617,6 @@ define(function (require) {
     // Gets geodata from our api
     function renderParcelsInBounds() {
       console.log('Map: getting & rendering features in bounds');
-
       // Don't load and render a basemap if the survey is point-based
       if (settings.survey.type === 'point' || settings.survey.type === 'address-point') {
         return;
@@ -636,7 +638,8 @@ define(function (require) {
         bounds = addBuffer(bounds);
       }
 
-      $.mobile.showPageLoadingMsg();
+      // TODO: Loading
+      // $.mobile.showPageLoadingMsg();
 
       // Decide which function we use to get the base layer
       var options = {};
@@ -665,7 +668,8 @@ define(function (require) {
             loadingCount -= 1;
             if (loadingCount === 0) {
               // Hide the spinner
-              $.mobile.hidePageLoadingMsg();
+              // TODO
+              // $.mobile.hidePageLoadingMsg();
             }
             console.log(error.message);
             // TODO: we should subscribe to the 'online' event and refetch
@@ -716,7 +720,8 @@ define(function (require) {
           loadingCount -= 1;
           if (loadingCount === 0) {
             // Hide the spinner
-            $.mobile.hidePageLoadingMsg();
+            // TODO
+            // $.mobile.hidePageLoadingMsg();
           }
         });
       });
