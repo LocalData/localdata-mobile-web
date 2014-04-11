@@ -288,13 +288,13 @@ define(function (require) {
     this.init = function() {
       console.log('Initialize map');
       console.log(settings.survey);
-      map = new L.Map(mapContainerId, {minZoom:11, maxZoom:21});
+      map = new L.Map(mapContainerId, {minZoom:11, maxZoom:19});
 
       map.addLayer(parcelsLayerGroup);
       map.addLayer(doneMarkersLayer);
 
       // Add bing maps
-      var bing = new L.BingLayer(settings.bing_key, {maxZoom:21, type:'AerialWithLabels'});
+      var bing = new L.BingLayer(settings.bing_key, {maxZoom:19, type:'AerialWithLabels'});
       map.addLayer(bing);
 
       if (_.has(settings.survey, 'zones')) {
