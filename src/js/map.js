@@ -293,20 +293,32 @@ define(function (require) {
       map.addLayer(parcelsLayerGroup);
       map.addLayer(doneMarkersLayer);
 
-      // Add bing maps
-      var bingRoads = new L.BingLayer(settings.bing_key, {
-        minZoom: 20,
-        maxZoom: 20,
-        type: 'Road'
-      });
-      map.addLayer(bingRoads);
 
-      var bing = new L.BingLayer(settings.bing_key, {
-        maxZoom:19,
-        type:'AerialWithLabels'
-      });
-      map.addLayer(bing);
+      // Add the base layers
+      if(settings.survey.tilelayer !== undefined) {
+        // Use a custom base layer if it is defined in the survey.
+        L.tileLayer(settings.survey.tilelayer, {
+            maxZoom: 19
+        }).addTo(map);
 
+      }else {
+        // Add the Bing road map for very close zooms
+        var bingRoads = new L.BingLayer(settings.bing_key, {
+          minZoom: 20,
+          maxZoom: 20,
+          type: 'Road'
+        });
+        map.addLayer(bingRoads);
+
+        // Add the Bing satellite map
+        var bing = new L.BingLayer(settings.bing_key, {
+          maxZoom:19,
+          type:'AerialWithLabels'
+        });
+        map.addLayer(bing);
+      }
+
+      // Add zones, if we have them
       if (_.has(settings.survey, 'zones')) {
         var zoneLayer = new L.geoJson(settings.survey.zones, {
           style: zoneStyle
