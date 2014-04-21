@@ -297,7 +297,7 @@ define(function (require) {
       // Add the base layers
       if(settings.survey.tilelayer !== undefined) {
         // Use a custom base layer if it is defined in the survey.
-        L.tileLayer('settings.survey.tilelayer', {
+        L.tileLayer(settings.survey.tilelayer, {
             maxZoom: 19
         }).addTo(map);
 
