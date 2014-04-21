@@ -23,7 +23,7 @@ small {
 
 h2,
 #startpoint,
-#address-search-active,
+#address-search-status,
 #thanks,
 #submitting,
 #error {
@@ -62,19 +62,11 @@ h2 {
 }
 
 #submitting,
-#address-search-active,
+#address-search-status,
 #error,
 #thanks,
 #thanks-offline {
   display:none;
-  background:#ffe;
-  border-top:1px solid #fff;
-  border-bottom:1px solid #ddd;
-}
-
-#address-search {
-  display:none;
-  border-bottom:2px solid #ddd;
 }
 
 #map-div {

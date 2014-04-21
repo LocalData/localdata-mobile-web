@@ -408,9 +408,9 @@ define(function (require) {
       // Attempt to center the map on an address using Bing's geocoder.
       // This should probably live in APIs.
       var goToAddress = function(address) {
-        $('#address-search-active').show();
+        $('#address-search-status').fadeIn(200);
         api.codeAddress(address, function (error, data) {
-          $('#address-search-active').hide();
+          $('#address-search-status').fadeOut(100);
 
           if (error) {
             if (error.type === 'GeocodingError') {
@@ -420,6 +420,8 @@ define(function (require) {
               console.error(error.message);
             }
             settings.address = '';
+            $('#address-search-status').html("Sorry, we weren't able to find that address");
+            $('#address-search-status').fadeIn(100).fadeOut(5000);
             return;
           }
 
@@ -434,17 +436,16 @@ define(function (require) {
           map.addLayer(circle);
           map.setView(latlng, 19);
 
-          $('#address-search').hide();
-
           // Record the address, for potential later use by the survey questions.
           settings.address = data.addressLine;
 
-          // TODO: Select an object, if appropriate
+          // Close the panel
+          $('#toolpanel').panel('close');
         });
       };
 
       /**
-       * If geolocation fails, move the user to the survey's default location
+       * If geolocation fails, let the user know.
        */
       function onLocationError(e) {
         // Don't move the user to the default location if they

@@ -71,15 +71,6 @@
       <a href="#popupBackOnline" id="net-status-back" data-icon="info" data-iconpos="notext" data-role="button" data-theme="b" data-rel="popup" data-transition="pop"></a>
     </div>
 
-    <div id="address-search">
-      <input type="text" name="address-input" id="address-input" style="width:70%" value="" data-mini="true" placeholder="Address">
-      <input id="address-submit" type="submit" data-icon="arrow-r" data-iconpos="right" data-inline="true" data-theme="a" value="Find address">
-    </div>
-
-    <div id="address-search-active">
-      Searching for the address
-    </div>
-
     <div id="map-div"></div>
     <div id="startpoint">
         <h2>Select a location to begin.</h2>
@@ -117,6 +108,13 @@
 
     <div data-role="panel" data-display="overlay" id="toolpanel">
       <div class="panel-in">
+          <div id="address-search">
+            <input type="text" name="address-input" id="address-input" value="" data-mini="true" placeholder="Address">
+            <input id="address-submit" type="submit" data-icon="arrow-r" data-iconpos="right" data-inline="true" data-theme="a" value="Find address">
+          </div>
+          <div id="address-search-status">
+            Searching for the address.
+          </div>
       </div>
     </div>
 

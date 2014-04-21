@@ -445,7 +445,8 @@ define(function (require) {
       dataType: 'json',
       cache: cache,
       success: function (data) {
-        if (data.resourceSets.length > 0){
+        if (data.resourceSets.length > 0 &&
+            data.resourceSets[0].resources.length > 0){
           var result = data.resourceSets[0].resources[0];
           callback(null, {
             addressLine: result.address.addressLine,
