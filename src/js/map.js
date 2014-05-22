@@ -288,7 +288,7 @@ define(function (require) {
     this.init = function() {
       console.log('Initialize map');
       console.log(settings.survey);
-      map = new L.Map(mapContainerId, {minZoom:11, maxZoom:20});
+      map = new L.Map(mapContainerId, {minZoom: 11, maxZoom: 19});
 
       map.addLayer(parcelsLayerGroup);
       map.addLayer(doneMarkersLayer);
@@ -303,12 +303,13 @@ define(function (require) {
 
       }else {
         // Add the Bing road map for very close zooms
-        var bingRoads = new L.BingLayer(settings.bing_key, {
-          minZoom: 20,
-          maxZoom: 20,
-          type: 'Road'
-        });
-        map.addLayer(bingRoads);
+        // Disabled for now since the layer is too light
+        // var bingRoads = new L.BingLayer(settings.bing_key, {
+        //   minZoom: 20,
+        //   maxZoom: 20,
+        //   type: 'Road'
+        // });
+        // map.addLayer(bingRoads);
 
         // Add the Bing satellite map
         var bing = new L.BingLayer(settings.bing_key, {
