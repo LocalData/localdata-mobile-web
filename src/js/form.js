@@ -345,7 +345,11 @@ define(function (require) {
     function makeClickHandler($el) {
       return function handleClick(e) {
         var $this = $(this);
-        hideAndClearSubQuestionsFor($this);
+        if ($this.attr('type') === 'checkbox') {
+          hideAndClearSubQuestionsFor($this);
+        } else {
+          hideAndClearSubQuestionsFor($el);
+        }
 
         // Show the conditional questions for this response.
         if($this.prop("checked")) {
@@ -687,6 +691,15 @@ define(function (require) {
         }
 
         // Handle conditional questions.
+
+        // If this is a checkbox, use the IDs of the answers.
+        var checkboxes = $el.find('div.ui-checkbox > input');
+        _.each(checkboxes, function (input) {
+          var subq = app.questionsByParentId[$(input).attr('id')];
+          questionsToProcess = questionsToProcess.concat(subq);
+        });
+
+        // Use the question ID, which is appropriate for non-checkbox questions.
         var subQuestions = app.questionsByParentId[$el.attr('id')];
         if (subQuestions !== undefined) {
           questionsToProcess = questionsToProcess.concat(subQuestions);
