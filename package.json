@@ -15,6 +15,7 @@
     "grunt-contrib-cssmin": "~0.4.0",
     "grunt-contrib-copy": "~0.4.1",
     "grunt-contrib-concat": "~0.3.0",
-    "grunt-contrib-manifest": "git+https://github.com/saulhardman/grunt-contrib-manifest.git"
+    //"grunt-contrib-manifest": "git+https://github.com/saulhardman/grunt-contrib-manifest.git",
+    "nightwatch": "0.4.x"
   }
 }

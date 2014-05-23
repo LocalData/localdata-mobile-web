@@ -4,7 +4,7 @@ We want to make it very easy for cities, nonprofits, neighborhood organizations 
 
 This mobile data collection app is part of the greater LocalData toolkit.
 
-h2. Running the app 
+h2. Running the app
 
 The app is static HTML pages + javascript. It does assume that it's being served by the same host as the "LocalData API":https://github.com/LocalData/localdata-api
 
@@ -21,3 +21,23 @@ bc. {
     "production" : "s3://mybucket/production-web/mobile"
   }
 }
+
+h2. Nightwatch tests
+
+We use [Nightwatch.js](http://nightwatchjs.org/) with [Selenium](http://docs.seleniumhq.org/) for automated browser testing.
+
+h3. Setup
+
+Run `npm install` to install dependencies, including Nightwatch.
+
+Download and copy the most recent [Selenium](http://docs.seleniumhq.org/) jar to
+`test/selenium-server-standalone.jar`.
+
+h3. Running
+
+You'll need the LocalData server running on port 3443 with a survey named
+"test" available.
+
+From the `tests` directory, run `./nightwatch` to run the tests.
+
+
