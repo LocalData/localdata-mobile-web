@@ -159,7 +159,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-cssmin');
   grunt.loadNpmTasks('grunt-contrib-requirejs');
   grunt.loadNpmTasks('grunt-contrib-concat');
-  grunt.loadNpmTasks('grunt-contrib-manifest');
+  grunt.loadNpmTasks('grunt-manifest');
 
   // Define the deploy task
   grunt.registerTask('deploy', 'Deploy the build directory to S3 using s3cmd', function (locname) {
@@ -252,7 +252,7 @@ module.exports = function(grunt) {
   grunt.task.run('setVersion');
 
   grunt.registerTask('build', ['cssmin', 'requirejs', 'copy:staging', 'concat:build', 'copy:build', 'manifest']);
-  
+
 
   // Default task
   grunt.registerTask('default', ['build']);
