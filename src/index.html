@@ -45,8 +45,8 @@
         <img src="img/logo.png">
       </h1>
 
-      <div  role="main" class="ui-content jqm-content" data-theme="b">
-        <form>
+      <div role="main" class="ui-content jqm-content" data-theme="b">
+        <form id="welcome-form">
           <input type="text" name="name" id="collector_name" value="" placeholder="Your name">
           <a href="#survey-container" id="collector-name-submit" class="ui-btn ui-page-theme-a ui-shadow ui-corner-all ui-icon-arrow-r ui-btn-icon-right" data-theme="b">Get started</a>
         </form>
@@ -54,14 +54,11 @@
   </div><!-- end home -->
 
   <div class="container" id="survey-container" data-role="page">
-    <div id="tools" data-role="header" >
-      <a href='#toolpanel' data-role="button" class="ui-btn-left" data-inline="true" data-icon="bars">Tools</a>
+    <div id="tools" data-role="header" data-form="ui-bar-b" data-swatch="b">
+      <a href='#toolpanel' data-role="button" class="ui-btn-left" data-icon="bars" data-form="ui-icon" data-theme="b"></a>
+
       <h1>A very long survey name goes here to see how we handle edge cases</h1>
 
-<!--       <a href='#' id='address-search-toggle' class="ui-btn-left" data-icon="search">Address</a>
- -->
-<!--
- -->
       <!-- tools for custom surveys -->
       <a href='#' id='point' class="ui-btn-left" data-icon="plus" style="display:none;">Add point</a>
       <a href='#' id='entry' data-icon="plus" data-role="button" data-inline="true" style="display:none;">Add entry</a>
@@ -108,11 +105,11 @@
 
     <div data-role="panel" data-display="overlay" id="toolpanel">
       <div class="panel-in">
-          <a href='#' id='geolocate' data-icon="star" data-role="button" data-inline="true" >Locate me</a>
+          <a href='#' id='geolocate' data-icon="star" data-role="button" data-inline="true" data-theme="c">Locate me</a>
 
           <div id="address-search">
             <input type="text" name="address-input" id="address-input" value="" data-mini="true" placeholder="Address">
-            <input id="address-submit" type="submit" data-icon="arrow-r" data-iconpos="right" data-inline="true" data-theme="a" value="Find address">
+            <input id="address-submit" type="submit" data-icon="arrow-r" data-iconpos="right" data-inline="true" data-theme="c" value="Find address">
           </div>
           <div id="address-search-status">
             Searching for the address.
