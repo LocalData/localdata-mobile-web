@@ -524,7 +524,7 @@ define(function (require) {
         var data = {
           questionName: suffixed_name,
           id: triggerID,
-          theme: (answer.theme || "c"),
+          theme: (answer.theme || "a"),
           value: answer.value,
           text: answer.text,
           selected: answer.selected || false
