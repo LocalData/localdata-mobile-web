@@ -247,9 +247,6 @@ define(function (require) {
       if($('#address-search-prompt').is(':hidden')) {
         $('#address-search-prompt').slideToggle();
       }
-      if($('#address-search').is(':visible')) {
-        $('#address-search').slideToggle();
-      }
 
       // Reset the form for the next submission.
       resetForm();
