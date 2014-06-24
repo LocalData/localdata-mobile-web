@@ -146,7 +146,10 @@ module.exports = function(grunt) {
           'js/*.js',
           '**/*.css',
           '**/*.png',
-          '**/*.gif'
+          '**/*.gif',
+          'css/images/*.png',
+          'css/images/icons-png/*.png',
+          'css/images/*.gif'
         ],
         dest: '<%= dirs.build %>/manifest.appcache'
       }
