@@ -348,7 +348,6 @@ define(function (require) {
 
         $.subscribe('mapAddress', mapAddress);
 
-        $('#address-search-toggle').hide();
         $('#geolocate').hide();
         $('#entry').show();
       }
@@ -408,7 +407,9 @@ define(function (require) {
       // Attempt to center the map on an address using Bing's geocoder.
       // This should probably live in APIs.
       var goToAddress = function(address) {
+        $('#address-search-status').html("Searching for the address");
         $('#address-search-status').fadeIn(200);
+
         api.codeAddress(address, function (error, data) {
           $('#address-search-status').fadeOut(100);
 
@@ -495,11 +496,6 @@ define(function (require) {
       // Map tools ...............................................................
 
       // Handle searching for addresses
-      $('#address-search-toggle').click(function(){
-        $('#address-search').slideToggle();
-        $('#address-search-prompt').slideToggle();
-      });
-
       $('#address-submit').click(function(){
         goToAddress($('#address-input').val());
       });
