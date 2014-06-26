@@ -713,13 +713,13 @@ define(function (require) {
             //console.log(centroidString, feature.properties);
             // DEBUG
             if (addressesOnTheMap[centroidString]) {
-              console.log("Skipping", feature.properties.address);
+             // console.log("Skipping", feature.properties.address);
               return false;
             }
 
             addressesOnTheMap[centroidString] = 1;
 
-            console.log("Adding", feature.properties);
+            //console.log("Adding", feature.properties);
             return true;
           });
 
