@@ -707,14 +707,18 @@ define(function (require) {
               return false;
             }
 
+            var centroidString = String(feature.properties.centroid.coordinates[0]) +
+                                 String(feature.properties.centroid.coordinates[1]);
+            //console.log(centroidString, feature.properties);
             // DEBUG
-            if (addressesOnTheMap[feature.properties.address]) {
+            if (addressesOnTheMap[centroidString]) {
               //console.log("Skipping", feature.properties.address);
               return false;
             }
-            addressesOnTheMap[feature.properties.address] = 1;
 
-            //console.log("Adding", feature.properties.address);
+            addressesOnTheMap[centroidString] = 1;
+
+            //console.log("Adding", feature.properties);
             return true;
           });
 
