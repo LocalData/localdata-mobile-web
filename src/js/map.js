@@ -521,7 +521,7 @@ define(function (require) {
       });
 
       // Add a point to the map and open up the survey
-      $('#point').click(function() {
+      var addPoint = function() {
         // Deselect the previous layer, if any
         if (newPoint !== null) {
           map.removeLayer(newPoint);
@@ -549,8 +549,8 @@ define(function (require) {
 
         // Let other parts of the app know that we've selected something.
         $.publish('objectSelected');
-
-      });
+      }
+      $('#point a').click(addPoint);
 
       $('#entry').click(function () {
         app.selectedObject = {};
@@ -703,6 +703,7 @@ define(function (require) {
           // should restore any parcels that were clipped because they were
           // once duplicated in other tiles.
           featureCollection.features = _.filter(result.features, function (feature) {
+            console.log("We have some results!");
             if (parcelIdsOnTheMap[feature.id]) {
               return false;
             }
@@ -712,13 +713,13 @@ define(function (require) {
             //console.log(centroidString, feature.properties);
             // DEBUG
             if (addressesOnTheMap[centroidString]) {
-              //console.log("Skipping", feature.properties.address);
+              console.log("Skipping", feature.properties.address);
               return false;
             }
 
             addressesOnTheMap[centroidString] = 1;
 
-            //console.log("Adding", feature.properties);
+            console.log("Adding", feature.properties);
             return true;
           });
 
@@ -788,12 +789,12 @@ define(function (require) {
 
       _.each(responses, function (response) {
         var parcelId = response.parcel_id;
-        var treatAsPoint = parcelId === '';
+        var treatAsPoint = response.geo_info.geometry.type === 'Point';
+        var zoomCutoffMet = (zoom >= zoomLevels.checkmarkCutoff && settings.survey.type !== 'address');
 
         // For address-based surveys, the checkmarks can be misleading, since
         // they will correspond to lots/parcels and not individual units.
-        if ((zoom >= zoomLevels.checkmarkCutoff && settings.survey.type !== 'address')
-            || treatAsPoint) {
+        if (zoomCutoffMet || treatAsPoint) {
           var point = new L.LatLng(response.geo_info.centroid[1], response.geo_info.centroid[0]);
           addDoneMarker(point, parcelId);
         }
@@ -886,6 +887,7 @@ define(function (require) {
         // Fetch each tile.
         _.each(tiles, function (tile) {
           api.getResponsesInBBox(maptiles.tileToBBox(tile), function (completedResponses) {
+
             markResponses(completedResponses, 'completed');
             // If we got responses, we need to restyle, so they show up.
             if (completedResponses.length > 0) {

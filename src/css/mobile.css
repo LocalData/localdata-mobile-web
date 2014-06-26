@@ -26,6 +26,7 @@ small {
 #thanks,
 #submitting,
 #thanks-offline,
+#point,
 #error {
   padding:1em;
 }
@@ -72,7 +73,7 @@ h2 {
 
 #map-div {
   -ms-touch-action: pinch-zoom;
-  height: 250px;
+  height: 300px;
 }
 
 #form,
