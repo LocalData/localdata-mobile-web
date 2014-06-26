@@ -104,6 +104,11 @@ define(function (require) {
     var markers = {};
     var numObjectsOnMap = 0;
     var parcelIdsOnTheMap = {};
+
+    // DEBUG ONLY
+    var addressesOnTheMap = {};
+    // END DEBUG
+
     var parcelsLayerGroup = new L.LayerGroup();
     var doneMarkersLayer = new L.LayerGroup();
     var pointMarkersLayer = new L.LayerGroup();
@@ -230,6 +235,10 @@ define(function (require) {
                 completedParcelCount -= 1;
               }
               delete parcelIdsOnTheMap[layer.feature.id];
+
+              // DEBUG
+              delete addressesOnTheMap[layer.feature.properties.address];
+
               numObjectsOnMap -= 1;
             });
             parcelsLayerGroup.removeLayer(group);
@@ -243,6 +252,10 @@ define(function (require) {
                   completedParcelCount -= 1;
                 }
                 delete parcelIdsOnTheMap[layer.feature.id];
+
+                // DEBUG
+                delete addressesOnTheMap[layer.feature.properties.address];
+
                 numObjectsOnMap -= 1;
               }
             });
@@ -626,6 +639,10 @@ define(function (require) {
         // confusing.
         parcelsLayerGroup.clearLayers();
         parcelIdsOnTheMap = {};
+
+        // DEBUG
+        addressesOnTheMap = {};
+
         numObjectsOnMap = 0;
         return;
       }
@@ -689,6 +706,15 @@ define(function (require) {
             if (parcelIdsOnTheMap[feature.id]) {
               return false;
             }
+
+            // DEBUG
+            if (addressesOnTheMap[feature.properties.address]) {
+              //console.log("Skipping", feature.properties.address);
+              return false;
+            }
+            addressesOnTheMap[feature.properties.address] = 1;
+
+            //console.log("Adding", feature.properties.address);
             return true;
           });
 
@@ -709,6 +735,9 @@ define(function (require) {
           // Track the parcels that we've added.
           _.each(featureCollection.features, function (feature) {
             parcelIdsOnTheMap[feature.id] = geoJSONLayer;
+
+            // DEBUG
+            addressesOnTheMap[feature.properties.address] = 1;
           });
           numObjectsOnMap += featureCollection.features.length;
 
