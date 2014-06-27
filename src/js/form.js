@@ -120,9 +120,9 @@ define(function (require) {
       if ($('#startpoint').is(":visible")) {
         $('#startpoint').hide();
       }
-      if ($('#thanks').is(":visible")) {
-        $('#thanks').slideToggle();
-      }
+      // if ($('#thanks').is(":visible")) {
+      //   $('#thanks').slideToggle();
+      // }
     }
 
 
@@ -242,10 +242,6 @@ define(function (require) {
         $thanks.slideDown();
       } else {
         $thanksOffline.slideDown();
-      }
-
-      if($('#address-search-prompt').is(':hidden')) {
-        $('#address-search-prompt').slideToggle();
       }
 
       // Reset the form for the next submission.

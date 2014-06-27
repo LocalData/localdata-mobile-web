@@ -42,7 +42,20 @@ define(function (require) {
   var app = {
 
     getStarted: function(event) {
+      event.preventDefault();
+
       var $collectorName = $('#collector_name');
+      // Set a cookie with the collector's name
+      // TODO make sure this
+      app.collectorName = $collectorName.val();
+      $.cookie('collectorName', app.collectorName, { path: '/' });
+
+      console.log("NAME", app.collectorName);
+      if (app.collectorName == '') {
+        console.log("Error");
+        $collectorName.addClass('error');
+        return;
+      }
 
       // Switch to the survey container
       // We wait until the page is successfully created to initialize the map
@@ -50,12 +63,8 @@ define(function (require) {
         app.map = new MapView(app, 'map-div');
         app.form = new FormView(app, '#form');
       });
-      $('body').pagecontainer('change', '#survey-container ', {changeHash: false});
+      $('body').pagecontainer('change', '#survey-container', {changeHash: false});
 
-      // Set a cookie with the collector's name
-      // TODO make sure this
-      app.collectorName = $collectorName.val();
-      $.cookie('collectorName', app.collectorName, { path: '/' });
 
       // Set up the online / offline event handlers
       setupEventHandlers();
@@ -96,7 +105,6 @@ define(function (require) {
           $collectorName.val($.cookie('collectorName'));
         }
 
-        // Start when the collector name is submitted
         $collectorNameSubmit.click(app.getStarted);
       });
     },

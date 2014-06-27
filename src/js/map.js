@@ -119,7 +119,7 @@ define(function (require) {
     var crosshairLayer;
     var pointObjectLayer;
 
-    var newPoint = null;
+    // var newPoint = null;
     var selectedLayer = null;
     var selectedPolygon = null;
     var selectedCentroid = null;
@@ -298,6 +298,40 @@ define(function (require) {
       });
     }
 
+
+
+    // Add a point to the map and open up the survey
+    function addPoint() {
+      // Deselect the previous layer, if any
+      // if (newPoint !== null) {
+      //   map.removeLayer(newPoint);
+      // }
+
+      var latlng = [map.getCenter().lat, map.getCenter().lng];
+      var lnglat = [map.getCenter().lng, map.getCenter().lat];
+
+      // Keep track of the selected object centrally
+      delete app.selectedObject;
+      app.selectedObject = {};
+      app.selectedObject.id = '';
+      app.selectedObject.humanReadableName = 'Custom location';
+
+      app.selectedObject.centroid = { coordinates: lnglat };
+      app.selectedObject.geometry = {
+        type: 'Point',
+        coordinates: lnglat
+      };
+
+      // newPoint = L.marker(latlng, {icon: PlaceIcon});
+      // map.addLayer(newPoint);
+
+      // selectedLayer.setStyle(selectedStyle);
+
+      // Let other parts of the app know that we've selected something.
+      $.publish('objectSelected');
+      }
+
+
     this.init = function() {
       console.log('Initializing map');
       map = L.map('map-div', {
@@ -330,15 +364,24 @@ define(function (require) {
       // If this is a point-based survey, add a crosshair over null island
       if(settings.survey.type === 'point' ||
          settings.survey.type === 'pointandparcel') {
-        crosshairLayer = L.marker([0,0], {icon: CrosshairIcon});
+        crosshairLayer = L.marker([0,0]);
         map.addLayer(crosshairLayer);
 
         // Move the crosshairs as the map moves
-        map.on('move', function(e){
+        map.on('move', function() {
           crosshairLayer.setLatLng(map.getCenter());
         });
 
-        $('#point').show();
+        map.on('moveend', function() {
+          addPoint();
+        });
+
+        map.on('click', function(event) {
+          map.panTo(event.latlng);
+          crosshairLayer.setLatLng(event.latlng);
+        });
+
+        // $('#point').show();
       } else if (settings.survey.type === 'address-point') {
         api.codeAddress(settings.survey.location, function (error, data) {
           if (error) {
@@ -519,38 +562,6 @@ define(function (require) {
           enableHighAccuracy: true
         });
       });
-
-      // Add a point to the map and open up the survey
-      var addPoint = function() {
-        // Deselect the previous layer, if any
-        if (newPoint !== null) {
-          map.removeLayer(newPoint);
-        }
-
-        var latlng = [map.getCenter().lat, map.getCenter().lng];
-        var lnglat = [map.getCenter().lng, map.getCenter().lat];
-
-        // Keep track of the selected object centrally
-        delete app.selectedObject;
-        app.selectedObject = {};
-        app.selectedObject.id = '';
-        app.selectedObject.humanReadableName = 'Custom location';
-
-        app.selectedObject.centroid = { coordinates: lnglat };
-        app.selectedObject.geometry = {
-          type: 'Point',
-          coordinates: lnglat
-        };
-
-        newPoint = L.marker(latlng, {icon: PlaceIcon});
-        map.addLayer(newPoint);
-
-        // selectedLayer.setStyle(selectedStyle);
-
-        // Let other parts of the app know that we've selected something.
-        $.publish('objectSelected');
-      }
-      $('#point a').click(addPoint);
 
       $('#entry').click(function () {
         app.selectedObject = {};

@@ -185,3 +185,7 @@ body > * {
 #popupBackOnline {
   display: none;
 }
+
+input[type="text"].error {
+  border-color: #f15a24;
+}
