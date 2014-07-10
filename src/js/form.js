@@ -36,6 +36,12 @@ define(function (require) {
         var o = {};
         var a = this.serializeArray();
         $.each(a, function() {
+          // Check if this should be numeric
+          console.log("Checking", this.value, isNAN(this.value));
+          if(!isNaN(this.value)) {
+            this.value = parseInt(this.value);
+          }
+
           if (o[this.name] !== undefined) {
             if (!o[this.name].push) {
               o[this.name] = [o[this.name]];
@@ -130,7 +136,9 @@ define(function (require) {
 
     function doSubmit() {
       // Serialize the form
+      // TODO TEsting
       var serialized = form.serializeObject();
+      console.log("SERIALIZED FORM", serialized);
 
       // Get some info about the centroid as floats.
       var selectedCentroid = app.selectedObject.centroid;
@@ -316,8 +324,6 @@ define(function (require) {
     }
 
 
-
-
     // Render the form ...........................................................
     var renderForm = function() {
       console.log("Form data:");
@@ -390,6 +396,7 @@ define(function (require) {
           answerCheckbox: _.template($('#answer-checkbox').html().trim()),
           answerRadio: _.template($('#answer-radio').html().trim()),
           answerText: _.template($('#answer-text').html().trim()),
+          answerNumber: _.template($('#answer-number').html().trim()),
           answerFile: _.template($('#answer-file').html().trim()),
           repeatButton: _.template($('#repeat-button').html().trim())
         };
@@ -505,6 +512,14 @@ define(function (require) {
             questionName: suffixed_name,
             id: _.uniqueId(question.name)
           }));
+        } else if (question.type === 'number') {
+          data = {
+            questionName: suffixed_name,
+            id: _.uniqueId(question.name),
+            value: value
+          };
+
+          $answer = $(templates.answerNumber(data));
         }
 
         $question.append($answer);
