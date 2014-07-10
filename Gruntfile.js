@@ -145,6 +145,7 @@ module.exports = function(grunt) {
         },
         src: [
           'js/*.js',
+          'js/lib/leaflet/images/*.png',
           '**/*.css',
           '**/*.png',
           '**/*.gif',

@@ -151,12 +151,12 @@ define(function (require) {
 
     var CrosshairIcon = L.icon({
       className: 'CrosshairIcon',
-      iconUrl: 'img/icons/crosshair.png',
-      shadowUrl: 'img/icons/crosshair.png',
-      iconSize: new L.Point(141, 141),
-      shadowSize: new L.Point(141, 141),
-      iconAnchor: new L.Point(71, 71),
-      popupAnchor: new L.Point(71, 71)
+      iconUrl: 'js/lib/leaflet/images/marker-icon.png',
+      shadowUrl: 'js/lib/leaflet/images/marker-shadow.png',
+      iconSize: new L.Point(25, 41),
+      shadowSize: new L.Point(41, 41),
+      iconAnchor: new L.Point(12, 41),
+      popupAnchor: new L.Point(25, 25)
     });
 
 
@@ -309,6 +309,7 @@ define(function (require) {
 
       var latlng = [map.getCenter().lat, map.getCenter().lng];
       var lnglat = [map.getCenter().lng, map.getCenter().lat];
+      console.log("Moved point", latlng);
 
       // Keep track of the selected object centrally
       delete app.selectedObject;
@@ -364,8 +365,15 @@ define(function (require) {
       // If this is a point-based survey, add a crosshair over null island
       if(settings.survey.type === 'point' ||
          settings.survey.type === 'pointandparcel') {
-        crosshairLayer = L.marker([0,0]);
-        map.addLayer(crosshairLayer);
+
+        if (settings.survey.type === 'point') {
+          $('#location-header').html('');
+        }
+
+        crosshairLayer = L.marker([0,0], {
+          icon: CrosshairIcon
+        });
+        map.addLayer(crosshairLayer)
 
         // Move the crosshairs as the map moves
         map.on('move', function() {
@@ -373,6 +381,7 @@ define(function (require) {
         });
 
         map.on('moveend', function() {
+          crosshairLayer.setLatLng(map.getCenter());
           addPoint();
         });
 
