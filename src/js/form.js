@@ -37,9 +37,9 @@ define(function (require) {
         var a = this.serializeArray();
         $.each(a, function() {
           // Check if this should be numeric
-          console.log("Checking", this.value, isNAN(this.value));
+          console.log("Checking", this.value, isNaN(this.value));
           if(!isNaN(this.value)) {
-            this.value = parseInt(this.value);
+            this.value = parseFloat(this.value);
           }
 
           if (o[this.name] !== undefined) {
@@ -313,6 +313,13 @@ define(function (require) {
         var $this = $(this);
         $this.val('');
       });
+
+      // Clear numeric input
+      $('input[type=number]').each(function (index) {
+        var $this = $(this);
+        $this.val('');
+      });
+
 
       // Clear file upload selections
       $('input[type=file]').each(function (index) {
