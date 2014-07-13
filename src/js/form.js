@@ -37,7 +37,6 @@ define(function (require) {
         var a = this.serializeArray();
         $.each(a, function() {
           // Check if this should be numeric
-          console.log("Checking", this.value, isNaN(this.value));
           if(!isNaN(this.value)) {
             this.value = parseFloat(this.value);
           }
@@ -136,9 +135,7 @@ define(function (require) {
 
     function doSubmit() {
       // Serialize the form
-      // TODO TEsting
       var serialized = form.serializeObject();
-      console.log("SERIALIZED FORM", serialized);
 
       // Get some info about the centroid as floats.
       var selectedCentroid = app.selectedObject.centroid;
@@ -319,7 +316,6 @@ define(function (require) {
         var $this = $(this);
         $this.val('');
       });
-
 
       // Clear file upload selections
       $('input[type=file]').each(function (index) {

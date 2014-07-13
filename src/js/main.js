@@ -33,7 +33,7 @@ require.config({
     'lib/leaflet': {
       exports: 'L'
     },
-    'lib/tilelayer.bing.pull': ['lib/leaflet'],
+    'lib/tilelayer.bing.pull': ['lib/leaflet']
   }
 });
 
@@ -45,7 +45,7 @@ require(['jquery', 'app', 'lib/jquery.mobile', 'lib/jquery.cookie',
                   logLevel, lawnchair, adapterIDB, adapterWebSQL) {
   'use strict';
 
-  logLevel('verbose'); // silent or verbose
+  logLevel('silent'); // silent or verbose
   $(document).ready(function () {
     app.init();
   });
