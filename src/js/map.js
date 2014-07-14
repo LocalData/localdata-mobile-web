@@ -164,9 +164,8 @@ define(function (require) {
     var defaultStyle = {
       'opacity': 1,
       'fillOpacity': 0,
-      'weight': 2,
-      'color': 'white',
-      'dashArray': '5,5'
+      'weight': 1.5,
+      'color': 'white'
     };
 
     var selectedStyle = {
@@ -182,17 +181,17 @@ define(function (require) {
       opacity: 0.7,
       fillOpacity: 0.25,
       weight: 2,
-      color: '#2AD471',
-      fillColor: '#2AD471',
+      color: '#42ad22',
+      fillColor: '#42ad22',
       dashArray: '1'
     };
 
     var pendingStyle = {
       opacity: 0.7,
       fillOpacity: 0.25,
-      weight: 2,
-      color: '#2ACCD4',
-      fillColor: '#2ACCD4',
+      weight: 1.5,
+      color: '#58aeff',
+      fillColor: '#58aeff',
       dashArray: '1'
     };
 
@@ -226,6 +225,7 @@ define(function (require) {
         parcelsLayerGroup.eachLayer(function (group) {
           groupCount += 1;
           var groupBounds = group.getBounds();
+
           // TODO: Checking groupBounds._southWest is a bit of a hack. I think
           // the latest leaflet handles this better.
           if (groupBounds._southWest === undefined || !bounds.intersects(groupBounds)) {
@@ -237,7 +237,10 @@ define(function (require) {
               delete parcelIdsOnTheMap[layer.feature.id];
 
               // DEBUG
-              delete addressesOnTheMap[layer.feature.properties.address];
+              var centroidString = String(feature.properties.centroid.coordinates[0]) +
+                                   ',' +
+                                   String(feature.properties.centroid.coordinates[1]);
+              delete addressesOnTheMap[centroidString];
 
               numObjectsOnMap -= 1;
             });
@@ -253,8 +256,10 @@ define(function (require) {
                 }
                 delete parcelIdsOnTheMap[layer.feature.id];
 
-                // DEBUG
-                delete addressesOnTheMap[layer.feature.properties.address];
+                var centroidString = String(feature.properties.centroid.coordinates[0]) +
+                                     ',' +
+                                     String(feature.properties.centroid.coordinates[1]);
+                delete addressesOnTheMap[centroidString];
 
                 numObjectsOnMap -= 1;
               }
@@ -723,23 +728,27 @@ define(function (require) {
           // should restore any parcels that were clipped because they were
           // once duplicated in other tiles.
           featureCollection.features = _.filter(result.features, function (feature) {
-            console.log("We have some results!");
             if (parcelIdsOnTheMap[feature.id]) {
               return false;
             }
 
             var centroidString = String(feature.properties.centroid.coordinates[0]) +
+                                 ',' +
                                  String(feature.properties.centroid.coordinates[1]);
-            //console.log(centroidString, feature.properties);
-            // DEBUG
-            if (addressesOnTheMap[centroidString]) {
-             // console.log("Skipping", feature.properties.address);
-              return false;
-            }
 
+            // Don't show shapes where the address has appeared 3 or more times
+            // (2 times occurs frequently due to some source data problems)
+            if (addressesOnTheMap[centroidString]) {
+              console.log("Skipping", centroidString);
+              return false;
+              addressesOnTheMap[centroidString] += 1;
+              if(addressesOnTheMap[centroidString] === 3) {
+                //console.log("Skipping", feature.properties.address);
+                return false;
+              }
+            }
             addressesOnTheMap[centroidString] = 1;
 
-            //console.log("Adding", feature.properties);
             return true;
           });
 

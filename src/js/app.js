@@ -50,9 +50,7 @@ define(function (require) {
       app.collectorName = $collectorName.val();
       $.cookie('collectorName', app.collectorName, { path: '/' });
 
-      console.log("NAME", app.collectorName);
       if (app.collectorName == '') {
-        console.log("Error");
         $collectorName.addClass('error');
         return;
       }
@@ -65,6 +63,7 @@ define(function (require) {
       });
       $('body').pagecontainer('change', '#survey-container', {changeHash: false});
 
+      $('h1').html(settings.survey.name);
 
       // Set up the online / offline event handlers
       setupEventHandlers();
