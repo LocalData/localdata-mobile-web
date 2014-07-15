@@ -408,7 +408,7 @@ define(function (require) {
   // Take an address string.
   // callback(error, data)
   // data contains addressLine and coords (a lng-lat array)
-  api.codeAddress = function (address, callback) {
+  api.geocodeAddress = function (address, callback) {
     console.log('Coding an address');
 
     // TODO: Can we get the locale from the geolocation feature?
@@ -445,6 +445,7 @@ define(function (require) {
       dataType: 'json',
       cache: cache,
       success: function (data) {
+        console.log("Got address data", data);
         if (data.resourceSets.length > 0 &&
             data.resourceSets[0].resources.length > 0){
           var result = data.resourceSets[0].resources[0];

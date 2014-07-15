@@ -83,7 +83,6 @@ define(function (require) {
     return maptiles.getTileCoords(vectorTileZoom, [[sw.lng, sw.lat], [ne.lng, ne.lat]]);
   }
 
-
   var zoomLevels = {
     // Don't show parcels if we're zoomed out farther than 17.
     parcelCutoff: 17,
@@ -103,11 +102,8 @@ define(function (require) {
     var circle = null;
     var markers = {};
     var numObjectsOnMap = 0;
-    var parcelIdsOnTheMap = {};
-
-    // DEBUG ONLY
-    var addressesOnTheMap = {};
-    // END DEBUG
+    var parcelIdsOnTheMap = {}; // Used for preventing duplicate shapes
+    var addressesOnTheMap = {}; // More sophisticated dupe prevention
 
     var parcelsLayerGroup = new L.LayerGroup();
     var doneMarkersLayer = new L.LayerGroup();
@@ -119,93 +115,24 @@ define(function (require) {
     var crosshairLayer;
     var pointObjectLayer;
 
-    // var newPoint = null;
     var selectedLayer = null;
     var selectedPolygon = null;
     var selectedCentroid = null;
     var selectedObjectJSON = null;
 
-
-    // Icons ...................................................................
-    var CheckIcon = L.Icon.extend({
-      options: {
-        className: 'CheckIcon',
-        iconUrl: 'img/icons/check-16.png',
-        shadowUrl: 'img/icons/check-16.png',
-        iconSize: new L.Point(16, 16),
-        shadowSize: new L.Point(16, 16),
-        iconAnchor: new L.Point(8, 8),
-        popupAnchor: new L.Point(8, 8)
-      }
-    });
-
-    var PlaceIcon = L.icon({
-      className: 'PlaceIcon',
-      iconUrl: 'img/icons/plus-24.png',
-      shadowUrl: 'img/icons/plus-24.png',
-      iconSize: new L.Point(25, 25),
-      shadowSize: new L.Point(25, 25),
-      iconAnchor: new L.Point(13, 13),
-      popupAnchor: new L.Point(13, 13)
-    });
-
-    var CrosshairIcon = L.icon({
-      className: 'CrosshairIcon',
-      iconUrl: 'js/lib/leaflet/images/marker-icon.png',
-      shadowUrl: 'js/lib/leaflet/images/marker-shadow.png',
-      iconSize: new L.Point(25, 41),
-      shadowSize: new L.Point(41, 41),
-      iconAnchor: new L.Point(12, 41),
-      popupAnchor: new L.Point(25, 25)
-    });
-
-
     // Styles for parcel outlines ..............................................
-    var defaultStyle = {
-      'opacity': 1,
-      'fillOpacity': 0,
-      'weight': 1.5,
-      'color': 'white'
-    };
-
-    var selectedStyle = {
-      'opacity': 1,
-      'fillOpacity': 0.25,
-      'weight': 3,
-      'color': 'yellow',
-      'fillColor': 'yellow',
-      'dashArray': '1'
-    };
-
-    var completedStyle = {
-      opacity: 0.7,
-      fillOpacity: 0.25,
-      weight: 2,
-      color: '#42ad22',
-      fillColor: '#42ad22',
-      dashArray: '1'
-    };
-
-    var pendingStyle = {
-      opacity: 0.7,
-      fillOpacity: 0.25,
-      weight: 1.5,
-      color: '#58aeff',
-      fillColor: '#58aeff',
-      dashArray: '1'
-    };
 
     function parcelStyle(feature) {
       if (feature.properties.selected) {
-        return selectedStyle;
+        return settings.styles.selectedStyle;
       }
       if (_.has(completedParcelIds, feature.id)) {
-        return completedStyle;
+        return settings.styles.completedStyle;
       }
       if (_.has(pendingParcelIds, feature.id)) {
-        return pendingStyle;
+        return settings.styles.pendingStyle;
       }
-      return defaultStyle;
+      return settings.styles.defaultStyle;
     }
 
     function zoneStyle(feature) {
@@ -237,9 +164,9 @@ define(function (require) {
               delete parcelIdsOnTheMap[layer.feature.id];
 
               // DEBUG
-              var centroidString = String(feature.properties.centroid.coordinates[0]) +
+              var centroidString = String(layer.feature.properties.centroid.coordinates[0]) +
                                    ',' +
-                                   String(feature.properties.centroid.coordinates[1]);
+                                   String(layer.feature.properties.centroid.coordinates[1]);
               delete addressesOnTheMap[centroidString];
 
               numObjectsOnMap -= 1;
@@ -256,9 +183,9 @@ define(function (require) {
                 }
                 delete parcelIdsOnTheMap[layer.feature.id];
 
-                var centroidString = String(feature.properties.centroid.coordinates[0]) +
+                var centroidString = String(layer.feature.properties.centroid.coordinates[0]) +
                                      ',' +
-                                     String(feature.properties.centroid.coordinates[1]);
+                                     String(layer.feature.properties.centroid.coordinates[1]);
                 delete addressesOnTheMap[centroidString];
 
                 numObjectsOnMap -= 1;
@@ -331,8 +258,6 @@ define(function (require) {
       // newPoint = L.marker(latlng, {icon: PlaceIcon});
       // map.addLayer(newPoint);
 
-      // selectedLayer.setStyle(selectedStyle);
-
       // Let other parts of the app know that we've selected something.
       $.publish('objectSelected');
       }
@@ -376,9 +301,9 @@ define(function (require) {
         }
 
         crosshairLayer = L.marker([0,0], {
-          icon: CrosshairIcon
+          icon: settings.icons.CrosshairIcon
         });
-        map.addLayer(crosshairLayer)
+        map.addLayer(crosshairLayer);
 
         // Move the crosshairs as the map moves
         map.on('move', function() {
@@ -395,7 +320,6 @@ define(function (require) {
           crosshairLayer.setLatLng(event.latlng);
         });
 
-        // $('#point').show();
       } else if (settings.survey.type === 'address-point') {
         api.codeAddress(settings.survey.location, function (error, data) {
           if (error) {
@@ -407,7 +331,7 @@ define(function (require) {
             }
             return;
           }
-          crosshairLayer = L.marker([0,0], {icon: CrosshairIcon});
+          crosshairLayer = L.marker([0,0], {icon: settings.icons.CrosshairIcon});
           map.addLayer(crosshairLayer);
 
           // Move the crosshairs as the map moves
@@ -480,7 +404,7 @@ define(function (require) {
         $('#address-search-status').html("Searching for the address");
         $('#address-search-status').fadeIn(200);
 
-        api.codeAddress(address, function (error, data) {
+        api.geocodeAddress(address, function (error, data) {
           $('#address-search-status').fadeOut(100);
 
           if (error) {
@@ -732,18 +656,15 @@ define(function (require) {
               return false;
             }
 
+            // Don't render duplicate shapes
+            // (use centroid as a shortcut)
             var centroidString = String(feature.properties.centroid.coordinates[0]) +
                                  ',' +
                                  String(feature.properties.centroid.coordinates[1]);
-
-            // Don't show shapes where the address has appeared 3 or more times
-            // (2 times occurs frequently due to some source data problems)
             if (addressesOnTheMap[centroidString]) {
-              console.log("Skipping", centroidString);
               return false;
               addressesOnTheMap[centroidString] += 1;
               if(addressesOnTheMap[centroidString] === 3) {
-                //console.log("Skipping", feature.properties.address);
                 return false;
               }
             }
@@ -794,7 +715,7 @@ define(function (require) {
     function addDoneMarker(latlng, id) {
       // Only add markers if they aren't already on the map.
       if (markers[id] === undefined  || id === ''){
-        var doneIcon = new CheckIcon();
+        var doneIcon = new settings.icons.CheckIcon();
         var doneMarker = new L.Marker(latlng, {icon: doneIcon});
         doneMarkersLayer.addLayer(doneMarker);
         markers[id] = doneMarker;
