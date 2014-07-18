@@ -241,26 +241,74 @@ define(function (require) {
 
       var latlng = [map.getCenter().lat, map.getCenter().lng];
       var lnglat = [map.getCenter().lng, map.getCenter().lat];
-      console.log("Moved point", latlng);
 
-      // Keep track of the selected object centrally
+      // Keep track of the selected location
       delete app.selectedObject;
       app.selectedObject = {};
       app.selectedObject.id = '';
       app.selectedObject.humanReadableName = 'Custom location';
-
       app.selectedObject.centroid = { coordinates: lnglat };
       app.selectedObject.geometry = {
         type: 'Point',
         coordinates: lnglat
       };
 
-      // newPoint = L.marker(latlng, {icon: PlaceIcon});
-      // map.addLayer(newPoint);
-
-      // Let other parts of the app know that we've selected something.
+      // Let the app know that we've selected something.
       $.publish('objectSelected');
+    }
+
+    // Show the add / remove point interface
+    function showPointInterface() {
+      if (settings.survey.type === 'point') {
+        $('#location-header').html('');
       }
+
+      crosshairLayer = L.marker([0,0], {
+        icon: settings.icons.CrosshairIcon
+      });
+      map.addLayer(crosshairLayer);
+
+      // Move the crosshairs as the map moves
+      map.on('move', function() {
+        crosshairLayer.setLatLng(map.getCenter());
+      });
+
+      map.on('moveend', function() {
+        crosshairLayer.setLatLng(map.getCenter());
+        addPoint();
+      });
+
+      map.on('click', function(event) {
+        map.panTo(event.latlng);
+        crosshairLayer.setLatLng(event.latlng);
+      });
+    }
+
+    function setupAddressPointSurvey() {
+      api.codeAddress(settings.survey.location, function (error, data) {
+        if (error) {
+          if (error.type === 'GeocodingError') {
+            console.warn('We could not geocode the address: '  + settings.survey.location);
+          } else {
+            console.error('Unexpected error of type ' + error.type);
+            console.error(error.message);
+          }
+          return;
+        }
+        crosshairLayer = L.marker([0,0], {icon: settings.icons.CrosshairIcon});
+        map.addLayer(crosshairLayer);
+
+        // Move the crosshairs as the map moves
+        map.on('move', function(e){
+          crosshairLayer.setLatLng(map.getCenter());
+        });
+      });
+
+      $.subscribe('mapAddress', mapAddress);
+
+      $('#geolocate').hide();
+      $('#entry').show();
+    }
 
 
     this.init = function() {
@@ -285,6 +333,10 @@ define(function (require) {
       var  baseLayer = L.tileLayer('//a.tiles.mapbox.com/v3/matth.map-yyr7jb6r/{z}/{x}/{y}.png');
       map.addLayer(baseLayer);
 
+      // Check for new responses when we submit
+      $.subscribe('successfulSubmit', getResponsesInMap);
+
+      // Set up zones, if any
       if (_.has(settings.survey, 'zones')) {
         var zoneLayer = new L.geoJson(settings.survey.zones, {
           style: zoneStyle
@@ -293,61 +345,18 @@ define(function (require) {
       }
 
       // If this is a point-based survey, add a crosshair over null island
-      if(settings.survey.type === 'point' ||
-         settings.survey.type === 'pointandparcel') {
-
-        if (settings.survey.type === 'point') {
-          $('#location-header').html('');
-        }
-
-        crosshairLayer = L.marker([0,0], {
-          icon: settings.icons.CrosshairIcon
-        });
-        map.addLayer(crosshairLayer);
-
-        // Move the crosshairs as the map moves
-        map.on('move', function() {
-          crosshairLayer.setLatLng(map.getCenter());
-        });
-
-        map.on('moveend', function() {
-          crosshairLayer.setLatLng(map.getCenter());
-          addPoint();
-        });
-
-        map.on('click', function(event) {
-          map.panTo(event.latlng);
-          crosshairLayer.setLatLng(event.latlng);
-        });
-
-      } else if (settings.survey.type === 'address-point') {
-        api.codeAddress(settings.survey.location, function (error, data) {
-          if (error) {
-            if (error.type === 'GeocodingError') {
-              console.warn('We could not geocode the address: '  + settings.survey.location);
-            } else {
-              console.error('Unexpected error of type ' + error.type);
-              console.error(error.message);
-            }
-            return;
-          }
-          crosshairLayer = L.marker([0,0], {icon: settings.icons.CrosshairIcon});
-          map.addLayer(crosshairLayer);
-
-          // Move the crosshairs as the map moves
-          map.on('move', function(e){
-            crosshairLayer.setLatLng(map.getCenter());
-          });
-        });
-
-        $.subscribe('mapAddress', mapAddress);
-
-        $('#geolocate').hide();
-        $('#entry').show();
+      if(settings.survey.type === 'point') {
+        showPointInterface();
       }
 
-      // Check for new responses when we submit
-      $.subscribe('successfulSubmit', getResponsesInMap);
+      // Set up address-point surveys, if any
+      if (settings.survey.type === 'address-point') {
+        setupAddressPointSurvey();
+      }
+
+      if (settings.survey.type === 'pointandparcel') {
+        console.log("POINT AND PARCEL SURVEY");
+      }
 
       // Show which parcels have responses when the map is moved.
       var lastBounds = null;
