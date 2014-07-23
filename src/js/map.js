@@ -109,6 +109,7 @@ define(function (require) {
     var pointMarkersLayer = new L.LayerGroup();
     var completedParcelCount = 0;
     var completedParcelIds = {};
+    var freshParcelIds = {};
     var pendingParcelIds = {};
 
     var crosshairLayer;
@@ -164,6 +165,14 @@ define(function (require) {
       'dashArray': '5,5'
     };
 
+    var staleParcelStyle = {
+      'opacity': 1,
+      'fillOpacity': 0,
+      'weight': 2,
+      'color': 'orange',
+      'dashArray': '1'
+    };
+
     var selectedStyle = {
       'opacity': 1,
       'fillOpacity': 0.25,
@@ -196,6 +205,12 @@ define(function (require) {
         return selectedStyle;
       }
       if (_.has(completedParcelIds, feature.id)) {
+        // We mark stale parcels when requested by the survey
+        if(settings.survey.responseLongevity &&
+          !_.has(freshParcelIds, feature.id)) {
+          return staleParcelStyle;
+        }
+
         return completedStyle;
       }
       if (_.has(pendingParcelIds, feature.id)) {
@@ -227,6 +242,7 @@ define(function (require) {
             group.eachLayer(function (layer) {
               if (completedParcelIds[layer.feature.id] !== undefined) {
                 delete completedParcelIds[layer.feature.id];
+                delete freshParcelIds[layer.feature.id];
                 completedParcelCount -= 1;
               }
               delete parcelIdsOnTheMap[layer.feature.id];
@@ -240,6 +256,7 @@ define(function (require) {
 
                 if (completedParcelIds[layer.feature.id] !== undefined) {
                   delete completedParcelIds[layer.feature.id];
+                  delete freshParcelIds[layer.feature.id];
                   completedParcelCount -= 1;
                 }
                 delete parcelIdsOnTheMap[layer.feature.id];
@@ -764,7 +781,9 @@ define(function (require) {
       }
     }
 
-    // Flag existing responses, so we can style them appropriately on the map.
+    // Flag existing responses so we can style them appropriately on the map.
+    // Note that this doesn't create a new layer for existing responses
+    // It just marks the base data we've got
     function markResponses(responses, type) {
       if (type === 'pending') {
         pendingParcelIds = {};
@@ -779,6 +798,14 @@ define(function (require) {
 
       var zoom = map.getZoom();
 
+      // If we need to mark responses as stale, let's precompute the
+      // best-before date here.
+      var staleBefore;
+      if (settings.survey.responseLongevity) {
+        var today = new Date();
+        staleBefore = new Date(today - settings.survey.responseLongevity);
+      }
+
       _.each(responses, function (response) {
         var parcelId = response.parcel_id;
         var treatAsPoint = parcelId === '';
@@ -792,7 +819,19 @@ define(function (require) {
         }
 
         if (parcelId !== undefined) {
+
+          // If we're processing a completed response, mark it correctly:
           if (type === 'completed') {
+
+            // We flag stale responses on some surveys
+            if (settings.survey.responseLongevity) {
+              var created = new Date(response.created);
+
+              if (created > staleBefore) {
+                freshParcelIds[parcelId] = true;
+              }
+            }
+
             completedParcelIds[parcelId] = true;
             completedParcelCount += 1;
           } else if (type === 'pending') {
@@ -880,6 +919,7 @@ define(function (require) {
         _.each(tiles, function (tile) {
           api.getResponsesInBBox(maptiles.tileToBBox(tile), function (completedResponses) {
             markResponses(completedResponses, 'completed');
+
             // If we got responses, we need to restyle, so they show up.
             if (completedResponses.length > 0) {
               restyle();

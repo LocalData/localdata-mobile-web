@@ -395,19 +395,6 @@ define(function (require) {
   };
 
 
-  // Deal with the formatting of the geodata API.
-  // In the future, this will be more genericized.
-  // parcel_id => object_id
-  // address => object_location
-  api.parseObjectData = function(data) {
-    return {
-      parcelId: data.parcelId,
-      address: data.address,
-      polygon: data.polygon,
-      centroid: data.centroid
-    };
-  };
-
   // Take an address string.
   // callback(error, data)
   // data contains addressLine and coords (a lng-lat array)
