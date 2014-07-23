@@ -109,6 +109,8 @@ define(function (require) {
     var pointMarkersLayer = new L.LayerGroup();
     var completedParcelCount = 0;
     var completedParcelIds = {};
+    var staleParcelIds = {};
+    var freshParcelIds = {};
     var pendingParcelIds = {};
 
     var crosshairLayer;
@@ -164,6 +166,14 @@ define(function (require) {
       'dashArray': '5,5'
     };
 
+    var staleParcelStyle = {
+      'opacity': 1,
+      'fillOpacity': 0,
+      'weight': 2,
+      'color': 'orange',
+      'dashArray': '1'
+    };
+
     var selectedStyle = {
       'opacity': 1,
       'fillOpacity': 0.25,
@@ -194,6 +204,11 @@ define(function (require) {
     function parcelStyle(feature) {
       if (feature.properties.selected) {
         return selectedStyle;
+      }
+      if (_.has(staleParcelIds, feature.id)) {
+        if(!_.has(freshParcelIds, feature.id)) {
+          return staleParcelStyle;
+        }
       }
       if (_.has(completedParcelIds, feature.id)) {
         return completedStyle;
@@ -227,6 +242,8 @@ define(function (require) {
             group.eachLayer(function (layer) {
               if (completedParcelIds[layer.feature.id] !== undefined) {
                 delete completedParcelIds[layer.feature.id];
+                delete freshParcelIds[layer.feature.id];
+                delete staleParcelIds[layer.feature.id];
                 completedParcelCount -= 1;
               }
               delete parcelIdsOnTheMap[layer.feature.id];
@@ -240,6 +257,8 @@ define(function (require) {
 
                 if (completedParcelIds[layer.feature.id] !== undefined) {
                   delete completedParcelIds[layer.feature.id];
+                  delete freshParcelIds[layer.feature.id];
+                  delete staleParcelIds[layer.feature.id];
                   completedParcelCount -= 1;
                 }
                 delete parcelIdsOnTheMap[layer.feature.id];
@@ -764,7 +783,9 @@ define(function (require) {
       }
     }
 
-    // Flag existing responses, so we can style them appropriately on the map.
+    // Flag existing responses so we can style them appropriately on the map.
+    // Note that this doesn't create a new layer for existing responses
+    // It just marks the base data we've got
     function markResponses(responses, type) {
       if (type === 'pending') {
         pendingParcelIds = {};
@@ -792,7 +813,23 @@ define(function (require) {
         }
 
         if (parcelId !== undefined) {
+
+          // If we're processing a completed response, mark it correctly:
           if (type === 'completed') {
+
+            // We flag stale responses on some surveys
+            if (settings.survey.responseExpirationInDays) {
+              var expiration = new Date();
+              expiration.setDate(expiration.getDate() - settings.survey.responseExpirationInDays);
+              var created = new Date(response.created);
+
+              if (created < expiration) {
+                staleParcelIds[parcelId] = true;
+              }else {
+                freshParcelIds[parcelId] = true;
+              }
+            }
+
             completedParcelIds[parcelId] = true;
             completedParcelCount += 1;
           } else if (type === 'pending') {
@@ -840,9 +877,10 @@ define(function (require) {
       // succession.
       var restyle = _.debounce(function () {
         parcelsLayerGroup.eachLayer(function (layer) {
+          // console.log("Restyling", layer);
           layer.setStyle(parcelStyle);
         });
-      }, 200);
+      }, 600);
 
       // For now we assume there are not many saved responses, so we can just grab them all.
       api.getSavedResponses(function (error, pendingResponses) {
@@ -880,6 +918,7 @@ define(function (require) {
         _.each(tiles, function (tile) {
           api.getResponsesInBBox(maptiles.tileToBBox(tile), function (completedResponses) {
             markResponses(completedResponses, 'completed');
+
             // If we got responses, we need to restyle, so they show up.
             if (completedResponses.length > 0) {
               restyle();
