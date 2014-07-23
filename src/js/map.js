@@ -800,11 +800,11 @@ define(function (require) {
 
       var zoom = map.getZoom();
 
-      console.log("GOT", responses.length, "responses");
-      var today;
+      // If we need to mark responses as stale, let's precompute the
+      // best-before date here.
       var staleBefore;
       if (settings.survey.responseLongevity) {
-        today = new Date();
+        var today = new Date();
         staleBefore = new Date(today - settings.survey.responseLongevity);
       }
 
