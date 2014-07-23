@@ -109,7 +109,6 @@ define(function (require) {
     var pointMarkersLayer = new L.LayerGroup();
     var completedParcelCount = 0;
     var completedParcelIds = {};
-    var staleParcelIds = {};
     var freshParcelIds = {};
     var pendingParcelIds = {};
 
@@ -205,12 +204,13 @@ define(function (require) {
       if (feature.properties.selected) {
         return selectedStyle;
       }
-      if (_.has(staleParcelIds, feature.id)) {
-        if(!_.has(freshParcelIds, feature.id)) {
+      if (_.has(completedParcelIds, feature.id)) {
+        // We mark stale parcels when requested by the survey
+        if(settings.survey.responseLongevity &&
+          !_.has(freshParcelIds, feature.id)) {
           return staleParcelStyle;
         }
-      }
-      if (_.has(completedParcelIds, feature.id)) {
+
         return completedStyle;
       }
       if (_.has(pendingParcelIds, feature.id)) {
@@ -243,7 +243,6 @@ define(function (require) {
               if (completedParcelIds[layer.feature.id] !== undefined) {
                 delete completedParcelIds[layer.feature.id];
                 delete freshParcelIds[layer.feature.id];
-                delete staleParcelIds[layer.feature.id];
                 completedParcelCount -= 1;
               }
               delete parcelIdsOnTheMap[layer.feature.id];
@@ -258,7 +257,6 @@ define(function (require) {
                 if (completedParcelIds[layer.feature.id] !== undefined) {
                   delete completedParcelIds[layer.feature.id];
                   delete freshParcelIds[layer.feature.id];
-                  delete staleParcelIds[layer.feature.id];
                   completedParcelCount -= 1;
                 }
                 delete parcelIdsOnTheMap[layer.feature.id];
@@ -829,9 +827,7 @@ define(function (require) {
             if (settings.survey.responseLongevity) {
               var created = new Date(response.created);
 
-              if (created < staleBefore) {
-                staleParcelIds[parcelId] = true;
-              }else {
+              if (created > staleBefore) {
                 freshParcelIds[parcelId] = true;
               }
             }
