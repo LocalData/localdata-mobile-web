@@ -800,6 +800,14 @@ define(function (require) {
 
       var zoom = map.getZoom();
 
+      console.log("GOT", responses.length, "responses");
+      var today;
+      var staleBefore;
+      if (settings.survey.responseLongevity) {
+        today = new Date();
+        staleBefore = new Date(today - settings.survey.responseLongevity);
+      }
+
       _.each(responses, function (response) {
         var parcelId = response.parcel_id;
         var treatAsPoint = parcelId === '';
@@ -818,12 +826,10 @@ define(function (require) {
           if (type === 'completed') {
 
             // We flag stale responses on some surveys
-            if (settings.survey.responseExpirationInDays) {
-              var expiration = new Date();
-              expiration.setDate(expiration.getDate() - settings.survey.responseExpirationInDays);
+            if (settings.survey.responseLongevity) {
               var created = new Date(response.created);
 
-              if (created < expiration) {
+              if (created < staleBefore) {
                 staleParcelIds[parcelId] = true;
               }else {
                 freshParcelIds[parcelId] = true;
