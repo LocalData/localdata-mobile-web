@@ -877,10 +877,9 @@ define(function (require) {
       // succession.
       var restyle = _.debounce(function () {
         parcelsLayerGroup.eachLayer(function (layer) {
-          // console.log("Restyling", layer);
           layer.setStyle(parcelStyle);
         });
-      }, 600);
+      }, 200);
 
       // For now we assume there are not many saved responses, so we can just grab them all.
       api.getSavedResponses(function (error, pendingResponses) {
