@@ -288,7 +288,9 @@ define(function (require) {
         // Add the accuracy circle to the map
         var radius = 4;
         var latlng = new L.LatLng(data.coords[1], data.coords[0]);
-        circle = new L.Circle(latlng, radius);
+        circle = new L.Circle(latlng, radius, {
+          clickable: false
+        });
         map.addLayer(circle);
         map.setView(latlng, 17);
 
@@ -436,7 +438,9 @@ define(function (require) {
         // Add the accuracy circle to the map, unless it's huge.
         var radius = e.accuracy / 2;
         if (radius < 60) {
-          circle = new L.Circle(e.latlng, radius);
+          circle = new L.Circle(e.latlng, radius, {
+            clickable: false
+          });
           map.addLayer(circle);
         }
         map.setView(e.latlng, 19);
@@ -469,7 +473,9 @@ define(function (require) {
             // Add the accuracy circle to the map
             var radius = 4;
             var latlng = new L.LatLng(data.coords[1], data.coords[0]);
-            circle = new L.Circle(latlng, radius);
+            circle = new L.Circle(latlng, radius, {
+              clickable: false
+            });
             map.addLayer(circle);
             map.setView(latlng, 19);
           });
@@ -581,7 +587,9 @@ define(function (require) {
         // Add the accuracy circle to the map
         var radius = 4;
         var latlng = new L.LatLng(data.coords[1], data.coords[0]);
-        circle = new L.Circle(latlng, radius);
+        circle = new L.Circle(latlng, radius, {
+          clickable: false
+        });
         map.addLayer(circle);
         map.setView(latlng, 19);
 
