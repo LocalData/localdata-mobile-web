@@ -42,10 +42,11 @@ h2,
 #address-search-active,
 #thanks,
 #submitting,
-#error,
-#form fieldset {
+#error {
   padding:1em;
 }
+
+
 
 .repeating-button {
   margin-left:1em;
@@ -88,6 +89,15 @@ h2 {
   background:#fff;
   border-bottom:2px solid #ddd;
   display:none;
+}
+
+#parcelform {
+  padding: 1em 1em 1.5em 1em;
+}
+
+#parcelform fieldset {
+  padding-top: 1em;
+  padding-bottom: 1em;
 }
 
 #submitting,
