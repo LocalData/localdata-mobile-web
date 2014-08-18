@@ -257,6 +257,21 @@ define(function (require) {
       $.publish('objectSelected');
     }
 
+    function crosshairMove() {
+      app.crosshairLayer.setLatLng(map.getCenter());
+    }
+
+    function crosshairMoveEnd() {
+      app.crosshairLayer.setLatLng(map.getCenter());
+      addPoint();
+
+    }
+
+    function crosshairMapClick(event) {
+      map.panTo(event.latlng);
+      app.crosshairLayer.setLatLng(event.latlng);
+    }
+
     // Show the add / remove point interface
     function showPointInterface() {
       if (settings.survey.type === 'point') {
@@ -267,20 +282,30 @@ define(function (require) {
         icon: settings.icons.CrosshairIcon
       });
       map.addLayer(crosshairLayer);
+      app.crosshairLayer = crosshairLayer;
 
       // Move the crosshairs as the map moves
-      map.on('move', function() {
-        crosshairLayer.setLatLng(map.getCenter());
-      });
+      map.on('move', crosshairMove);
+      map.on('moveend', crosshairMoveEnd);
+      map.on('click', crosshairMapClick);
+      crosshairMoveEnd();
+    }
 
-      map.on('moveend', function() {
-        crosshairLayer.setLatLng(map.getCenter());
-        addPoint();
-      });
+    function hidePointInterface (argument) {
+      map.removeLayer(app.crosshairLayer);
+      map.off('move', crosshairMove);
+      map.off('moveend', crosshairMoveEnd);
+      map.off('click', crosshairMapClick);
+    }
 
-      map.on('click', function(event) {
-        map.panTo(event.latlng);
-        crosshairLayer.setLatLng(event.latlng);
+    function showPointParcelInterface() {
+      $('#pointparcelswitch').show();
+
+      $('#radio-choice-point').click(function() {
+        showPointInterface();
+      });
+      $('#radio-choice-parcel').click(function() {
+        hidePointInterface();
       });
     }
 
@@ -355,6 +380,7 @@ define(function (require) {
       }
 
       if (settings.survey.type === 'pointandparcel') {
+        showPointParcelInterface();
         console.log("POINT AND PARCEL SURVEY");
       }
 
