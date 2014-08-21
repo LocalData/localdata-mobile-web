@@ -352,11 +352,11 @@ define(function (require) {
       }, 0);
 
       // Add bing maps
-      // var bing = new L.BingLayer(settings.bing_key, {maxZoom: 21, type:'AerialWithLabels'});
-      // map.addLayer(bing);
+      var bing = new L.BingLayer(settings.bing_key, {maxZoom: 21, type:'AerialWithLabels'});
+      map.addLayer(bing);
 
-      var  baseLayer = L.tileLayer('//a.tiles.mapbox.com/v3/matth.map-yyr7jb6r/{z}/{x}/{y}.png');
-      map.addLayer(baseLayer);
+      // var  baseLayer = L.tileLayer('//a.tiles.mapbox.com/v3/matth.map-yyr7jb6r/{z}/{x}/{y}.png');
+      // map.addLayer(baseLayer);
 
       // Check for new responses when we submit
       $.subscribe('successfulSubmit', getResponsesInMap);
@@ -578,7 +578,10 @@ define(function (require) {
 
       // Keep track of the selected object centrally
       app.selectedObject.id = selectedLayer.feature.id;
-      app.selectedObject.humanReadableName = selectedLayer.feature.properties.address;
+
+      app.selectedObject.humanReadableName =
+        selectedLayer.feature.properties.address // parcels endpoint
+        || selectedLayer.feature.properties.shortName; // features endpoint
 
       if (selectedLayer.feature.properties.centroid !== undefined) {
         app.selectedObject.centroid = selectedLayer.feature.properties.centroid;
@@ -692,18 +695,18 @@ define(function (require) {
             }
 
             // Don't render duplicate shapes
-            // (use centroid as a shortcut)
-            var centroidString = String(feature.properties.centroid.coordinates[0]) +
-                                 ',' +
-                                 String(feature.properties.centroid.coordinates[1]);
-            if (addressesOnTheMap[centroidString]) {
-              return false;
-              addressesOnTheMap[centroidString] += 1;
-              if(addressesOnTheMap[centroidString] === 3) {
-                return false;
-              }
-            }
-            addressesOnTheMap[centroidString] = 1;
+            // Use the object centroid as a method for ensuring
+            // var centroidString = String(feature.properties.centroid.coordinates[0]) +
+            //                      ',' +
+            //                      String(feature.properties.centroid.coordinates[1]);
+            // if (addressesOnTheMap[centroidString]) {
+            //   return false;
+            //   addressesOnTheMap[centroidString] += 1;
+            //   if(addressesOnTheMap[centroidString] === 3) {
+            //     return false;
+            //   }
+            // }
+            // addressesOnTheMap[centroidString] = 1;
 
             return true;
           });

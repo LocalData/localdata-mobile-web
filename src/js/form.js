@@ -666,8 +666,11 @@ define(function (require) {
       var questionsToProcess = app.questionsByParentId[parentId];
       var answersToProcess = [];
 
+      console.log("I'm going to process these questions", questionsToProcess);
+
       function handleQuestion(question) {
         var $el = $(question);
+        console.log("Handling question", question, $el);
         $el.hide();
 
         // Get the answers we'll need to reset later
