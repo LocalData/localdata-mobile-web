@@ -411,7 +411,6 @@ define(function (require) {
         required: question.required || ''
       };
 
-
       // Render the question
       var $question = $(templates.question(questionData));
 
@@ -424,13 +423,12 @@ define(function (require) {
       }
 
       // Record all questions by parent
-      var siblings = app.questionsByParentId[parentID];
-      if (siblings === undefined) {
-        siblings = [];
-        app.questionsByParentId[parentID] = siblings;
+      if (app.questionsByParentId[parentID] === undefined) {
+        app.questionsByParentId[parentID] = [];
       }
-      siblings.push($question);
-
+      if (parentID !== undefined) {
+        app.questionsByParentId[parentID].push($question);
+      }
 
       // We may know what element we want to append to;
       // Otherwise, here's a default value
