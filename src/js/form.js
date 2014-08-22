@@ -423,11 +423,13 @@ define(function (require) {
       }
 
       // Record all questions by parent
-      if (app.questionsByParentId[parentID] === undefined) {
-        app.questionsByParentId[parentID] = [];
-      }
-      if (parentID !== undefined) {
-        app.questionsByParentId[parentID].push($question);
+      if(parentID !== undefined) {
+        var siblings = app.questionsByParentId[parentID];
+        if (siblings === undefined) {
+          siblings = [];
+          app.questionsByParentId[parentID] = siblings;
+        }
+        siblings.push($question);
       }
 
       // We may know what element we want to append to;
