@@ -264,7 +264,6 @@ define(function (require) {
     function crosshairMoveEnd() {
       app.crosshairLayer.setLatLng(map.getCenter());
       addPoint();
-
     }
 
     function crosshairMapClick(event) {
@@ -288,7 +287,6 @@ define(function (require) {
       map.on('move', crosshairMove);
       map.on('moveend', crosshairMoveEnd);
       map.on('click', crosshairMapClick);
-      crosshairMoveEnd();
     }
 
     function hidePointInterface (argument) {
