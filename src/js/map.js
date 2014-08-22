@@ -110,6 +110,7 @@ define(function (require) {
     var pointMarkersLayer = new L.LayerGroup();
     var completedParcelCount = 0;
     var completedParcelIds = {};
+    var freshParcelIds = {};
     var pendingParcelIds = {};
 
     var crosshairLayer;
@@ -121,13 +122,19 @@ define(function (require) {
     var selectedObjectJSON = null;
 
     // Styles for parcel outlines ..............................................
-
     function parcelStyle(feature) {
       if (feature.properties.selected) {
         return settings.styles.selectedStyle;
       }
       if (_.has(completedParcelIds, feature.id)) {
-        return settings.styles.completedStyle;
+
+        // We mark stale parcels when requested by the survey
+        if(settings.survey.responseLongevity &&
+          !_.has(freshParcelIds, feature.id)) {
+          return staleParcelStyle;
+        }
+
+        return completedStyle;
       }
       if (_.has(pendingParcelIds, feature.id)) {
         return settings.styles.pendingStyle;
@@ -159,6 +166,7 @@ define(function (require) {
             group.eachLayer(function (layer) {
               if (completedParcelIds[layer.feature.id] !== undefined) {
                 delete completedParcelIds[layer.feature.id];
+                delete freshParcelIds[layer.feature.id];
                 completedParcelCount -= 1;
               }
               delete parcelIdsOnTheMap[layer.feature.id];
@@ -179,6 +187,7 @@ define(function (require) {
 
                 if (completedParcelIds[layer.feature.id] !== undefined) {
                   delete completedParcelIds[layer.feature.id];
+                  delete freshParcelIds[layer.feature.id];
                   completedParcelCount -= 1;
                 }
                 delete parcelIdsOnTheMap[layer.feature.id];
@@ -216,7 +225,9 @@ define(function (require) {
         // Add the accuracy circle to the map
         var radius = 4;
         var latlng = new L.LatLng(data.coords[1], data.coords[0]);
-        circle = new L.Circle(latlng, radius);
+        circle = new L.Circle(latlng, radius, {
+          clickable: false
+        });
         map.addLayer(circle);
         map.setView(latlng, 17);
 
@@ -421,7 +432,9 @@ define(function (require) {
         // Add the accuracy circle to the map, unless it's huge.
         var radius = e.accuracy / 2;
         if (radius < 60) {
-          circle = new L.Circle(e.latlng, radius);
+          circle = new L.Circle(e.latlng, radius, {
+            clickable: false
+          });
           map.addLayer(circle);
         }
         map.setView(e.latlng, 19);
@@ -499,7 +512,9 @@ define(function (require) {
             // Add the accuracy circle to the map
             var radius = 4;
             var latlng = new L.LatLng(data.coords[1], data.coords[0]);
-            circle = new L.Circle(latlng, radius);
+            circle = new L.Circle(latlng, radius, {
+              clickable: false
+            });
             map.addLayer(circle);
             map.setView(latlng, 19);
           });
@@ -558,6 +573,47 @@ define(function (require) {
     };
 
 
+    // Move the map ............................................................
+    // Attempt to center the map on an address using Bing's geocoder.
+    // This should probably live in APIs.
+    var goToAddress = function(address) {
+      $('#address-search-active').show();
+      api.codeAddress(address, function (error, data) {
+        $('#address-search-active').hide();
+
+        if (error) {
+          if (error.type === 'GeocodingError') {
+            console.warn('We could not geocode the address: '  + address);
+          } else {
+            console.error('Unexpected error of type ' + error.type);
+            console.error(error.message);
+          }
+          settings.address = '';
+          return;
+        }
+
+        if (circle !== null) {
+          map.removeLayer(circle);
+        }
+
+        // Add the accuracy circle to the map
+        var radius = 4;
+        var latlng = new L.LatLng(data.coords[1], data.coords[0]);
+        circle = new L.Circle(latlng, radius, {
+          clickable: false
+        });
+        map.addLayer(circle);
+        map.setView(latlng, 19);
+
+        $('#address-search').hide();
+
+        // Record the address, for potential later use by the survey questions.
+        settings.address = data.addressLine;
+
+        // TODO: Select an object, if appropriate
+      });
+    };
+
     function selectParcel(event) {
       var oldSelectedLayer = selectedLayer;
 
@@ -581,6 +637,16 @@ define(function (require) {
         selectedLayer.feature.properties.address // parcels endpoint
         || selectedLayer.feature.properties.shortName; // features endpoint
 
+      // Store the human-readable name (often the address).
+      if (_.has(selectedLayer.feature.properties, 'address')) {
+        app.selectedObject.humanReadableName = selectedLayer.feature.properties.address;
+      } else if (_.has(selectedLayer.feature.properties, 'shortName')) {
+        app.selectedObject.humanReadableName = selectedLayer.feature.properties.shortName;
+      } else {
+        app.selectedObject.humanReadableName = 'Unknown Location';
+      }
+
+      // Store the centroid.
       if (selectedLayer.feature.properties.centroid !== undefined) {
         app.selectedObject.centroid = selectedLayer.feature.properties.centroid;
       } else {
@@ -588,6 +654,11 @@ define(function (require) {
           type: 'Point',
           coordinates: computeCentroid(selectedLayer.feature.geometry)
         };
+      }
+
+      // If the base feature has other info properties, store those.
+      if (selectedLayer.feature.properties.info !== undefined) {
+        app.selectedObject.info = selectedLayer.feature.properties.info;
       }
 
       app.selectedObject.geometry = selectedLayer.feature.geometry;
@@ -758,7 +829,9 @@ define(function (require) {
       }
     }
 
-    // Flag existing responses, so we can style them appropriately on the map.
+    // Flag existing responses so we can style them appropriately on the map.
+    // Note that this doesn't create a new layer for existing responses
+    // It just marks the base data we've got
     function markResponses(responses, type) {
       if (type === 'pending') {
         pendingParcelIds = {};
@@ -773,6 +846,13 @@ define(function (require) {
 
       var zoom = map.getZoom();
 
+      // If we need to mark responses as stale, let's precompute the
+      // best-before date here.
+      var staleBefore;
+      if (settings.survey.responseLongevity) {
+        staleBefore = Date.now() - settings.survey.responseLongevity;
+      }
+
       _.each(responses, function (response) {
         var parcelId = response.parcel_id;
         var treatAsPoint = response.geo_info.geometry.type === 'Point';
@@ -786,7 +866,19 @@ define(function (require) {
         }
 
         if (parcelId !== undefined) {
+
+          // If we're processing a completed response, mark it correctly:
           if (type === 'completed') {
+
+            // We flag stale responses on some surveys
+            if (settings.survey.responseLongevity) {
+              var created = new Date(response.created);
+
+              if (created > staleBefore) {
+                freshParcelIds[parcelId] = true;
+              }
+            }
+
             completedParcelIds[parcelId] = true;
             completedParcelCount += 1;
           } else if (type === 'pending') {
@@ -875,6 +967,7 @@ define(function (require) {
           api.getResponsesInBBox(maptiles.tileToBBox(tile), function (completedResponses) {
 
             markResponses(completedResponses, 'completed');
+
             // If we got responses, we need to restyle, so they show up.
             if (completedResponses.length > 0) {
               restyle();

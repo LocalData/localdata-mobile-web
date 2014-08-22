@@ -87,6 +87,14 @@ define(function (require) {
         color: '#58aeff',
         fillColor: '#58aeff',
         dashArray: '1'
+      },
+
+      staleParcelStyle: {
+        'opacity': 1,
+        'fillOpacity': 0,
+        'weight': 2,
+        'color': 'orange',
+        'dashArray': '1'
       }
     }
   };

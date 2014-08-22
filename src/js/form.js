@@ -152,6 +152,7 @@ define(function (require) {
           humanReadableName: app.selectedObject.humanReadableName,
           parcel_id: app.selectedObject.id // Soon to be deprecated
         },
+        info: app.selectedObject.info,
         parcel_id: app.selectedObject.id, // Soon to be deprecated
         object_id: app.selectedObject.id, // Replaces parcel_id
         responses: serialized
@@ -336,14 +337,19 @@ define(function (require) {
 
     function makeClickHandler($el) {
       return function handleClick(e) {
-        hideAndClearSubQuestionsFor($el);
+        var $this = $(this);
+        if ($this.attr('type') === 'checkbox') {
+          hideAndClearSubQuestionsFor($this);
+        } else {
+          hideAndClearSubQuestionsFor($el);
+        }
 
         // Show the conditional questions for this response.
-        if($(this).prop("checked")) {
-          showSubQuestions($(this));
+        if($this.prop("checked")) {
+          showSubQuestions($this);
 
           $('.repeating-button[data-trigger=' + $el.attr('id') + ']').each(function (i) {
-            $(this).show();
+            $this.show();
           });
         }
       };
@@ -398,7 +404,6 @@ define(function (require) {
         required: question.required || ''
       };
 
-
       // Render the question
       var $question = $(templates.question(questionData));
 
@@ -411,13 +416,14 @@ define(function (require) {
       }
 
       // Record all questions by parent
-      var siblings = app.questionsByParentId[parentID];
-      if (siblings === undefined) {
-        siblings = [];
-        app.questionsByParentId[parentID] = siblings;
+      if(parentID !== undefined) {
+        var siblings = app.questionsByParentId[parentID];
+        if (siblings === undefined) {
+          siblings = [];
+          app.questionsByParentId[parentID] = siblings;
+        }
+        siblings.push($question);
       }
-      siblings.push($question);
-
 
       // We may know what element we want to append to;
       // Otherwise, here's a default value
@@ -681,9 +687,22 @@ define(function (require) {
         }
 
         // Handle conditional questions.
-        var subQuestions = app.questionsByParentId[$el.attr('id')];
-        if (subQuestions !== undefined) {
-          questionsToProcess = questionsToProcess.concat(subQuestions);
+
+        var checkboxes = $el.find('div.ui-checkbox > input');
+        if (checkboxes.length > 0) {
+          // If this is a checkbox, use the IDs of the answers.
+          _.each(checkboxes, function (input) {
+            var subq = app.questionsByParentId[$(input).attr('id')];
+            if (subq) {
+              questionsToProcess = questionsToProcess.concat(subq);
+            }
+          });
+        } else {
+          // Use the question ID, which is appropriate for non-checkbox questions.
+          var subQuestions = app.questionsByParentId[$el.attr('id')];
+          if (subQuestions !== undefined) {
+            questionsToProcess = questionsToProcess.concat(subQuestions);
+          }
         }
       }
 

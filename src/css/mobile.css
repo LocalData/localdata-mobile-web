@@ -25,10 +25,15 @@ small {
 #address-search-status,
 #thanks,
 #submitting,
+<<<<<<< HEAD
 #thanks-offline,
+=======
+>>>>>>> master
 #error {
   padding:1em;
 }
+
+
 
 .repeating-button {
   margin-left:1em;
@@ -60,6 +65,15 @@ h2 {
 #form {
   display:none;
   padding: 20px;
+}
+
+#parcelform {
+  padding: 1em 1em 1.5em 1em;
+}
+
+#parcelform fieldset {
+  padding-top: 1em;
+  padding-bottom: 1em;
 }
 
 #submitting,
