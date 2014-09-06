@@ -12,6 +12,7 @@ define(function (require) {
   var api = require('api');
   var FormView = require('form');
   var MapView = require('map');
+  var ResponsesView = require('responses');
   var appCacheManager = require('app-cache-manager');
   var settings = require('settings');
   var L = require('lib/leaflet');
@@ -60,6 +61,8 @@ define(function (require) {
       $('#survey-container').on("pageshow", function(event) {
         app.map = new MapView(app, 'map-div');
         app.form = new FormView(app, '#form');
+        app.responses = new ResponsesView(app, '#responses');
+        console.log("REsponses??? ", app.responses);
       });
       $('body').pagecontainer('change', '#survey-container', {changeHash: false});
 

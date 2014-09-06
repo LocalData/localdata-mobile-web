@@ -131,10 +131,10 @@ define(function (require) {
         // We mark stale parcels when requested by the survey
         if(settings.survey.responseLongevity &&
           !_.has(freshParcelIds, feature.id)) {
-          return staleParcelStyle;
+          return settings.styles.staleParcelStyle;
         }
 
-        return completedStyle;
+        return settings.styles.completedStyle;
       }
       if (_.has(pendingParcelIds, feature.id)) {
         return settings.styles.pendingStyle;
@@ -965,6 +965,8 @@ define(function (require) {
         // Fetch each tile.
         _.each(tiles, function (tile) {
           api.getResponsesInBBox(maptiles.tileToBBox(tile), function (completedResponses) {
+
+            console.log("Got completed responses", completedResponses);
 
             markResponses(completedResponses, 'completed');
 
