@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" manifest="manifest.appcache" class="no-js ui-mobile-rendering">
+<html lang="en" manifest="manifest.appcache" class="no-js ui-bile-rendering">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -210,6 +210,27 @@
       <a class="repeating-button button" href="#" data-icon="plus" data-role="button" data-inline="true">Add another</a>
     </div>
   </script>
+
+  <script type="text/template" id="response-info-template">
+    <div data-role="collapsible">
+      <h2>Previous responses</h2>
+      <% _.each (responses, function(response) { %>
+      <div class="repsonse">
+        <div class="response-intro">
+          <%= response.created %> <%= response.source.collector %>
+        </div>
+        <div class="response-details">
+          <% _.each(response.responses, function(r, question) { %>
+            <div>
+            <strong><%= question %></strong>: <%= r %>
+            </div>
+          <% }); %>
+        </div>
+      </div>
+      <% }); %>
+    </div>
+  </script>
+
 
   <script>
     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

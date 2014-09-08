@@ -463,6 +463,17 @@ define(function (require) {
     });
   };
 
+
+  api.getResponsesForObject = function(objectId) {
+    var url = api.getSurveyURL() + '/responses?objectId=' + objectId;
+    return $.ajax({
+      url: url,
+      dataType: 'json',
+      type: 'GET',
+      cache: cache
+    });
+  };
+
   // Get responses to the survey recorded in the given bounds
   //
   // @param {Object} bbox A bounding box specified as an array of coordinates:

@@ -26,11 +26,10 @@ small {
 #thanks,
 #submitting,
 #thanks-offline,
+#responses,
 #error {
   padding:1em;
 }
-
-
 
 .repeating-button {
   margin-left:1em;
@@ -199,3 +198,5 @@ body > * {
 input[type="text"].error {
   border-color: #f15a24;
 }
+
+/* Response list ----------------------------------------------------------- */

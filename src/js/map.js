@@ -965,9 +965,6 @@ define(function (require) {
         // Fetch each tile.
         _.each(tiles, function (tile) {
           api.getResponsesInBBox(maptiles.tileToBBox(tile), function (completedResponses) {
-
-            console.log("Got completed responses", completedResponses);
-
             markResponses(completedResponses, 'completed');
 
             // If we got responses, we need to restyle, so they show up.
