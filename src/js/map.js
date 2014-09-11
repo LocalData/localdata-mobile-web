@@ -441,7 +441,8 @@ define(function (require) {
           circle = new L.Circle(e.latlng, radius, {
             clickable: false
           });
-          map.addLayer(circle).bringToBack();
+          map.addLayer(circle);
+          circle.bringToBack();
         }
         map.setView(e.latlng, 19);
 
