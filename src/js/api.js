@@ -625,6 +625,16 @@ define(function (require) {
   //
   // @param {Array} geometry A list of features from a geoserver
   function generateGeoJSONFromESRIGeometry(geometry) {
+    if(geometry.x) {
+      // This is a point.
+      var point = {
+        type: 'Point',
+        coordinates: [geometry.x, geometry.y]
+      };
+      return point;
+    }
+
+
     var multiPolygon = {
       type: 'MultiPolygon',
       coordinates: []

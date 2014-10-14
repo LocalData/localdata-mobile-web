@@ -194,7 +194,7 @@ define(function (require) {
       $('.required-error').hide();
 
       // Check for required answers
-      $('.required').each(function() {
+      $('.required:visible').each(function() {
         // Check if any of the radio buttons are checked
         if(! $('input:radio', this).is(':checked')) {
           valid = false;
