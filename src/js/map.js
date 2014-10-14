@@ -131,10 +131,10 @@ define(function (require) {
         // We mark stale parcels when requested by the survey
         if(settings.survey.responseLongevity &&
           !_.has(freshParcelIds, feature.id)) {
-          return staleParcelStyle;
+          return settings.styles.staleParcelStyle;
         }
 
-        return completedStyle;
+        return settings.styles.completedStyle;
       }
       if (_.has(pendingParcelIds, feature.id)) {
         return settings.styles.pendingStyle;
@@ -737,11 +737,11 @@ define(function (require) {
             // TODO: If we use promises, we can use something like Q.all, instead
             // of counting this ourselves.
             loadingCount -= 1;
-            if (loadingCount === 0) {
-              // Hide the spinner
-              // TODO
-              // $.mobile.hidePageLoadingMsg();
-            }
+            // if (loadingCount === 0) {
+            //   // Hide the spinner
+            //   // TODO
+            //   // $.mobile.hidePageLoadingMsg();
+            // }
             console.log(error.message);
             // TODO: we should subscribe to the 'online' event and refetch
             // parcels if appropriate
@@ -807,11 +807,11 @@ define(function (require) {
           // TODO: If we use promises, we can use something like Q.all, instead
           // of counting this ourselves.
           loadingCount -= 1;
-          if (loadingCount === 0) {
-            // Hide the spinner
-            // TODO
-            // $.mobile.hidePageLoadingMsg();
-          }
+          // if (loadingCount === 0) {
+          //   // Hide the spinner
+          //   // TODO
+          //   // $.mobile.hidePageLoadingMsg();
+          // }
         });
       });
 
