@@ -194,7 +194,7 @@ define(function (require) {
       $('.required-error').hide();
 
       // Check for required answers
-      $('.required').each(function() {
+      $('.required:visible').each(function() {
         // Check if any of the radio buttons are checked
         if(! $('input:radio', this).is(':checked')) {
           valid = false;
@@ -411,7 +411,6 @@ define(function (require) {
         required: question.required || ''
       };
 
-
       // Render the question
       var $question = $(templates.question(questionData));
 
@@ -424,13 +423,14 @@ define(function (require) {
       }
 
       // Record all questions by parent
-      var siblings = app.questionsByParentId[parentID];
-      if (siblings === undefined) {
-        siblings = [];
-        app.questionsByParentId[parentID] = siblings;
+      if(parentID !== undefined) {
+        var siblings = app.questionsByParentId[parentID];
+        if (siblings === undefined) {
+          siblings = [];
+          app.questionsByParentId[parentID] = siblings;
+        }
+        siblings.push($question);
       }
-      siblings.push($question);
-
 
       // We may know what element we want to append to;
       // Otherwise, here's a default value
