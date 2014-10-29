@@ -1,7 +1,9 @@
-*.pyc 
+*.pyc
 .DS_Store
 node_modules
 publish
 dev-settings.json
 temp
 build
+tests_output
+test/lib/selenium-server-standalone.jar
