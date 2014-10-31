@@ -25,10 +25,7 @@ small {
 #address-search-status,
 #thanks,
 #submitting,
-<<<<<<< HEAD
 #thanks-offline,
-=======
->>>>>>> master
 #error {
   padding:1em;
 }
@@ -84,9 +81,101 @@ h2 {
   display:none;
 }
 
+/* Use this grid to center .ui-block-b at larger widths */
+.ui-grid-b .ui-block-a {
+  width: 12.4875%;
+}
+.ui-grid-b .ui-block-b {
+  width: 74.925%;
+}
+@media all and (max-width: 560px) {
+  .ui-grid-b .ui-block-a,
+  .ui-grid-b .ui-block-b {
+    width: 100%;
+    float: none;
+  }
+}
+
 #map-div {
   -ms-touch-action: pinch-zoom;
   height: 300px;
+}
+
+
+#map-div {
+  height: 67vh;
+}
+
+@media all and (min-width: 721px) and (min-aspect-ratio: 13/10) {
+  /* two-column */
+  #map-div {
+    height: 94vh;
+  }
+  .ui-grid-a .ui-block-b {
+    height: 94vh;
+    overflow: scroll;
+  }
+}
+@media all and (min-width: 721px) and (min-aspect-ratio: 13/10) and (max-height: 635px) {
+  #map-div {
+    height: 92vh;
+  }
+  .ui-grid-a .ui-block-b {
+    height: 92vh;
+  }
+}
+
+@media all and (max-width: 720px), all and (max-aspect-ratio: 13/10) {
+  /* single-column */
+  .ui-grid-a .ui-block-a,
+  .ui-grid-a .ui-block-b {
+    width: 100%;
+    float: none;
+  }
+
+  #map-div {
+    height: 67vh;
+  }
+  .ui-grid-a .ui-block-b {
+    height: auto;
+    overflow: none;
+  }
+}
+
+/* Queries specific to iOS device parameters, because some versions of iOS
+ * Safari have bugs around vh */
+
+/* iPhone with landscape orientation */
+@media screen and (device-width: 320px) and (device-height: 480px) and (orientation: landscape) {
+  /* TODO: Should landscape iPhones use the two-column layout? */
+  #map-div { height: 214px; }
+}
+
+/* iPhone with portrait orientation */
+@media screen and (device-width: 320px) and (device-height: 480px) and (orientation: portrait) {
+  #map-div { height: 322px; }
+}
+
+/* iPad with landscape orientation. */
+@media screen and (device-width: 768px) and (device-height: 1024px) and (orientation: landscape) {
+  /* This will be 2-column. */
+  #map-div { height: 730px; }
+}
+
+/* iPad with portrait orientation. */
+@media screen and (device-width: 768px) and (device-height: 1024px) and (orientation: portrait) {
+  /* This will be 1-column. */
+  #map-div { height: 686px; }
+}
+
+/* iPhone 5 with landscape orientation */
+@media screen and (device-width: 560px) and (device-height: 1136px) and (orientation: landscape) {
+  #map-div { height: 375px; }
+}
+
+/* iPhone 5 with portrait orientation */
+@media screen and (device-width: 560px) and (device-height: 1136px) and (orientation: portrait) {
+  #map-div { height: 761px; }
 }
 
 #form,

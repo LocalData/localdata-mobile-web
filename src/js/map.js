@@ -242,6 +242,29 @@ define(function (require) {
     }
 
 
+    function objectSelected(feature) {
+      var visibleHeight = 200;
+
+      // TODO: implement a page controller/view-model that listens to the map's
+      // selection events and coordinates movement/display of the map and form.
+
+      // Pan the map out of the way
+      var mapDiv = $('#map-div');
+      var height = mapDiv.height();
+      var bottom = mapDiv.position().top + height;
+      var offset = bottom - visibleHeight;
+      $('body').animate({ scrollTop: offset });
+
+      // Pan the map so the selected object is still in view
+      // We want to centroid to fit into the bottom portion of the map (visibleHeight).
+      var center = map.project(L.latLng(feature.centroid.coordinates[1], feature.centroid.coordinates[0]));
+      center.y -= (height/2 - visibleHeight/2);
+      map.panTo(map.unproject(center), {
+        animate: false,
+      });
+
+      $.publish('objectSelected');
+    }
 
     // Add a point to the map and open up the survey
     function addPoint() {
@@ -265,7 +288,7 @@ define(function (require) {
       };
 
       // Let the app know that we've selected something.
-      $.publish('objectSelected');
+      objectSelected(app.selectedObject);
     }
 
     function crosshairMove() {
@@ -677,7 +700,7 @@ define(function (require) {
       }
 
       // Let other parts of the app know that we've selected something.
-      $.publish('objectSelected');
+      objectSelected(app.selectedObject);
     }
 
     // Render parcels that are currently visible in the map
