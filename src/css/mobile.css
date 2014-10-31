@@ -25,10 +25,7 @@ small {
 #address-search-status,
 #thanks,
 #submitting,
-<<<<<<< HEAD
 #thanks-offline,
-=======
->>>>>>> master
 #error {
   padding:1em;
 }
@@ -84,9 +81,72 @@ h2 {
   display:none;
 }
 
+/* Use this grid to center .ui-block-b at larger widths */
+.ui-grid-b .ui-block-a {
+  width: 12.4875%;
+}
+.ui-grid-b .ui-block-b {
+  width: 74.925%;
+}
+@media all and (max-width: 560px) {
+  .ui-grid-b .ui-block-a,
+  .ui-grid-b .ui-block-b {
+    width: 100%;
+    float: none;
+  }
+}
+
+/* @media all and (max-width: 720px) { */
+@media all and (max-width: 1400px) {
+  .ui-grid-a .ui-block-a,
+  .ui-grid-a .ui-block-b {
+    width: 100%;
+    float: none;
+  }
+}
+
 #map-div {
   -ms-touch-action: pinch-zoom;
   height: 300px;
+}
+@media all and (min-height: 360px) {
+  #map-div { height: 240px; }
+}
+@media all and (min-height: 400px) {
+  #map-div { height: 267px; }
+}
+@media all and (min-height: 440px) {
+  #map-div { height: 293px; }
+}
+@media all and (min-height: 480px) {
+  #map-div { height: 320px; }
+}
+@media all and (min-height: 520px) {
+  #map-div { height: 347px; }
+}
+@media all and (min-height: 560px) {
+  #map-div { height: 373px; }
+}
+@media all and (min-height: 600px) {
+  #map-div { height: 400px; }
+}
+@media all and (min-height: 640px) {
+  #map-div { height: 427px; }
+}
+@media all and (min-height: 680px) {
+  #map-div { height: 453px; }
+}
+@media all and (min-height: 720px) {
+  #map-div { height: 480px; }
+}
+@media all and (min-height: 760px) {
+  #map-div { height: 507px; }
+}
+@media all and (min-height: 800px) {
+  #map-div { height: 533px; }
+}
+@media all and (min-height: 804px) {
+  #map-div { height: 560px; }
 }
 
 #form,

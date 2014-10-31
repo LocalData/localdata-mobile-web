@@ -52,15 +52,23 @@
         <img src="img/logo.png">
       </h1>
 
-      <div role="main" class="ui-content jqm-content" data-theme="b">
+    <div class="ui-grid-b">
+      <div class="ui-block-a">
+      </div>
+
+      <div role="main" class="ui-block-b ui-content jqm-content" data-theme="b">
         <form id="welcome-form">
           <input type="text" name="name" id="collector_name" value="" placeholder="Your name">
           <a href="#survey-container" id="collector-name-submit" class="ui-btn ui-page-theme-a ui-shadow ui-corner-all ui-icon-arrow-r ui-btn-icon-right" data-theme="b">Get started</a>
         </form>
       </div>
+
+      <div class="ui-block-a">
+      </div>
+    </div> <!-- end grid -->
   </div><!-- end home -->
 
-  <div class="container" id="survey-container" data-role="page">
+  <div id="survey-container" data-role="page">
     <div id="tools" data-role="header" role="banner" data-swatch="b" class="ui-header ui-bar-inherit">
       <a href='#toolpanel' data-role="button" class="ui-btn-left" data-icon="bars" data-iconpos="notext" data-form="ui-icon" data-theme="b"></a>
 
@@ -74,57 +82,72 @@
       <a href="#popupBackOnline" id="net-status-back" data-icon="info" data-iconpos="notext" data-role="button" data-theme="a" data-rel="popup" data-transition="pop" class="ui-btn-right"></a>
     </div>
 
-    <div id="map-div"></div>
+    <!--
+    <div class="ui-grid-a">
+      <div class="ui-block-a">
+      -->
+        <div id="map-div"></div>
 
-    <div id="pointparcelswitch" style="display:none;">
-      <form>
-          <fieldset data-role="controlgroup" data-type="horizontal">
-              <input type="radio" name="radio-choice-pointparcel" id="radio-choice-parcel" value="parcel" checked="checked">
-              <label for="radio-choice-parcel">Parcel mode</label>
-              <input type="radio" name="radio-choice-pointparcel" id="radio-choice-point" value="point">
-              <label for="radio-choice-point">Point mode</label>
-          </fieldset>
-      </form>
-    </div>
+        <div id="pointparcelswitch" style="display:none;">
+          <form>
+              <fieldset data-role="controlgroup" data-type="horizontal">
+                  <input type="radio" name="radio-choice-pointparcel" id="radio-choice-parcel" value="parcel" checked="checked">
+                  <label for="radio-choice-parcel">Parcel mode</label>
+                  <input type="radio" name="radio-choice-pointparcel" id="radio-choice-point" value="point">
+                  <label for="radio-choice-point">Point mode</label>
+              </fieldset>
+          </form>
+        </div>
+        <!--
+      </div>
+      -->
+
 <!--
     <div id="point" style="display:none;">
       <a href='#' id='point' data-icon="plus" data-role="button" data-form="ui-icon" data-theme="b">Add point</a>
     </div>
  -->
 
-    <div id="startpoint">
-        <h2>Select a location to begin.</h2>
-    </div>
-    <div id="submitting">
-        <h2>Submitting data...</h2>
-    </div>
-    <div id="thanks">
-        <h2>Thank you! Select another location to continue.</h2>
-    </div>
-    <div id="thanks-offline">
-      <h2>You're offline, so we saved the entry on your device.</h2>
-      <h2>Please continue, and we'll upload when you have coverage again. Thanks!</h2>
-    </div>
-
-    <div id="form">
-      <h2 id="location-header">
-          <span class="parcel_id">&nbsp;</span>
-      </h2>
-
-      <div id="results"></div>
-
-      <form action="/responses" method="post" accept-charset="utf-8" id="parcelform" data-enhance="false" data-ajax="false">
-        <div id="questions">
+<!--
+      <div class="ui-block-b">
+      -->
+        <div id="startpoint">
+            <h2>Select a location to begin.</h2>
         </div>
-        <div id="error">
-          <h2>
-            There was an error submitting your answer.<br>
-            Please try submitting again.
+        <div id="submitting">
+            <h2>Submitting data...</h2>
+        </div>
+        <div id="thanks">
+            <h2>Thank you! Select another location to continue.</h2>
+        </div>
+        <div id="thanks-offline">
+          <h2>You're offline, so we saved the entry on your device.</h2>
+          <h2>Please continue, and we'll upload when you have coverage again. Thanks!</h2>
+        </div>
+
+        <div id="form">
+          <h2 id="location-header">
+              <span class="parcel_id">&nbsp;</span>
           </h2>
-        </div>
-        <input type="submit" data-theme="c" data-icon="check" value="Submit answers" id="submitbutton">
-      </form>
-    </div><!-- end form -->
+
+          <div id="results"></div>
+
+          <form action="/responses" method="post" accept-charset="utf-8" id="parcelform" data-enhance="false" data-ajax="false">
+            <div id="questions">
+            </div>
+            <div id="error">
+              <h2>
+                There was an error submitting your answer.<br>
+                Please try submitting again.
+              </h2>
+            </div>
+            <input type="submit" data-theme="c" data-icon="check" value="Submit answers" id="submitbutton">
+          </form>
+        </div><!-- end form -->
+        <!--
+      </div>
+      -->
+
 
     <div data-role="panel" data-display="overlay" id="toolpanel">
       <div class="panel-in">

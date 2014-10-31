@@ -64,19 +64,11 @@ define(function (require) {
         $('input:text[data-type="address"]').val('');
       }
 
-      if(!$form.is(":visible")) {
-        $form.slideToggle(400, function(){
+      // TODO: implement a page controller/view-model that listens to the map's
+      // selection events and coordinates movement/display of the map and form.
 
-          // Make sure the form becomes visible
-          // when an object on the map is clicked
-          var offset = $form.offset();
-          offset.top -= 175; // Keep enough of the map visible
-                             // to give the user context
-          $('html, body').animate({
-            scrollTop: offset.top,
-            scrollLeft: offset.left
-          });
-        });
+      if(!$form.is(':visible')) {
+        $form.slideToggle(400);
       }
     }
 
