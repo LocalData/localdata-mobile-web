@@ -248,20 +248,36 @@ define(function (require) {
       // TODO: implement a page controller/view-model that listens to the map's
       // selection events and coordinates movement/display of the map and form.
 
-      // Pan the map out of the way
       var mapDiv = $('#map-div');
       var height = mapDiv.height();
-      var bottom = mapDiv.position().top + height;
-      var offset = bottom - visibleHeight;
-      $('body').animate({ scrollTop: offset });
+      var offset;
 
-      // Pan the map so the selected object is still in view
-      // We want to centroid to fit into the bottom portion of the map (visibleHeight).
-      var center = map.project(L.latLng(feature.centroid.coordinates[1], feature.centroid.coordinates[0]));
-      center.y -= (height/2 - visibleHeight/2);
-      map.panTo(map.unproject(center), {
-        animate: false,
-      });
+      if (app.crosshairLayer) {
+        // If the map is in point-selection mode, then we want to slide most of
+        // the map out of view but keep the point marker visible.
+
+        var middle = mapDiv.position().top + (height / 2);
+        offset = middle - app.crosshairLayer.options.icon.options.iconAnchor.y;
+        $('body').animate({ scrollTop: offset });
+
+      } else {
+        // If the map is in object-selection mode, then we want to slide most of
+        // the map out of view and pan the map, so the selected object is still
+        // visible.
+
+        // Pan the map out of the way
+        var bottom = mapDiv.position().top + height;
+        offset = bottom - visibleHeight;
+        $('body').animate({ scrollTop: offset });
+
+        // Pan the map so the selected object is still in view
+        // We want the centroid to fit into the bottom portion of the map (visibleHeight).
+        var center = map.project(L.latLng(feature.centroid.coordinates[1], feature.centroid.coordinates[0]));
+        center.y -= (height/2 - visibleHeight/2);
+        map.panTo(map.unproject(center), {
+          animate: false,
+        });
+      }
 
       $.publish('objectSelected');
     }
@@ -303,6 +319,7 @@ define(function (require) {
     function crosshairMapClick(event) {
       map.panTo(event.latlng);
       app.crosshairLayer.setLatLng(event.latlng);
+      addPoint();
     }
 
     // Show the add / remove point interface
@@ -319,15 +336,16 @@ define(function (require) {
 
       // Move the crosshairs as the map moves
       map.on('move', crosshairMove);
-      map.on('moveend', crosshairMoveEnd);
+      map.on('dragend', crosshairMoveEnd);
       map.on('click', crosshairMapClick);
     }
 
     function hidePointInterface (argument) {
       map.removeLayer(app.crosshairLayer);
       map.off('move', crosshairMove);
-      map.off('moveend', crosshairMoveEnd);
+      map.off('dragend', crosshairMoveEnd);
       map.off('click', crosshairMapClick);
+      app.crosshairLayer = null;
     }
 
     function showPointParcelInterface() {
