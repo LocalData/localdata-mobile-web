@@ -242,7 +242,7 @@ define(function (require) {
     }
 
 
-    function objectSelected(feature) {
+    function objectSelected(feature, scroll) {
       var visibleHeight = 200;
 
       // TODO: implement a page controller/view-model that listens to the map's
@@ -252,38 +252,40 @@ define(function (require) {
       var height = mapDiv.height();
       var offset;
 
-      if (app.crosshairLayer) {
-        // If the map is in point-selection mode, then we want to slide most of
-        // the map out of view but keep the point marker visible.
+      if (scroll) {
+        if (app.crosshairLayer) {
+          // If the map is in point-selection mode, then we want to slide most of
+          // the map out of view but keep the point marker visible.
 
-        var middle = mapDiv.position().top + (height / 2);
-        offset = middle - app.crosshairLayer.options.icon.options.iconAnchor.y;
-        $('body').animate({ scrollTop: offset });
+          var middle = mapDiv.position().top + (height / 2);
+          offset = middle - app.crosshairLayer.options.icon.options.iconAnchor.y;
+          $('body').animate({ scrollTop: offset });
 
-      } else {
-        // If the map is in object-selection mode, then we want to slide most of
-        // the map out of view and pan the map, so the selected object is still
-        // visible.
+        } else {
+          // If the map is in object-selection mode, then we want to slide most of
+          // the map out of view and pan the map, so the selected object is still
+          // visible.
 
-        // Pan the map out of the way
-        var bottom = mapDiv.position().top + height;
-        offset = bottom - visibleHeight;
-        $('body').animate({ scrollTop: offset });
+          // Pan the map out of the way
+          var bottom = mapDiv.position().top + height;
+          offset = bottom - visibleHeight;
+          $('body').animate({ scrollTop: offset });
 
-        // Pan the map so the selected object is still in view
-        // We want the centroid to fit into the bottom portion of the map (visibleHeight).
-        var center = map.project(L.latLng(feature.centroid.coordinates[1], feature.centroid.coordinates[0]));
-        center.y -= (height/2 - visibleHeight/2);
-        map.panTo(map.unproject(center), {
-          animate: false,
-        });
+          // Pan the map so the selected object is still in view
+          // We want the centroid to fit into the bottom portion of the map (visibleHeight).
+          var center = map.project(L.latLng(feature.centroid.coordinates[1], feature.centroid.coordinates[0]));
+          center.y -= (height/2 - visibleHeight/2);
+          map.panTo(map.unproject(center), {
+            animate: false,
+          });
+        }
       }
 
       $.publish('objectSelected');
     }
 
     // Add a point to the map and open up the survey
-    function addPoint() {
+    function addPoint(scroll) {
       // Deselect the previous layer, if any
       // if (newPoint !== null) {
       //   map.removeLayer(newPoint);
@@ -304,7 +306,7 @@ define(function (require) {
       };
 
       // Let the app know that we've selected something.
-      objectSelected(app.selectedObject);
+      objectSelected(app.selectedObject, scroll);
     }
 
     function crosshairMove() {
@@ -313,13 +315,13 @@ define(function (require) {
 
     function crosshairMoveEnd() {
       app.crosshairLayer.setLatLng(map.getCenter());
-      addPoint();
+      addPoint(false);
     }
 
     function crosshairMapClick(event) {
       map.panTo(event.latlng);
       app.crosshairLayer.setLatLng(event.latlng);
-      addPoint();
+      addPoint(true);
     }
 
     // Show the add / remove point interface
@@ -718,7 +720,7 @@ define(function (require) {
       }
 
       // Let other parts of the app know that we've selected something.
-      objectSelected(app.selectedObject);
+      objectSelected(app.selectedObject, true);
     }
 
     // Render parcels that are currently visible in the map
