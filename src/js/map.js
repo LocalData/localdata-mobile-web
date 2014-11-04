@@ -206,7 +206,7 @@ define(function (require) {
     }
 
     function mapAddress(e, address) {
-      api.codeAddress(address, function (error, data) {
+      api.geocodeAddress(address, function (error, data) {
         if (error) {
           if (error.type === 'GeocodingError') {
             console.warn('We could not geocode the address: '  + address);
@@ -362,7 +362,7 @@ define(function (require) {
     }
 
     function setupAddressPointSurvey() {
-      api.codeAddress(settings.survey.location, function (error, data) {
+      api.geocodeAddress(settings.survey.location, function (error, data) {
         if (error) {
           if (error.type === 'GeocodingError') {
             console.warn('We could not geocode the address: '  + settings.survey.location);
@@ -488,9 +488,9 @@ define(function (require) {
       }
 
       // Move the map ............................................................
-      // Attempt to center the map on an address using Bing's geocoder.
-      // This should probably live in APIs.
-      var goToAddress = function(address) {
+      // Attempt to center the map on an address.
+      // Delegate the actual geocoding to the API module.
+      function goToAddress(address) {
         $('#address-search-status').html("Searching for the address");
         $('#address-search-status').fadeIn(200);
 
@@ -517,7 +517,9 @@ define(function (require) {
           // Add the accuracy circle to the map
           var radius = 4;
           var latlng = new L.LatLng(data.coords[1], data.coords[0]);
-          circle = new L.Circle(latlng, radius);
+          circle = new L.Circle(latlng, radius, {
+            clickable: false
+          });
           map.addLayer(circle);
           map.setView(latlng, 19);
 
@@ -527,7 +529,7 @@ define(function (require) {
           // Close the panel
           $('#toolpanel').panel('close');
         });
-      };
+      }
 
       /**
        * If geolocation fails, let the user know.
@@ -538,7 +540,7 @@ define(function (require) {
         // TODO: We should just abstract and call the "goToAddress" code here
         if (initialLocate) {
           initialLocate = false;
-          api.codeAddress(settings.survey.location, function (error, data) {
+          api.geocodeAddress(settings.survey.location, function (error, data) {
             if (error) {
               if (error.type === 'GeocodingError') {
                 console.warn('We could not geocode the address: '  + settings.survey.location);
@@ -616,47 +618,6 @@ define(function (require) {
       return bounds;
     };
 
-
-    // Move the map ............................................................
-    // Attempt to center the map on an address using Bing's geocoder.
-    // This should probably live in APIs.
-    var goToAddress = function(address) {
-      $('#address-search-active').show();
-      api.codeAddress(address, function (error, data) {
-        $('#address-search-active').hide();
-
-        if (error) {
-          if (error.type === 'GeocodingError') {
-            console.warn('We could not geocode the address: '  + address);
-          } else {
-            console.error('Unexpected error of type ' + error.type);
-            console.error(error.message);
-          }
-          settings.address = '';
-          return;
-        }
-
-        if (circle !== null) {
-          map.removeLayer(circle);
-        }
-
-        // Add the accuracy circle to the map
-        var radius = 4;
-        var latlng = new L.LatLng(data.coords[1], data.coords[0]);
-        circle = new L.Circle(latlng, radius, {
-          clickable: false
-        });
-        map.addLayer(circle);
-        map.setView(latlng, 19);
-
-        $('#address-search').hide();
-
-        // Record the address, for potential later use by the survey questions.
-        settings.address = data.addressLine;
-
-        // TODO: Select an object, if appropriate
-      });
-    };
 
     function selectParcel(event) {
       var oldSelectedLayer = selectedLayer;
