@@ -96,57 +96,84 @@ h2 {
   }
 }
 
-/* @media all and (max-width: 720px) { */
-@media all and (max-width: 1400px) {
+#map-div {
+  -ms-touch-action: pinch-zoom;
+  height: 300px;
+}
+
+
+#map-div {
+  height: 67vh;
+}
+
+@media all and (min-width: 721px) and (min-aspect-ratio: 4/3) {
+  /* two-column */
+  #map-div {
+    height: 94vh;
+  }
+  .ui-grid-a .ui-block-b {
+    height: 94vh;
+    overflow: scroll;
+  }
+}
+@media all and (min-width: 721px) and (min-aspect-ratio: 4/3) and (max-height: 635px) {
+  #map-div {
+    height: 92vh;
+  }
+  .ui-grid-a .ui-block-b {
+    height: 92vh;
+  }
+}
+
+@media all and (max-width: 720px), all and (max-aspect-ratio: 4/3) {
+  /* single-column */
   .ui-grid-a .ui-block-a,
   .ui-grid-a .ui-block-b {
     width: 100%;
     float: none;
   }
+
+  #map-div {
+    height: 67vh;
+  }
+  .ui-grid-a .ui-block-b {
+    height: auto;
+    overflow: none;
+  }
 }
 
-#map-div {
-  -ms-touch-action: pinch-zoom;
-  height: 300px;
+/* Queries specific to iOS device parameters, because some versions of iOS
+ * Safari have bugs around vh */
+
+/* iPhone with landscape orientation */
+@media screen and (device-width: 320px) and (device-height: 480px) and (orientation: landscape) {
+  /* TODO: Should landscape iPhones use the two-column layout? */
+  #map-div { height: 214px; }
 }
-@media all and (min-height: 360px) {
-  #map-div { height: 240px; }
+
+/* iPhone with portrait orientation */
+@media screen and (device-width: 320px) and (device-height: 480px) and (orientation: portrait) {
+  #map-div { height: 322px; }
 }
-@media all and (min-height: 400px) {
-  #map-div { height: 267px; }
+
+/* iPad with landscape orientation. */
+@media screen and (device-width: 768px) and (device-height: 1024px) and (orientation: landscape) {
+  #map-div { height: 730px; }
 }
-@media all and (min-height: 440px) {
-  #map-div { height: 293px; }
+
+/* iPad with portrait orientation. */
+@media screen and (device-width: 768px) and (device-height: 1024px) and (orientation: portrait) {
+  #map-div { height: 986px; }
 }
-@media all and (min-height: 480px) {
-  #map-div { height: 320px; }
+
+/* iPhone 5 with landscape orientation */
+@media screen and (device-width: 560px) and (device-height: 1136px) and (orientation: landscape) {
+  #map-div { height: 375px; }
 }
-@media all and (min-height: 520px) {
-  #map-div { height: 347px; }
-}
-@media all and (min-height: 560px) {
-  #map-div { height: 373px; }
-}
-@media all and (min-height: 600px) {
-  #map-div { height: 400px; }
-}
-@media all and (min-height: 640px) {
-  #map-div { height: 427px; }
-}
-@media all and (min-height: 680px) {
-  #map-div { height: 453px; }
-}
-@media all and (min-height: 720px) {
-  #map-div { height: 480px; }
-}
-@media all and (min-height: 760px) {
-  #map-div { height: 507px; }
-}
-@media all and (min-height: 800px) {
-  #map-div { height: 533px; }
-}
-@media all and (min-height: 804px) {
-  #map-div { height: 560px; }
+
+/* iPhone 5 with portrait orientation */
+@media screen and (device-width: 560px) and (device-height: 1136px) and (orientation: portrait) {
+  #map-div { height: 761px; }
 }
 
 #form,
