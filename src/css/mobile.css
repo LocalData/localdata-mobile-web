@@ -106,7 +106,7 @@ h2 {
   height: 67vh;
 }
 
-@media all and (min-width: 721px) and (min-aspect-ratio: 4/3) {
+@media all and (min-width: 721px) and (min-aspect-ratio: 13/10) {
   /* two-column */
   #map-div {
     height: 94vh;
@@ -116,7 +116,7 @@ h2 {
     overflow: scroll;
   }
 }
-@media all and (min-width: 721px) and (min-aspect-ratio: 4/3) and (max-height: 635px) {
+@media all and (min-width: 721px) and (min-aspect-ratio: 13/10) and (max-height: 635px) {
   #map-div {
     height: 92vh;
   }
@@ -125,7 +125,7 @@ h2 {
   }
 }
 
-@media all and (max-width: 720px), all and (max-aspect-ratio: 4/3) {
+@media all and (max-width: 720px), all and (max-aspect-ratio: 13/10) {
   /* single-column */
   .ui-grid-a .ui-block-a,
   .ui-grid-a .ui-block-b {
@@ -158,12 +158,14 @@ h2 {
 
 /* iPad with landscape orientation. */
 @media screen and (device-width: 768px) and (device-height: 1024px) and (orientation: landscape) {
+  /* This will be 2-column. */
   #map-div { height: 730px; }
 }
 
 /* iPad with portrait orientation. */
 @media screen and (device-width: 768px) and (device-height: 1024px) and (orientation: portrait) {
-  #map-div { height: 986px; }
+  /* This will be 1-column. */
+  #map-div { height: 686px; }
 }
 
 /* iPhone 5 with landscape orientation */
