@@ -206,7 +206,7 @@ define(function (require) {
     }
 
     function mapAddress(e, address) {
-      api.codeAddress(address, function (error, data) {
+      api.geocodeAddress(address, function (error, data) {
         if (error) {
           if (error.type === 'GeocodingError') {
             console.warn('We could not geocode the address: '  + address);
@@ -242,9 +242,50 @@ define(function (require) {
     }
 
 
+    function objectSelected(feature, scroll) {
+      var visibleHeight = 200;
+
+      // TODO: implement a page controller/view-model that listens to the map's
+      // selection events and coordinates movement/display of the map and form.
+
+      var mapDiv = $('#map-div');
+      var height = mapDiv.height();
+      var offset;
+
+      if (scroll) {
+        if (app.crosshairLayer) {
+          // If the map is in point-selection mode, then we want to slide most of
+          // the map out of view but keep the point marker visible.
+
+          var middle = mapDiv.position().top + (height / 2);
+          offset = middle - app.crosshairLayer.options.icon.options.iconAnchor.y;
+          $('body').animate({ scrollTop: offset });
+
+        } else {
+          // If the map is in object-selection mode, then we want to slide most of
+          // the map out of view and pan the map, so the selected object is still
+          // visible.
+
+          // Pan the map out of the way
+          var bottom = mapDiv.position().top + height;
+          offset = bottom - visibleHeight;
+          $('body').animate({ scrollTop: offset });
+
+          // Pan the map so the selected object is still in view
+          // We want the centroid to fit into the bottom portion of the map (visibleHeight).
+          var center = map.project(L.latLng(feature.centroid.coordinates[1], feature.centroid.coordinates[0]));
+          center.y -= (height/2 - visibleHeight/2);
+          map.panTo(map.unproject(center), {
+            animate: false,
+          });
+        }
+      }
+
+      $.publish('objectSelected');
+    }
 
     // Add a point to the map and open up the survey
-    function addPoint() {
+    function addPoint(scroll) {
       // Deselect the previous layer, if any
       // if (newPoint !== null) {
       //   map.removeLayer(newPoint);
@@ -265,7 +306,7 @@ define(function (require) {
       };
 
       // Let the app know that we've selected something.
-      $.publish('objectSelected');
+      objectSelected(app.selectedObject, scroll);
     }
 
     function crosshairMove() {
@@ -274,12 +315,13 @@ define(function (require) {
 
     function crosshairMoveEnd() {
       app.crosshairLayer.setLatLng(map.getCenter());
-      addPoint();
+      addPoint(false);
     }
 
     function crosshairMapClick(event) {
       map.panTo(event.latlng);
       app.crosshairLayer.setLatLng(event.latlng);
+      addPoint(true);
     }
 
     // Show the add / remove point interface
@@ -296,15 +338,16 @@ define(function (require) {
 
       // Move the crosshairs as the map moves
       map.on('move', crosshairMove);
-      map.on('moveend', crosshairMoveEnd);
+      map.on('dragend', crosshairMoveEnd);
       map.on('click', crosshairMapClick);
     }
 
     function hidePointInterface (argument) {
       map.removeLayer(app.crosshairLayer);
       map.off('move', crosshairMove);
-      map.off('moveend', crosshairMoveEnd);
+      map.off('dragend', crosshairMoveEnd);
       map.off('click', crosshairMapClick);
+      app.crosshairLayer = null;
     }
 
     function showPointParcelInterface() {
@@ -319,7 +362,7 @@ define(function (require) {
     }
 
     function setupAddressPointSurvey() {
-      api.codeAddress(settings.survey.location, function (error, data) {
+      api.geocodeAddress(settings.survey.location, function (error, data) {
         if (error) {
           if (error.type === 'GeocodingError') {
             console.warn('We could not geocode the address: '  + settings.survey.location);
@@ -445,9 +488,9 @@ define(function (require) {
       }
 
       // Move the map ............................................................
-      // Attempt to center the map on an address using Bing's geocoder.
-      // This should probably live in APIs.
-      var goToAddress = function(address) {
+      // Attempt to center the map on an address.
+      // Delegate the actual geocoding to the API module.
+      function goToAddress(address) {
         $('#address-search-status').html("Searching for the address");
         $('#address-search-status').fadeIn(200);
 
@@ -474,7 +517,9 @@ define(function (require) {
           // Add the accuracy circle to the map
           var radius = 4;
           var latlng = new L.LatLng(data.coords[1], data.coords[0]);
-          circle = new L.Circle(latlng, radius);
+          circle = new L.Circle(latlng, radius, {
+            clickable: false
+          });
           map.addLayer(circle);
           map.setView(latlng, 19);
 
@@ -484,7 +529,7 @@ define(function (require) {
           // Close the panel
           $('#toolpanel').panel('close');
         });
-      };
+      }
 
       /**
        * If geolocation fails, let the user know.
@@ -495,7 +540,7 @@ define(function (require) {
         // TODO: We should just abstract and call the "goToAddress" code here
         if (initialLocate) {
           initialLocate = false;
-          api.codeAddress(settings.survey.location, function (error, data) {
+          api.geocodeAddress(settings.survey.location, function (error, data) {
             if (error) {
               if (error.type === 'GeocodingError') {
                 console.warn('We could not geocode the address: '  + settings.survey.location);
@@ -574,47 +619,6 @@ define(function (require) {
     };
 
 
-    // Move the map ............................................................
-    // Attempt to center the map on an address using Bing's geocoder.
-    // This should probably live in APIs.
-    var goToAddress = function(address) {
-      $('#address-search-active').show();
-      api.codeAddress(address, function (error, data) {
-        $('#address-search-active').hide();
-
-        if (error) {
-          if (error.type === 'GeocodingError') {
-            console.warn('We could not geocode the address: '  + address);
-          } else {
-            console.error('Unexpected error of type ' + error.type);
-            console.error(error.message);
-          }
-          settings.address = '';
-          return;
-        }
-
-        if (circle !== null) {
-          map.removeLayer(circle);
-        }
-
-        // Add the accuracy circle to the map
-        var radius = 4;
-        var latlng = new L.LatLng(data.coords[1], data.coords[0]);
-        circle = new L.Circle(latlng, radius, {
-          clickable: false
-        });
-        map.addLayer(circle);
-        map.setView(latlng, 19);
-
-        $('#address-search').hide();
-
-        // Record the address, for potential later use by the survey questions.
-        settings.address = data.addressLine;
-
-        // TODO: Select an object, if appropriate
-      });
-    };
-
     function selectParcel(event) {
       var oldSelectedLayer = selectedLayer;
 
@@ -677,7 +681,7 @@ define(function (require) {
       }
 
       // Let other parts of the app know that we've selected something.
-      $.publish('objectSelected');
+      objectSelected(app.selectedObject, true);
     }
 
     // Render parcels that are currently visible in the map
