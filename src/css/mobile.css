@@ -103,7 +103,7 @@ h2 {
 
 
 #map-div {
-  height: 67vh;
+  height: 58vh;
 }
 
 @media all and (min-width: 721px) and (min-aspect-ratio: 13/10) {
@@ -134,7 +134,7 @@ h2 {
   }
 
   #map-div {
-    height: 67vh;
+    height: 58vh;
   }
   .ui-grid-a .ui-block-b {
     height: auto;
@@ -148,12 +148,12 @@ h2 {
 /* iPhone with landscape orientation */
 @media screen and (device-width: 320px) and (device-height: 480px) and (orientation: landscape) {
   /* TODO: Should landscape iPhones use the two-column layout? */
-  #map-div { height: 214px; }
+  #map-div { height: 165px; }
 }
 
 /* iPhone with portrait orientation */
 @media screen and (device-width: 320px) and (device-height: 480px) and (orientation: portrait) {
-  #map-div { height: 322px; }
+  #map-div { height: 248px; }
 }
 
 /* iPad with landscape orientation. */
@@ -175,7 +175,7 @@ h2 {
 
 /* iPhone 5 with portrait orientation */
 @media screen and (device-width: 560px) and (device-height: 1136px) and (orientation: portrait) {
-  #map-div { height: 761px; }
+  #map-div { height: 720px; }
 }
 
 #form,
