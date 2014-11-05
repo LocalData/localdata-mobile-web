@@ -36,6 +36,11 @@ define(function (require) {
         var o = {};
         var a = this.serializeArray();
         $.each(a, function() {
+          // Check if this should be numeric
+          if(!isNaN(this.value)) {
+            this.value = parseFloat(this.value);
+          }
+
           if (o[this.name] !== undefined) {
             if (!o[this.name].push) {
               o[this.name] = [o[this.name]];
@@ -306,6 +311,12 @@ define(function (require) {
         $this.val('');
       });
 
+      // Clear numeric input
+      $('input[type=number]').each(function (index) {
+        var $this = $(this);
+        $this.val('');
+      });
+
       // Clear file upload selections
       $('input[type=file]').each(function (index) {
         $(this).val('');
@@ -314,8 +325,6 @@ define(function (require) {
       // Remove additional repeating groups
       $('.append-to').empty();
     }
-
-
 
 
     // Render the form ...........................................................
@@ -390,6 +399,7 @@ define(function (require) {
           answerCheckbox: _.template($('#answer-checkbox').html().trim()),
           answerRadio: _.template($('#answer-radio').html().trim()),
           answerText: _.template($('#answer-text').html().trim()),
+          answerNumber: _.template($('#answer-number').html().trim()),
           answerFile: _.template($('#answer-file').html().trim()),
           repeatButton: _.template($('#repeat-button').html().trim())
         };
@@ -505,6 +515,14 @@ define(function (require) {
             questionName: suffixed_name,
             id: _.uniqueId(question.name)
           }));
+        } else if (question.type === 'number') {
+          data = {
+            questionName: suffixed_name,
+            id: _.uniqueId(question.name),
+            value: value
+          };
+
+          $answer = $(templates.answerNumber(data));
         }
 
         $question.append($answer);
