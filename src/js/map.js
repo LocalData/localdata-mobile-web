@@ -98,7 +98,7 @@ define(function (require) {
 
   return function (app, mapContainerId) {
 
-    var map, marker;
+    var map;
     var circle = null;
     var markers = {};
     var numObjectsOnMap = 0;
@@ -107,39 +107,49 @@ define(function (require) {
 
     var parcelsLayerGroup = new L.LayerGroup();
     var doneMarkersLayer = new L.LayerGroup();
-    var pointMarkersLayer = new L.LayerGroup();
     var completedParcelCount = 0;
     var completedParcelIds = {};
     var freshParcelIds = {};
     var pendingParcelIds = {};
 
     var crosshairLayer;
-    var pointObjectLayer;
 
     var selectedLayer = null;
-    var selectedPolygon = null;
-    var selectedCentroid = null;
-    var selectedObjectJSON = null;
 
-    // Styles for parcel outlines ..............................................
-    function parcelStyle(feature) {
-      if (feature.properties.selected) {
-        return settings.styles.selectedStyle;
+    // Styles for parcel outlines and other base features ......................
+    function featureStyle(feature) {
+      var geometryType = feature.geometry.type;
+      var type;
+
+      if (geometryType === 'Polygon' || geometryType === 'MultiPolygon') {
+        type = 'polygon';
+      } else if (geometryType === 'LineString' || geometryType === 'MultiLineString') {
+        type = 'lineString';
+      } else {
+        console.err('Unknown geometry type: ' + geometryType);
+        type = 'polygon';
       }
+
+      if (feature.properties.selected) {
+        return settings.styles.selected[type];
+      }
+
       if (_.has(completedParcelIds, feature.id)) {
 
         // We mark stale parcels when requested by the survey
-        if(settings.survey.responseLongevity &&
-          !_.has(freshParcelIds, feature.id)) {
-          return settings.styles.staleParcelStyle;
+        if (settings.survey.responseLongevity &&
+            !_.has(freshParcelIds, feature.id)) {
+          return settings.styles.stale[type];
         }
 
-        return settings.styles.completedStyle;
+        return settings.styles.completed[type];
       }
+
       if (_.has(pendingParcelIds, feature.id)) {
-        return settings.styles.pendingStyle;
+        return settings.styles.pending[type];
       }
-      return settings.styles.defaultStyle;
+
+      return settings.styles.default[type];
     }
 
     function zoneStyle(feature) {
@@ -291,7 +301,6 @@ define(function (require) {
       //   map.removeLayer(newPoint);
       // }
 
-      var latlng = [map.getCenter().lat, map.getCenter().lng];
       var lnglat = [map.getCenter().lng, map.getCenter().lat];
 
       // Keep track of the selected location
@@ -632,15 +641,15 @@ define(function (require) {
 
       // Restyle the parcels
       parcelsLayerGroup.eachLayer(function (layer) {
-        layer.setStyle(parcelStyle);
+        layer.setStyle(featureStyle);
       });
 
       // Keep track of the selected object centrally
       app.selectedObject.id = selectedLayer.feature.id;
 
       app.selectedObject.humanReadableName =
-        selectedLayer.feature.properties.address // parcels endpoint
-        || selectedLayer.feature.properties.shortName; // features endpoint
+        selectedLayer.feature.properties.address || // parcels endpoint
+        selectedLayer.feature.properties.shortName; // features endpoint
 
       // Store the human-readable name (often the address).
       if (_.has(selectedLayer.feature.properties, 'address')) {
@@ -787,7 +796,7 @@ define(function (require) {
 
           // Create a new GeoJSON layer and style it.
           var geoJSONLayer = new L.geoJson(featureCollection, {
-            style: parcelStyle,
+            style: featureStyle,
             pointToLayer: function (feature, latlng) {
               return L.circleMarker(latlng);
             }
@@ -931,7 +940,7 @@ define(function (require) {
       // succession.
       var restyle = _.debounce(function () {
         parcelsLayerGroup.eachLayer(function (layer) {
-          layer.setStyle(parcelStyle);
+          layer.setStyle(featureStyle);
         });
       }, 200);
 
