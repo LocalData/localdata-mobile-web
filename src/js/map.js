@@ -314,8 +314,19 @@ define(function (require) {
         coordinates: lnglat
       };
 
-      // Let the app know that we've selected something.
-      objectSelected(app.selectedObject, scroll);
+      // Try to find a better name for the location.
+      api.reverseGeocode(lnglat[0], lnglat[1], function (error, location) {
+        if (error) {
+          console.error(error);
+        }
+
+        if (location) {
+          app.selectedObject.humanReadableName = 'Near ' + location.shortName;
+        }
+
+        // Let the app know that we've selected something.
+        objectSelected(app.selectedObject, scroll);
+      });
     }
 
     function crosshairMove() {
@@ -335,10 +346,6 @@ define(function (require) {
 
     // Show the add / remove point interface
     function showPointInterface() {
-      if (settings.survey.type === 'point') {
-        $('#location-header').html('');
-      }
-
       crosshairLayer = L.marker([0,0], {
         icon: settings.icons.CrosshairIcon
       });
