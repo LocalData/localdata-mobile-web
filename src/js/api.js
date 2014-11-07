@@ -463,6 +463,43 @@ define(function (require) {
     });
   };
 
+  api.reverseGeocode = function (lng, lat, done) {
+    $.ajax({
+      url: '//dev.virtualearth.net/REST/v1/Locations/' + lat + ',' + lng,
+      dataType: 'jsonp',
+      jsonp: 'jsonp',
+      data: {
+        includeEntityTypes: 'Address',
+        key: settings.bing_key
+      },
+      cache: cache,
+    }).then(function (data) {
+      if (!data.resourceSets || data.resourceSets.length === 0) {
+        done(null, null);
+        return;
+      }
+
+      var resources = data.resourceSets[0].resources;
+      if (!resources || resources.length === 0) {
+        done(null, null);
+        return;
+      }
+
+      var address = resources[0].address;
+      if (!address || !address.addressLine) {
+        done(null, null);
+        return;
+      }
+
+      done(null, {
+        shortName: address.addressLine,
+        longName: address.formattedAddress
+      });
+    }).fail(function (error) {
+      done(error);
+    });
+  };
+
   // Get responses to the survey recorded in the given bounds
   //
   // @param {Object} bbox A bounding box specified as an array of coordinates:
