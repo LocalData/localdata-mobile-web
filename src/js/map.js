@@ -125,7 +125,9 @@ define(function (require) {
         type = 'polygon';
       } else if (geometryType === 'LineString' || geometryType === 'MultiLineString') {
         type = 'lineString';
-      } else {
+      } else if (geometryType === 'Point') {
+        type = 'point';
+      }else {
         console.err('Unknown geometry type: ' + geometryType);
         type = 'polygon';
       }

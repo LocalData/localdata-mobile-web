@@ -73,6 +73,10 @@ define(function (require) {
         opacity: 1,
         weight: 10,
         color: defaultColor
+      },
+      point: {
+        opacity: 1,
+        color: defaultColor
       }
     },
 
@@ -88,6 +92,10 @@ define(function (require) {
       lineString: {
         opacity: 1,
         weight: 10,
+        color: selectedColor
+      },
+      point: {
+        fillOpacity: 0,
         color: selectedColor
       }
     },
@@ -106,6 +114,9 @@ define(function (require) {
         weight: 10,
         dashArray: '1',
         color: completedColor
+      },
+      point: {
+        color: completedColor
       }
     },
 
@@ -123,6 +134,9 @@ define(function (require) {
         weight: 10,
         dashArray: '1',
         color: pendingColor
+      },
+      point: {
+        color: pendingColor
       }
     },
 
@@ -135,6 +149,9 @@ define(function (require) {
         dashArray: '1'
       },
       lineString: {
+      },
+      point: {
+        color: staleColor
       }
     }
   };
