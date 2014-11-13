@@ -5,5 +5,5 @@ publish
 dev-settings.json
 temp
 build
-tests_output/
-selenium-server-standalone.jar
+tests_output
+test/lib/selenium-server-standalone.jar
