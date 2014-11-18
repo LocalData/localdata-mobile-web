@@ -288,7 +288,7 @@ define(function (require) {
           var center = map.project(L.latLng(feature.centroid.coordinates[1], feature.centroid.coordinates[0]));
           center.y -= (height/2 - visibleHeight/2);
           map.panTo(map.unproject(center), {
-            animate: false,
+            animate: true,
           });
         }
       }
@@ -497,7 +497,6 @@ define(function (require) {
             clickable: false
           });
           map.addLayer(circle);
-          circle.bringToBack();
         }
         map.setView(e.latlng, 19);
 
@@ -641,7 +640,7 @@ define(function (require) {
       var oldSelectedLayer = selectedLayer;
 
       // Select the current layer
-      selectedLayer = event.layer;
+      selectedLayer = event.target;
 
       if (oldSelectedLayer !== null) {
         oldSelectedLayer.feature.properties.selected = false;
@@ -808,11 +807,11 @@ define(function (require) {
             style: featureStyle,
             pointToLayer: function (feature, latlng) {
               return L.circleMarker(latlng);
+            },
+            onEachFeature: function (feature, layer) {
+              layer.on('click', selectParcel);
             }
           });
-
-          // Add click handler
-          geoJSONLayer.on('click', selectParcel);
 
           // Add the layer to the layergroup.
           parcelsLayerGroup.addLayer(geoJSONLayer);
