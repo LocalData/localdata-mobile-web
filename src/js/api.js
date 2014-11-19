@@ -7,8 +7,8 @@ define(function (require) {
   var settings = require('settings');
   var _ = require('lib/underscore');
   var $ = require('jquery');
-  var L = require('lib/leaflet');
   var Lawnchair = require('lawnchair');
+  var Promise = require('lib/bluebird');
 
   var cache = true;
 
@@ -24,12 +24,38 @@ define(function (require) {
   // Local storage for responses, in case of connectivity issues
   var responseDB = null;
 
+  function lcResolve(db, fn) {
+    return function () {
+      var args = new Array(arguments.length + 1);
+      var i;
+      for (i = 0; i < args.length - 1; i += 1) {
+        args[i] = arguments[i];
+      }
+
+      var promise = new Promise(function (resolve, reject) {
+        args[args.length - 1] = resolve;
+        fn.apply(db, args);
+      });
+
+      return promise;
+    };
+  }
+
+  var getKeys;
+  var getDoc;
+  var removeDoc;
+
   // Initialize the API module.
   // Set up the local database.
   // @param {Function} done Called with null if initialization went smoothly.
   api.init = function init(done) {
     var lawnchair = new Lawnchair({ name: 'responseDB' }, function (db) {
       responseDB = db;
+
+      getKeys = lcResolve(responseDB, responseDB.keys);
+      getDoc = lcResolve(responseDB, responseDB.get);
+      removeDoc = lcResolve(responseDB, responseDB.remove);
+
       api.online = true;
       done(null);
     });
@@ -128,7 +154,7 @@ define(function (require) {
     // Responses need to be added as a string :-\
     fd.append('data', JSON.stringify({ responses: [response] }));
 
-    return $.ajax({
+    return Promise.resolve($.ajax({
       url: api.getSurveyURL() + '/responses',
       type: 'POST',
       data: fd,
@@ -138,13 +164,13 @@ define(function (require) {
       headers: {
         pragma: 'no-cache'
       }
-    });
+    }));
   }
 
   // Post a response, with no attached file, as application/json data.
   // Return a promise for the jQuery ajax operation.
   function postPlain(response) {
-    return $.ajax({
+    return Promise.resolve($.ajax({
       url: api.getSurveyURL() + '/responses',
       type: 'POST',
       data: JSON.stringify({ responses: [response] }),
@@ -152,87 +178,39 @@ define(function (require) {
         pragma: 'no-cache'
       },
       contentType: 'application/json; charset=utf-8'
-    });
+    }));
   }
 
   // Sync all of the locally-saved responses to the server.
-  api.postSavedResponses = function sendSavedResponses() {
+  api.postSavedResponses = function postSavedResponses() {
     // FIXME: The responses could correspond to different surveys.
-    // FIXME: If we've attached image data, we need to create multipart form data and submit responses individually.
-    responseDB.keys(function (keys) {
-      if (keys.length === 0) {
-        return;
-      }
-      var data = { responses: [] };
-      responseDB.get(keys, function (doc) {
-        $.publish('syncingResponses');
+    getKeys()
+    .then(function (keys) {
+      $.publish('syncingResponses');
+      return Promise.map(keys, function (key) {
+        return getDoc(key)
+        .then(function (doc) {
+          var response = doc.response;
 
-        data = { responses: _.pluck(doc, 'response') };
-
-        var hasFiles = _.any(data.responses, function (item) {
-          return item.files !== undefined;
+          // POST a response.
+          if (response.files !== undefined) {
+            return postMultipart(response);
+          }
+          return postPlain(response);
+        }).then(function () {
+          // If the POST was successful, remove the document from the local DB.
+          return removeDoc(key);
         });
-
-        if (!hasFiles) {
-          // No files to upload, so we can post the responses in one batch.
-          $.ajax({
-            url: api.getSurveyURL() + '/responses',
-            type: 'POST',
-            data: JSON.stringify(data),
-            headers: {
-              pragma: 'no-cache'
-            },
-            contentType: 'application/json; charset=utf-8'
-          })
-          .fail(function (error) {
-            api.online = false;
-          })
-          .done(function (data) {
-            // Sanity check
-            if (data.responses.length !== keys.length) {
-              console.error('We tried to save ' + keys.length + ' responses but only got ' + data.responses.length + ' back from the server!');
-            }
-            // Remove the documents from the local DB.
-            responseDB.remove(keys, function () {
-              $.publish('syncedResponses');
-            });
-          });
-        } else {
-          // We need to upload files, so we must post responses one by one.
-          var count = data.responses.length;
-          _.each(data.responses, function (response) {
-            var promise;
-
-            // POST a response.
-            if (response.files !== undefined) {
-              promise = postMultipart(response);
-            } else {
-              promise = postPlain(response);
-            }
-
-            // Handle completion of the POST.
-            promise
-            .fail(function (jqXHR, textStatus, errorThrown) {
-              // TODO: distinguish between errors (timeout vs. 500)
-              // TODO: If we've saved some entries, remove those from the local DB.
-              console.error('Failed to save an entry! Going offline. Error: ' + errorThrown);
-              api.online = false;
-            })
-            .always(function () {
-              count -= 1;
-              if (count === 0) {
-                // We've saved each response to the server. We can remove them from our local DB.
-
-                // Remove the documents from the local DB.
-                responseDB.remove(keys, function () {
-                  $.publish('syncedResponses');
-                });
-              }
-            });
-
-          });
-        }
-
+      }, {
+        concurrency: 1
+      }).then(function () {
+        // If all of the POSTs were successful, then we can indicate that
+        // syncing has completed. Otherwise, we'll still be offline.
+        $.publish('syncedResponses');
+      }).catch(function (error) {
+        // TODO: distinguish between errors (timeout vs. 500)
+        console.error('Failed to save an entry! Going offline. Error: ' + error);
+        api.online = false;
       });
     });
   };
@@ -246,7 +224,6 @@ define(function (require) {
         return;
       }
 
-      var url = api.getSurveyURL() + '/responses';
       var promise;
 
       // We're online, so try POSTing the data.
@@ -258,13 +235,7 @@ define(function (require) {
       }
 
       // Handle success and failure.
-      promise
-      .fail(function (error) {
-        // TODO: differentiate between serious errors (like 404 Not Found) and
-        // connectivity issues.
-        api.online = false;
-      })
-      .done(function () {
+      promise.then(function () {
         // Remove the data from our local cache.
         responseDB.remove(doc.key, function () {
           // Wait until we've removed the document before setting the online
@@ -272,8 +243,11 @@ define(function (require) {
           // the locally-saved documents.
           api.online = true;
         });
+      }).catch(function (error) {
+        // TODO: differentiate between serious errors (like 404 Not Found) and
+        // connectivity issues.
+        api.online = false;
       });
-
     });
   }
 
