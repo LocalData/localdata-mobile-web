@@ -93,7 +93,11 @@ define(function (require) {
     checkmarkCutoff: 19,
     // Buffer the area for which we request objects if we're zoomed in to 17 or
     // closer.
-    bufferParcels: 18
+    bufferParcels: 18,
+    // Show a streetmap base layer, instead of an aerial-hybrid, past zoom 19.
+    aerialCutoff: 19,
+    mapMin: 11,
+    mapMax: 23
   };
 
   return function (app, mapContainerId) {
@@ -409,8 +413,8 @@ define(function (require) {
     this.init = function() {
       console.log('Initializing map');
       map = L.map('map-div', {
-        minZoom: 11,
-        maxZoom: 19
+        minZoom: zoomLevels.mapMin,
+        maxZoom: zoomLevels.mapMax
       });
 
       map.addLayer(parcelsLayerGroup);
@@ -422,11 +426,28 @@ define(function (require) {
       }, 0);
 
       // Add bing maps
-      var bing = new L.BingLayer(settings.bing_key, {maxZoom: 21, type:'AerialWithLabels'});
+      var bing = new L.BingLayer(settings.bing_key, {
+        maxZoom: zoomLevels.aerialCutoff,
+        type:'AerialWithLabels'
+      });
+
+      var streets = new L.TileLayer('http://a.tiles.mapbox.com/v3/matth.map-n9bps30s/{z}/{x}/{y}.png', {
+        minZoom: zoomLevels.aerialCutoff + 1,
+        maxZoom: zoomLevels.mapMax
+      });
+      map.addLayer(streets);
       map.addLayer(bing);
 
-      // var  baseLayer = L.tileLayer('//a.tiles.mapbox.com/v3/matth.map-yyr7jb6r/{z}/{x}/{y}.png');
-      // map.addLayer(baseLayer);
+      // When we zoom out from the min streetmap level to the max aerial level,
+      // Leaflet keeps a scaled set of the old streetmap tiles visible. We set
+      // the opacity to 0 to hide them.
+      map.on('zoomend', function () {
+        if (map.getZoom() > zoomLevels.aerialCutoff) {
+          streets.setOpacity(1);
+        } else {
+          streets.setOpacity(0);
+        }
+      });
 
       // Check for new responses when we submit
       $.subscribe('successfulSubmit', getResponsesInMap);
