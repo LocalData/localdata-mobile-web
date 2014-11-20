@@ -24,7 +24,9 @@ define(function (require) {
   // Local storage for responses, in case of connectivity issues
   var responseDB = null;
 
-  function lcResolve(db, fn) {
+  // Lawnchair doesn't follow the node callback convention, so we use this
+  // helper function to promisify various database methods.
+  function promisifyLawnchair(db, fn) {
     return function () {
       var args = new Array(arguments.length + 1);
       var i;
@@ -52,9 +54,9 @@ define(function (require) {
     var lawnchair = new Lawnchair({ name: 'responseDB' }, function (db) {
       responseDB = db;
 
-      getKeys = lcResolve(responseDB, responseDB.keys);
-      getDoc = lcResolve(responseDB, responseDB.get);
-      removeDoc = lcResolve(responseDB, responseDB.remove);
+      getKeys = promisifyLawnchair(responseDB, responseDB.keys);
+      getDoc = promisifyLawnchair(responseDB, responseDB.get);
+      removeDoc = promisifyLawnchair(responseDB, responseDB.remove);
 
       api.online = true;
       done(null);
