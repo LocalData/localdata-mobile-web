@@ -27,9 +27,6 @@ require.config({
     lawnchair: 'lib/lawnchair'
   },
   shim: {
-    'lib/underscore': {
-      exports: '_'
-    },
     'lib/leaflet': {
       exports: 'L'
     },
