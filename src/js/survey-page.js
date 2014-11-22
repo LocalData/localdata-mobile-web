@@ -15,7 +15,12 @@ define(function (require) {
   var mapView = require('map');
   var formView = require('form');
 
-  var page = {};
+  var page = {
+    multi: false
+  };
+
+  var selection;
+  var $toolPanel = $('#toolpanel');
 
   function computeRingCentroid(ring) {
     var off = ring[0];
@@ -58,22 +63,55 @@ define(function (require) {
     return null;
   }
 
-  var selectedFeature;
-  function selectParcel(event) {
-    var oldSelectedFeature = selectedFeature;
-
-    // Select the current layer
-    selectedFeature = event.target.feature;
-
-    if (oldSelectedFeature) {
-      oldSelectedFeature.properties.selected = false;
-    }
-    selectedFeature.properties.selected = true;
-
+  function updateComponents() {
     // Restyle the parcels
     mapView.restyle();
 
+    // Let the app know that the selection is ready.
+    $.publish('selectionReady', [selection]);
+  }
+
+  function selectParcel(event) {
+    // Clear the selection styling of the previous feature.
+    if (!page.multi && selection) {
+      selection.feature.properties.selected = false;
+    }
+
+    // Select the current layer
+    var selectedFeature = event.target.feature;
+
+    // If we've already selected this object, then remove it from the selection.
+    if (page.multi) {
+      var partitions = _.partition(selection, function (item) {
+        return item.feature.id === selectedFeature.id;
+      });
+
+      var removal = partitions[0];
+      selection = partitions[1];
+
+      if (removal.length > 0) {
+        _.each(removal, function (item) {
+          item.feature.properties.selected = false;
+        });
+
+        mapView.restyle();
+
+        if (selection.length > 0) {
+          $.publish('selectionReady', [selection]);
+        } else {
+          // Nothing is selected anymore, so close and reset the form.
+          formView.closeForm();
+          formView.resetForm();
+        }
+
+        return;
+      }
+    }
+
+    selectedFeature.properties.selected = true;
+
     var selectedObject = {
+      feature: selectedFeature,
       id: selectedFeature.id,
       // Store the human-readable name (often the address).
       humanReadableName: (selectedFeature.properties.address || // parcels endpoint
@@ -117,8 +155,13 @@ define(function (require) {
     // react visually.
     mapView.objectSelected(selectedObject, true);
 
-    // Let the app know that the selection is ready.
-    $.publish('selectionReady', [selectedObject]);
+    if (page.multi) {
+      selection.push(selectedObject);
+    } else {
+      selection = selectedObject;
+    }
+
+    updateComponents();
   }
 
   function selectPoint(lnglat, scroll) {
@@ -187,7 +230,6 @@ define(function (require) {
   }
 
   var $addressSearchStatus = $('#address-search-status');
-  var $toolPanel = $('#toolpanel');
 
   function findAddress(address, done) {
     $addressSearchStatus.html('Searching for the address');
@@ -242,6 +284,43 @@ define(function (require) {
     $.publish('readyForAddressForm');
   });
 
+  var $multiselect = $('#multiselect-panel input:radio[name=multiselect]');
+  var $multiselectOn = $('#multiselect-on');
+  $multiselect.change(function () {
+    var val = $multiselectOn.is(':checked');
+
+    $toolPanel.panel('close');
+
+    // We get change events from clicking the already-selected choice. In those
+    // cases we have nothing to do.
+    if (val === page.multi) {
+      return;
+    }
+
+    page.multi = val;
+
+    if (page.multi) {
+      if (selection) {
+        selection = [selection];
+        updateComponents();
+      } else {
+        selection = [];
+      }
+    } else {
+      if (selection) {
+        // Deselect all but the last object.
+        _.each(_.initial(selection), function (item) {
+          item.feature.properties.selected = false;
+        });
+        selection = _.last(selection);
+      }
+
+      if (selection) {
+        updateComponents();
+      }
+    }
+  });
+
 
   page.init = function init(options) {
     mapView.init(options.mapContainer.prop('id'));
@@ -255,13 +334,35 @@ define(function (require) {
       selectPoint(coords, scroll);
     });
 
-    // Tell the map to go into point, address-point, or pointandparcel mode.
-    // The default is a feature-selection interface ("parcel" mode).
-    if (settings.survey.type === 'point') {
+    $.subscribe('successfulSubmit', function () {
+      // Remove the indication that the object is currently selected.
+      if (page.multi) {
+        _.each(selection, function (item) {
+          item.feature.properties.selected = false;
+        });
+        selection = [];
+      } else if (selection) {
+        selection.feature.properties.selected = false;
+        selection = null;
+      }
+    });
+
+    // Tell the map to go into parcel, point, address-point, or pointandparcel mode.
+    if (settings.survey.type === 'parcel') {
+      $('#multiselect-panel').show();
+
+    } else if (settings.survey.type === 'point') {
       mapView.showPointInterface();
 
     } else if (settings.survey.type === 'pointandparcel') {
-      mapView.showPointParcelInterface();
+      $('#pointparcelswitch').show();
+
+      $('#radio-choice-point').click(function() {
+        mapView.showPointInterface();
+      });
+      $('#radio-choice-parcel').click(function() {
+        mapView.hidePointInterface();
+      });
 
     } else if (settings.survey.type === 'address-point') {
       mapView.setupAddressPointSurvey();

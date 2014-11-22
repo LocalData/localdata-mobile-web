@@ -254,23 +254,12 @@ define(function (require) {
     map.on('click', crosshairMapClick);
   };
 
-  function hidePointInterface (argument) {
+  mapView.hidePointInterface = function hidePointInterface (argument) {
     map.removeLayer(crosshairLayer);
     map.off('move', crosshairMove);
     map.off('dragend', crosshairMoveEnd);
     map.off('click', crosshairMapClick);
     crosshairLayer = null;
-  }
-
-  mapView.showPointParcelInterface = function showPointParcelInterface() {
-    $('#pointparcelswitch').show();
-
-    $('#radio-choice-point').click(function() {
-      mapView.showPointInterface();
-    });
-    $('#radio-choice-parcel').click(function() {
-      hidePointInterface();
-    });
   };
 
   mapView.setupAddressPointSurvey = function setupAddressPointSurvey() {

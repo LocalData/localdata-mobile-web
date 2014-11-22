@@ -11,6 +11,7 @@ define(function (require) {
 
   var formView = {};
 
+  var $addressDOM = $('h2 .parcel_id');
   var formQuestions = $('#questions');
   var repeatCounter = {};
   var timeStarted;
@@ -20,6 +21,7 @@ define(function (require) {
   var $thanks = $('#thanks');
   var $thanksOffline = $('#thanks-offline');
   var selectedObject;
+
 
   formView.init = function init($el) {
     $form = $el;
@@ -62,15 +64,19 @@ define(function (require) {
     // Right now, only address questions rely on context outside the form.
     // Later, pieces of the form could condition on fields of the selected
     // object.
-    var address = selectedObject.address;
+
+    var address;
+    if (_.isArray(selectedObject)) {
+      address = selectedObject[0].address;
+    } else {
+      address = selectedObject.address;
+    }
+
     if (address !== undefined) {
       $('input:text[data-type="address"]').val(address);
     } else {
       $('input:text[data-type="address"]').val('');
     }
-
-    // TODO: implement a page controller/view-model that listens to the map's
-    // selection events and coordinates movement/display of the map and form.
 
     if(!$form.is(':visible')) {
       $form.slideToggle(400);
@@ -81,10 +87,18 @@ define(function (require) {
   // Then, display the form.
   function setSelectedObjectInfo(e, selection) {
     selectedObject = selection;
-    var $addressDOM = $('h2 .parcel_id');
+
+    var title;
+    if (_.isArray(selection)) {
+      title = _.map(selection, function (item) {
+        return item.humanReadableName.titleCase();
+      }).join(', ');
+    } else {
+      title = selectedObject.humanReadableName.titleCase();
+    }
 
     $addressDOM.fadeOut(400, function() {
-      $addressDOM.text(selectedObject.humanReadableName.titleCase());
+      $addressDOM.text(title);
       $addressDOM.fadeIn(400);
     });
 
@@ -125,12 +139,12 @@ define(function (require) {
 
   // Form submission .........................................................
 
-  function doSubmit() {
+  function doSubmit(item) {
     // Serialize the form
     var serialized = form.serializeObject();
 
     // Get some info about the centroid as floats.
-    var selectedCentroid = selectedObject.centroid;
+    var selectedCentroid = item.centroid;
     var centroidLng = parseFloat(selectedCentroid.coordinates[0]);
     var centroidLat = parseFloat(selectedCentroid.coordinates[1]);
 
@@ -145,13 +159,13 @@ define(function (require) {
       },
       geo_info: {
         centroid:[centroidLng, centroidLat],
-        geometry: selectedObject.geometry,
-        humanReadableName: selectedObject.humanReadableName,
-        parcel_id: selectedObject.id // Soon to be deprecated
+        geometry: item.geometry,
+        humanReadableName: item.humanReadableName,
+        parcel_id: item.id // Soon to be deprecated
       },
-      info: selectedObject.info,
-      parcel_id: selectedObject.id, // Soon to be deprecated
-      object_id: selectedObject.id, // Replaces parcel_id
+      info: item.info,
+      parcel_id: item.id, // Soon to be deprecated
+      object_id: item.id, // Replaces parcel_id
       responses: serialized
     };
 
@@ -208,9 +222,16 @@ define(function (require) {
     submitFlash();
 
     // Actually submit the results
-    if (selectedObject && selectedObject.hasOwnProperty('centroid')) {
-      doSubmit();
+    if (_.isArray(selectedObject)) {
+      _.each(selectedObject, doSubmit);
+      submitFinish();
+    } else if (selectedObject.hasOwnProperty('centroid')) {
+      doSubmit(selectedObject);
+      submitFinish();
     } else {
+      // TODO: The address-first interaction style was a prototype that hasn't
+      // been well tested. There are some fragile pieces, like this test for
+      // the existence of a centroid field on the selection.
       var address = $('input:text[data-type="address"]').val();
       api.codeAddress(address, function (error, data) {
         // FIXME deal with offline mode properly in this situation.
@@ -223,16 +244,22 @@ define(function (require) {
           }
         };
 
-        doSubmit();
+        doSubmit(selectedObject);
+        submitFinish();
       });
     }
   }
 
 
-  function submitThanks() {
-    // Publish  a "form submitted" event
+  function submitFinish() {
+    // Publish a "form submitted" event
     $.publish('successfulSubmit');
 
+    // Reset the form for the next submission.
+    formView.resetForm();
+  }
+
+  function submitThanks() {
     // Hide the form and show the thanks
     $submitting.slideUp();
     if (api.online) {
@@ -240,19 +267,21 @@ define(function (require) {
     } else {
       $thanksOffline.slideDown();
     }
-
-    // Reset the form for the next submission.
-    resetForm();
   }
 
-  // Show a brief thank-you message before bringing back a blank form.
-  function submitFlash() {
-    // Roll up the form & show the "now submitting" message
+  formView.closeForm = function closeForm() {
     if ($('#error').is(':visible')) {
       $('#error').slideToggle();
     }
 
     $form.slideUp();
+  };
+
+  // Show a brief thank-you message before bringing back a blank form.
+  function submitFlash() {
+    // Roll up the form & show the "now submitting" message
+    formView.closeForm();
+
     $submitting.slideDown(function () {
       setTimeout(submitThanks, 1000);
     });
@@ -263,7 +292,7 @@ define(function (require) {
    * Reset the form: clear checkboxes, remove added option groups, hide sub
    * options.
    */
-  function resetForm() {
+  formView.resetForm = function resetForm() {
     console.log("Resetting form");
 
     $form.find('fieldset').each(function(index){
@@ -302,7 +331,7 @@ define(function (require) {
 
     // Remove additional repeating groups
     $form.find('.append-to').empty();
-  }
+  };
 
 
 
