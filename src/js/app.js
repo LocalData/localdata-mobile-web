@@ -10,11 +10,9 @@ define(function (require) {
 
   var $ = require('jquery');
   var api = require('api');
-  var FormView = require('form');
-  var MapView = require('map');
+  var surveyPage = require('survey-page');
   var appCacheManager = require('app-cache-manager');
   var settings = require('settings');
-  var L = require('lib/leaflet');
 
   // Listen for status-change events and adjust the UI accordingly.
   function setupEventHandlers() {
@@ -47,10 +45,10 @@ define(function (require) {
       var $collectorName = $('#collector_name');
       // Set a cookie with the collector's name
       // TODO make sure this
-      app.collectorName = $collectorName.val();
-      $.cookie('collectorName', app.collectorName, { path: '/' });
+      settings.collectorName = $collectorName.val();
+      $.cookie('collectorName', settings.collectorName, { path: '/' });
 
-      if (app.collectorName == '') {
+      if (settings.collectorName === '') {
         $collectorName.addClass('error');
         return;
       }
@@ -58,8 +56,11 @@ define(function (require) {
       // Switch to the survey container
       // We wait until the page is successfully created to initialize the map
       $('#survey-container').on("pageshow", function(event) {
-        app.map = new MapView(app, 'map-div');
-        app.form = new FormView(app, '#form');
+        app.surveyPage = surveyPage;
+        surveyPage.init({
+          mapContainer: $('#map-div'),
+          form: $('#form')
+        });
       });
       $('body').pagecontainer('change', '#survey-container', {changeHash: false});
 
@@ -71,11 +72,11 @@ define(function (require) {
       // Give the correct welcome
       // TODO: templatize for i18n
       if (settings.survey.type === 'point') {
-        $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Pan and add a point to begin');
+        $('#startpoint h2').html('Welcome, ' + settings.collectorName + '<br>Pan and add a point to begin');
       } else if (settings.survey.type === 'address-point') {
-        $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Enter an address to begin');
+        $('#startpoint h2').html('Welcome, ' + settings.collectorName + '<br>Enter an address to begin');
       } else {
-        $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Tap a parcel to begin');
+        $('#startpoint h2').html('Welcome, ' + settings.collectorName + '<br>Tap a parcel to begin');
       }
 
       if (settings.survey.type === 'address-point') {
@@ -136,10 +137,7 @@ define(function (require) {
         surveyPromise.fail(app.fail);
 
       }); // end appcache manager
-    },
-
-    // We'll use this to keep track of the object currently selected in the app
-    selectedObject: {}
+    }
   };
 
   return app;
