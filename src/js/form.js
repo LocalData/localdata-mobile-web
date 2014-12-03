@@ -6,6 +6,8 @@ define(function (require) {
 
   var $ = require('jquery');
   var _ = require('lib/underscore');
+  var Promise = require('lib/bluebird');
+
   var api = require('api');
   var settings = require('settings');
 
@@ -188,11 +190,10 @@ define(function (require) {
       }
 
       // Post a response in the appropriate format.
-      api.postResponse(response, files);
-    } else {
-      // Post a response in the appropriate format.
-      api.postResponse(response);
+      return api.postResponse(response, files);
     }
+    // Post a response in the appropriate format.
+    return api.postResponse(response);
   }
 
   // Handle the parcel survey form being submitted
@@ -221,21 +222,24 @@ define(function (require) {
     // Thank the user for submitting
     submitFlash();
 
+    // Indicate that we're in the process of submitting entries.
+    // At this point, the user can continue to survey.
+    $.publish('submitting');
+
     // Actually submit the results
+    var promise;
     if (_.isArray(selectedObject)) {
-      _.each(selectedObject, doSubmit);
-      submitFinish();
+      promise = Promise.map(selectedObject, doSubmit);
     } else if (selectedObject.hasOwnProperty('centroid')) {
-      doSubmit(selectedObject);
-      submitFinish();
+      promise = doSubmit(selectedObject);
     } else {
       // TODO: The address-first interaction style was a prototype that hasn't
       // been well tested. There are some fragile pieces, like this test for
       // the existence of a centroid field on the selection.
       var address = $('input:text[data-type="address"]').val();
-      api.codeAddress(address, function (error, data) {
+      promise = api.geocodeAddress(address)
+      .then(function (data) {
         // FIXME deal with offline mode properly in this situation.
-        // FIXME handle error
 
         selectedObject = {
           centroid: {
@@ -244,15 +248,22 @@ define(function (require) {
           }
         };
 
-        doSubmit(selectedObject);
-        submitFinish();
+        return doSubmit(selectedObject);
       });
     }
+
+    promise
+    .then(submitFinish)
+    .catch(function (error) {
+      console.error(error);
+    });
   }
 
 
   function submitFinish() {
     // Publish a "form submitted" event
+    // Now the api module knows which entries are pending (stored in the local
+    // DB) and which are complete (the API reports data for those parcels)
     $.publish('successfulSubmit');
 
     // Reset the form for the next submission.

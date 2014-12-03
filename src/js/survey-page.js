@@ -334,17 +334,20 @@ define(function (require) {
       selectPoint(coords, scroll);
     });
 
-    $.subscribe('successfulSubmit', function () {
-      // Remove the indication that the object is currently selected.
+    $.subscribe('submitting', function () {
+      // Mark the objects as pending, rather than selected.
       if (page.multi) {
         _.each(selection, function (item) {
           item.feature.properties.selected = false;
+          item.feature.properties.pending = true;
         });
         selection = [];
       } else if (selection) {
         selection.feature.properties.selected = false;
+        selection.feature.properties.pending = true;
         selection = null;
       }
+      mapView.restyle();
     });
 
     // Tell the map to go into parcel, point, address-point, or pointandparcel mode.

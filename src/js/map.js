@@ -108,7 +108,7 @@ define(function (require) {
       return settings.styles.completed[type];
     }
 
-    if (_.has(pendingParcelIds, feature.id)) {
+    if (feature.properties.pending || _.has(pendingParcelIds, feature.id)) {
       return settings.styles.pending[type];
     }
 
@@ -290,6 +290,8 @@ define(function (require) {
       minZoom: zoomLevels.mapMin,
       maxZoom: zoomLevels.mapMax
     });
+
+    mapView.map = map;
 
     map.addLayer(parcelsLayerGroup);
     map.addLayer(doneMarkersLayer);

@@ -46,6 +46,7 @@ define(function (require) {
   var getKeys;
   var getDoc;
   var removeDoc;
+  var saveDoc;
 
   // Initialize the API module.
   // Set up the local database.
@@ -57,6 +58,7 @@ define(function (require) {
       getKeys = promisifyLawnchair(responseDB, responseDB.keys);
       getDoc = promisifyLawnchair(responseDB, responseDB.get);
       removeDoc = promisifyLawnchair(responseDB, responseDB.remove);
+      saveDoc = promisifyLawnchair(responseDB, responseDB.save);
 
       api.online = true;
       done(null);
@@ -220,37 +222,45 @@ define(function (require) {
   // Save the response locally, in case of failure.
   function saveAndPost(response) {
     // First save the data locally.
-    responseDB.save({ response: response }, function (doc) {
-      // If we're offline, don't do anything.
+    // Return a promise for the save. Once that completes, the rest of the UI
+    // can move on, and we can handle the post+removal asynchronously.
+    // TODO: We might need to use an explicit queue for POSTing saved
+    // documents. If the user submits an entry with a large photo attachment,
+    // we could go into offline mode and then come back online before that POST
+    // completes. Then we'll see the saved document and try submitting it, even
+    // though the first attempt is in progress.
+    var promise = saveDoc({
+      response: response
+    });
+
+    promise.bind({}).then(function (doc) {
       if (!api.online) {
         return;
       }
 
-      var promise;
+      this.doc = doc;
 
       // We're online, so try POSTing the data.
       if (response.files !== undefined) {
         // Post a response and file as multipart form data.
-        promise = postMultipart(response);
-      } else {
-        promise = postPlain(response);
+        return postMultipart(response);
       }
-
-      // Handle success and failure.
-      promise.then(function () {
-        // Remove the data from our local cache.
-        responseDB.remove(doc.key, function () {
-          // Wait until we've removed the document before setting the online
-          // status. If we go from offline to online, we'll try sending all of
-          // the locally-saved documents.
-          api.online = true;
-        });
-      }).catch(function (error) {
+      return postPlain(response);
+    }).then(function () {
+      // Remove the data from our local cache.
+      responseDB.remove(this.doc.key, function () {
+        // Wait until we've removed the document before setting the online
+        // status. If we go from offline to online, we'll try sending all of
+        // the locally-saved documents.
+        api.online = true;
+      });
+    }).catch(function (error) {
         // TODO: differentiate between serious errors (like 404 Not Found) and
         // connectivity issues.
         api.online = false;
-      });
     });
+
+    return promise;
   }
 
   // Save a single response, for the current survey, to the server.
@@ -262,33 +272,37 @@ define(function (require) {
         console.error('We do not yet support attaching multiple files!');
       }
 
-      // Resize the image as needed
-      $.canvasResize(files[0].file, {
-        width: 800,
-        height: 0,
-        crop: false,
-        quality: 100,
-        callback: function(data, width, height) {
-          // Attach the resized image, as a data URI, to the response object.
-          response.files = [{
-            fieldName: files[0].fieldName,
-            name: files[0].file.name,
-            data: data
-          }];
+      return (new Promise(function (resolve, reject) {
+        // Resize the image as needed
+        $.canvasResize(files[0].file, {
+          width: 800,
+          height: 0,
+          crop: false,
+          quality: 100,
+          callback: function (data, width, height) {
+            // Attach the resized image, as a data URI, to the response object.
+            response.files = [{
+              fieldName: files[0].fieldName,
+              name: files[0].file.name,
+              data: data
+            }];
 
-          saveAndPost(response);
-        }
+            resolve(response);
+          }
+        });
+      })).then(function (response) {
+        return saveAndPost(response);
       });
-    } else {
-      // No files to attach.
-
-      // Sanity check
-      if (files !== undefined) {
-        console.error('Empty files array!');
-      }
-
-      saveAndPost(response);
     }
+
+    // No files to attach.
+
+    // Sanity check
+    if (files !== undefined) {
+      console.error('Empty files array!');
+    }
+
+    return saveAndPost(response);
   };
 
   // Returns a promise for the survey data.
@@ -416,27 +430,25 @@ define(function (require) {
     }
     var geocodeEndpoint = '//dev.virtualearth.net/REST/v1/Locations/' + addressWithLocale + '?o=json&key=' + settings.bing_key + '&jsonp=?';
 
-    $.ajax({
+    return Promise.resolve($.ajax({
       url: geocodeEndpoint,
       dataType: 'json',
-      cache: cache,
-      success: function (data) {
-        console.log("Got address data", data);
-        if (data.resourceSets.length > 0 &&
-            data.resourceSets[0].resources.length > 0){
-          var result = data.resourceSets[0].resources[0];
-          callback(null, {
-            addressLine: result.address.addressLine,
-            coords: [result.point.coordinates[1], result.point.coordinates[0]]
-          });
-        } else {
-          callback({
-            type: 'GeocodingError',
-            message: 'No geocoding results found'
-          });
-        }
+      cache: cache
+    })).then(function (data) {
+      if (data.resourceSets.length > 0 &&
+          data.resourceSets[0].resources.length > 0){
+        var result = data.resourceSets[0].resources[0];
+        return {
+          addressLine: result.address.addressLine,
+          coords: [result.point.coordinates[1], result.point.coordinates[0]]
+        };
       }
-    });
+
+      throw {
+        type: 'GeocodingError',
+        message: 'No geocoding results found'
+      };
+    }).nodeify(callback);
   };
 
   api.reverseGeocode = function (lng, lat, done) {
