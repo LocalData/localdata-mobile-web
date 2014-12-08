@@ -533,12 +533,18 @@ define(function (require) {
   // @param {Function} callback With two parameters, error and results, a
   // GeoJSON FeatureCollection
   api.getObjectsInBBox = api.getObjectsInBBoxFromLocalData = function(bbox, options, callback) {
-    // Given the bounds, generate a URL to ge the responses from the API.
-    var url;
-    if (options.source) {
-      url = options.source.replace("{{bbox}}", bbox.join(','));
+    // Given the bounds, generate a URL to get the responses from the API.
+    // Support a single source or a list of sources. Fall back to the parcels
+    // endpoint.
+    var urls;
+    if (options.source && !_.isArray(options.source)) {
+      urls = [options.source.replace('{{bbox}}', bbox.join(','))];
+    } else if (options.source) {
+      urls = _.map(options.source, function (source) {
+        return source.replace('{{bbox}}', bbox.join(','));
+      });
     } else {
-      url = settings.api.geo + '/parcels.geojson?bbox=' + bbox.join(',');
+      urls = [settings.api.geo + '/parcels.geojson?bbox=' + bbox.join(',')];
     }
 
     // Get geo objects from the API. Don't force non-caching on IE, since these
@@ -549,24 +555,25 @@ define(function (require) {
     if (!api.online) {
       timeout = 10000;
     }
-    // Give the callback the responses.
-    $.ajax({
-      url: url,
-      dataType: 'json',
-      type: 'GET',
-      timeout: timeout
-    })
-    .done(function (data) {
+    Promise.map(urls, function (url) {
+      // Give the callback the responses.
+      return $.ajax({
+        url: url,
+        dataType: 'json',
+        type: 'GET',
+        timeout: timeout
+      })
+    }).reduce(function (memo, data) {
       if (data) {
-        callback(null, data);
-      } else {
-        callback({
-          type: 'APIError',
-          message: 'Got no data from the getObjectsInBBoxFromLocalData geo endpoint'
-        });
+        return memo.concat(data.features);
       }
-    })
-    .fail(function (error) {
+      return memo;
+    }, []).then(function (features) {
+      callback(null, {
+        type: 'FeatureCollection',
+        features: features
+      });
+    }).catch(function (error) {
       console.warn('Failed to fetch objects in a bounding box: ' + error.name);
       console.warn(error.message);
       callback({
