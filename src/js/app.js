@@ -50,7 +50,7 @@ define(function (require) {
       app.collectorName = $collectorName.val();
       $.cookie('collectorName', app.collectorName, { path: '/' });
 
-      if (app.collectorName == '') {
+      if (app.collectorName === '') {
         $collectorName.addClass('error');
         return;
       }
@@ -76,6 +76,10 @@ define(function (require) {
         $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Enter an address to begin');
       } else {
         $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>Tap a parcel to begin');
+      }
+
+      if (settings.survey.surveyOptions && settings.survey.surveyOptions.prompt) {
+        $('#startpoint h2').html('Welcome, ' + app.collectorName + '<br>' + settings.survey.surveyOptions.prompt);
       }
 
       if (settings.survey.type === 'address-point') {
