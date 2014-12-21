@@ -79,6 +79,11 @@ define(function (require) {
         $('#startpoint h2').html('Welcome, ' + settings.collectorName + '<br>Tap a parcel to begin');
       }
 
+      // Use a custom prompt, if any
+      if (settings.survey.surveyOptions && settings.survey.surveyOptions.prompt) {
+        $('#startpoint h2').html('Welcome, ' + settings.collectorName + '<br>' + settings.survey.surveyOptions.prompt);
+      }
+
       if (settings.survey.type === 'address-point') {
         $.publish('readyForAddressForm');
       }
