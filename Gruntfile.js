@@ -70,7 +70,14 @@ module.exports = function(grunt) {
         files: [ {
           expand: true,     // Enable dynamic expansion.
           cwd: 'src/',      // Src matches are relative to this path.
-          src: ['css/jquery.mobile.css', 'css/localdata.css', 'css/mobile.css', 'css/jquery.mobile.structure-1.4.0.min.css'], // Actual pattern(s) to match.
+          // Actual pattern(s) to match.
+          src: [
+            'css/jquery.mobile.css',
+            'css/localdata.css',
+            'css/mobile.css',
+            'css/jquery.mobile.structure-1.4.0.min.css',
+            'js/lib/leaflet/leaflet.css'
+          ],
           dest: '<%= dirs.staging %>'   // Destination path prefix.
         } ]
       }
