@@ -32,7 +32,7 @@ require.config({
     },
     'lib/tilelayer.bing.pull': ['lib/leaflet'],
     'lib/jquery.mobile.spinbox': {
-      deps: ['jquery']
+      deps: ['jquery', 'lib/jquery.mobile']
     }
   }
 });

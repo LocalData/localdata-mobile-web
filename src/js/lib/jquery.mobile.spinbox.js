@@ -6,6 +6,7 @@
  */
 
 (function($) {
+    console.log($, $.widget);
     $.widget( "mobile.spinbox", {
         options: {
             // All widget options
