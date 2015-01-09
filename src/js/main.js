@@ -30,7 +30,10 @@ require.config({
     'lib/leaflet': {
       exports: 'L'
     },
-    'lib/tilelayer.bing.pull': ['lib/leaflet']
+    'lib/tilelayer.bing.pull': ['lib/leaflet'],
+    'lib/jquery.mobile.spinbox': {
+      deps: ['jquery']
+    }
   }
 });
 
