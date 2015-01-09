@@ -335,10 +335,17 @@ define(function (require) {
       $this.val('');
     });
 
+    // Clear spinbox / counter input
+    $form.find('input[data-role=spinbox]').each(function (index) {
+      var $this = $(this);
+      $this.val('0');
+    });
+
     // Clear file upload selections
     $form.find('input[type=file]').each(function (index) {
       $(this).val('');
     });
+
 
     // Remove additional repeating groups
     $form.find('.append-to').empty();
@@ -419,6 +426,7 @@ define(function (require) {
         answerCheckbox: _.template($('#answer-checkbox').html().trim()),
         answerRadio: _.template($('#answer-radio').html().trim()),
         answerText: _.template($('#answer-text').html().trim()),
+        answerCounter: _.template($('#answer-counter').html().trim()),
         answerFile: _.template($('#answer-file').html().trim()),
         repeatButton: _.template($('#repeat-button').html().trim())
       };
@@ -511,6 +519,42 @@ define(function (require) {
         };
 
         $answer = $(templates.answerText(data));
+      } else if (question.type === 'counter') {
+          data = {
+            questionName: suffixed_name,
+            id: _.uniqueId(question.name),
+            value: 0
+          };
+
+          $answer = $(templates.answerCounter(data));
+
+          $answer.find('a[data-counter=minus]').each(function (i, el) {
+            $(el).click(function () {
+              var $input = $answer.find('input');
+              var text = $input.val();
+              var num = parseInt(text, 10);
+              if (isNaN(num)) {
+                console.error('Invalid numeric input');
+                num = 1;
+              }
+              num -= 1;
+              $input.val(num);
+            });
+          });
+
+          $answer.find('a[data-counter=plus]').each(function (i, el) {
+            $(el).click(function () {
+              var $input = $answer.find('input');
+              var text = $input.val();
+              var num = parseInt(text, 10);
+              if (isNaN(num)) {
+                num = 0;
+                console.error('Invalid numeric input');
+              }
+              num += 1;
+              $input.val(num);
+            });
+          });
       } else if (question.type === 'address') {
         data = {
           questionName: suffixed_name,

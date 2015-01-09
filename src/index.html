@@ -226,6 +226,12 @@
     <input type="file" name="<%= questionName %>" id="<%= id %>"  accept="image/*" capture>
   </script>
 
+  <script type="text/template" id="answer-counter">
+    <div data-role="controlgroup" data-type="horizontal">
+      <input type="text" data-role="spinbox" name="<%= questionName %>" id="<%= id %>" data-options='{"type":"horizontal"}' value="<%= value %>" min="0" max="100" />
+    </div>
+  </script>
+
   <script type="text/template" id="repeat-button">
     <div class="repeating-button" style="display:none" data-parent="<%= parentID %>" data-trigger="<%= triggerID %>">
       <div class="append-to"></div>
