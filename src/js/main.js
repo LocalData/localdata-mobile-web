@@ -42,7 +42,7 @@ require(['jquery', 'app', 'lib/jquery.mobile', 'lib/jquery.cookie',
                   logLevel, lawnchair, adapterIDB, adapterWebSQL) {
   'use strict';
 
-  logLevel('verbose'); // silent or verbose
+  logLevel('silent'); // Default is verbose.
   // $(document).trigger('mobileinit');
   $(document).ready(function() {
     app.init();
