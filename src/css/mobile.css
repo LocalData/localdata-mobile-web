@@ -96,6 +96,11 @@ h2 {
   }
 }
 
+/* Fix an underline problem */
+.ui-controlgroup-vertical .ui-controlgroup-controls .ui-btn.ui-icon-minus {
+  border-bottom-width: 1px;
+}
+
 #map-div {
   -ms-touch-action: pinch-zoom;
   height: 300px;
