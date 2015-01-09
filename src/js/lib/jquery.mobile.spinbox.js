@@ -5,7 +5,7 @@
  * https://github.com/jtsage/jquery-mobile-spinbox
  */
 
-(function($) {
+define(['jquery'], function ($) {
     $.widget( "mobile.spinbox", {
         options: {
             // All widget options
@@ -241,4 +241,4 @@
             this.options.disabled = false;
         }
     });
-})( jQuery );
+});
