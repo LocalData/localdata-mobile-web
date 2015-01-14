@@ -5,7 +5,7 @@
  * https://github.com/jtsage/jquery-mobile-spinbox
  */
 
-define(['jquery'], function ($) {
+define(['jquery', 'lib/jquery.mobile'], function ($, jqm) {
     $.widget( "mobile.spinbox", {
         options: {
             // All widget options
