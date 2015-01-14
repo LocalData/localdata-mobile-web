@@ -146,10 +146,11 @@ define(function (require) {
     var fd = new FormData();
 
     // ... and add the file data
-    // TODO: support multiple files
-    var f = $.canvasResize('dataURLtoBlob', response.files[0].data);
-    f.name = response.files[0].name;
-    fd.append(response.files[0].fieldName, f, f.name);
+    _.each(response.files, function (item) {
+      var f = $.canvasResize('dataURLtoBlob', item.data);
+      f.name = item.name;
+      fd.append(item.fieldName, f, f.name);
+    });
 
     // Remove the file data from the response object, since we will include
     // it as part of a multipart request body.
@@ -268,29 +269,31 @@ define(function (require) {
   // @param {Array} files An array of file objects to attach to the response
   api.postResponse = function postResponse(response, files) {
     if (files !== undefined && files.length > 0) {
-      if (files.length > 1) {
-        console.error('We do not yet support attaching multiple files!');
-      }
+      console.log('Attaching ' + files.length + ' files.');
 
-      return (new Promise(function (resolve, reject) {
-        // Resize the image as needed
-        $.canvasResize(files[0].file, {
-          width: 800,
-          height: 0,
-          crop: false,
-          quality: 100,
-          callback: function (data, width, height) {
-            // Attach the resized image, as a data URI, to the response object.
-            response.files = [{
-              fieldName: files[0].fieldName,
-              name: files[0].file.name,
-              data: data
-            }];
+      return Promise.map(files, function (item) {
+        return (new Promise(function (resolve, reject) {
+          // Resize the image as needed
+          $.canvasResize(item.file, {
+            width: 800,
+            height: 0,
+            crop: false,
+            quality: 100,
+            callback: function (data, width, height) {
+              // Attach the resized image as a data URI.
+              var resized = {
+                fieldName: item.fieldName,
+                name: item.file.name,
+                data: data
+              };
 
-            resolve(response);
-          }
-        });
-      })).then(function (response) {
+              resolve(resized);
+            }
+          });
+        }));
+      }).then(function (resizedFiles) {
+        // Attach the array of image data to the response.
+        response.files = resizedFiles;
         return saveAndPost(response);
       });
     }
@@ -562,7 +565,7 @@ define(function (require) {
         dataType: 'json',
         type: 'GET',
         timeout: timeout
-      })
+      });
     }).reduce(function (memo, data) {
       if (data) {
         return memo.concat(data.features);

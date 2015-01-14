@@ -178,22 +178,26 @@ define(function (require) {
 
     // If there are files, handle them
     var fileItems = $('#parcelform input[type=file]');
-    if (fileItems[0] !== undefined && fileItems[0].files !== undefined) {
-      // Pull the actual File objects out.
-      // TODO: Support more than one file
-      var files;
-      if (fileItems[0].files.length > 0) {
-        files = [{
-          fieldName: $('#area input').attr('name'),
-          file: fileItems[0].files[0]
-        }];
+    var files = fileItems.map(function (i, item) {
+      if (item.files.length > 0) {
+        // Pull out the field name (from the survey form) and the File object.
+        return {
+          fieldName: $(item).attr('name'),
+          file: item.files[0]
+        };
       }
+    }).get(); // Get an Array from the returned jQuery object.
 
-      // Post a response in the appropriate format.
-      return api.postResponse(response, files);
-    }
+    // Remove undefined entries from the array, since there may be file inputs
+    // with no file selected.
+    files = _.compact(files);
+
     // Post a response in the appropriate format.
-    return api.postResponse(response);
+    if (files.length > 0) {
+      return api.postResponse(response, files);
+    } else {
+      return api.postResponse(response);
+    }
   }
 
   // Handle the parcel survey form being submitted
