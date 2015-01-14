@@ -24,6 +24,20 @@ define(function (require) {
   // Local storage for responses, in case of connectivity issues
   var responseDB = null;
 
+  // Check if the client should cache requests
+  // Some browsers don't behave properly, so we have to disable cache for them.
+  function shouldCache() {
+    var ua = window.navigator.userAgent;
+
+    // Right now, we only check for Trident (Windows IE, including mobile)
+    var trident = ua.indexOf("Trident");
+    if (trident) {
+      return false;
+    }
+    return true;
+  }
+  cache = shouldCache();
+
   // Lawnchair doesn't follow the node callback convention, so we use this
   // helper function to promisify various database methods.
   function promisifyLawnchair(db, fn) {
@@ -463,7 +477,7 @@ define(function (require) {
         includeEntityTypes: 'Address',
         key: settings.bing_key
       },
-      cache: cache,
+      cache: cache
     }).then(function (data) {
       if (!data.resourceSets || data.resourceSets.length === 0) {
         done(null, null);
