@@ -186,9 +186,10 @@ define(function (require) {
           file: item.files[0]
         };
       }
-    }).get();
+    }).get(); // Get an Array from the returned jQuery object.
 
-    // Remove undefined entries from the array.
+    // Remove undefined entries from the array, since there may be file inputs
+    // with no file selected.
     files = _.compact(files);
 
     // Post a response in the appropriate format.
