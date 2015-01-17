@@ -362,9 +362,11 @@ define(function (require) {
 
       $('#radio-choice-point').click(function() {
         mapView.showPointInterface();
+        $('#startpoint h2').html('Welcome, ' + settings.collectorName + '<br>Pan and add a point to begin');
       });
       $('#radio-choice-parcel').click(function() {
         mapView.hidePointInterface();
+        $('#startpoint h2').html('Welcome, ' + settings.collectorName + '<br>Tap a parcel to begin');
       });
 
     } else if (settings.survey.type === 'address-point') {

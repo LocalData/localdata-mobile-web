@@ -243,7 +243,15 @@ define(function (require) {
 
   // Show the add / remove point interface
   mapView.showPointInterface = function showPointInterface() {
-    crosshairLayer = L.marker([0,0], {
+    var point;
+    try {
+      point = map.getCenter();
+    } catch (e) {
+      // This function can be triggered before the map has fully loaded.
+      // If that happens, map.getCenter() throws an error.
+      point = [0, 0];
+    }
+    crosshairLayer = L.marker(point, {
       icon: settings.icons.CrosshairIcon
     });
     map.addLayer(crosshairLayer);
