@@ -30,7 +30,13 @@ small {
   padding:1em;
 }
 
+#pointparcelswitch {
+  padding-bottom: 0;
+}
 
+#pointparcelswitch + #startpoint {
+  padding-top: 0;
+}
 
 .repeating-button {
   margin-left:1em;
@@ -62,10 +68,6 @@ h2 {
 #form {
   display:none;
   padding: 20px;
-}
-
-#parcelform {
-  padding: 1em 1em 1.5em 1em;
 }
 
 #parcelform fieldset {

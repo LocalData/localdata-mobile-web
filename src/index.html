@@ -85,17 +85,6 @@
     <div class="ui-grid-a">
       <div class="ui-block-a">
         <div id="map-div"></div>
-
-        <div id="pointparcelswitch" style="display:none;">
-          <form>
-              <fieldset data-role="controlgroup" data-type="horizontal">
-                  <input type="radio" name="radio-choice-pointparcel" id="radio-choice-parcel" value="parcel" checked="checked">
-                  <label for="radio-choice-parcel">Parcel mode</label>
-                  <input type="radio" name="radio-choice-pointparcel" id="radio-choice-point" value="point">
-                  <label for="radio-choice-point">Point mode</label>
-              </fieldset>
-          </form>
-        </div>
       </div>
 
 <!--
@@ -105,6 +94,18 @@
  -->
 
       <div class="ui-block-b">
+        <div id="pointparcelswitch" style="display:none;">
+          <form>
+            <fieldset data-role="controlgroup" data-type="horizontal">
+              <input type="radio" name="radio-choice-pointparcel" id="radio-choice-parcel" value="parcel" checked="checked">
+              <label for="radio-choice-parcel">Parcel mode</label>
+              <input type="radio" name="radio-choice-pointparcel" id="radio-choice-point" value="point">
+              <label for="radio-choice-point">Point mode</label>
+    </fieldset>
+          </form>
+        </div>
+
+
         <div id="startpoint">
             <h2>Select a location to begin.</h2>
         </div>
