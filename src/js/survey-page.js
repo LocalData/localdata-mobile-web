@@ -360,6 +360,11 @@ define(function (require) {
     } else if (settings.survey.type === 'pointandparcel') {
       $('#pointparcelswitch').show();
 
+      // Set a custom name for object selection (eg "sidewalk mode")
+      if (settings.survey.surveyOptions.objectType) {
+        $('#parcel-mode-switch').html(settings.survey.surveyOptions.objectType + ' mode');
+      }
+
       $('#radio-choice-point').click(function() {
         mapView.showPointInterface();
         $('#startpoint h2').html('Welcome, ' + settings.collectorName + '<br>Pan and add a point to begin');
