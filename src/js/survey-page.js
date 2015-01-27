@@ -71,6 +71,36 @@ define(function (require) {
     $.publish('selectionReady', [selection]);
   }
 
+  function deselectParcels(removal) {
+    if (removal) {
+      _.each(removal, function (item) {
+        item.feature.properties.selected = false;
+      });
+    }
+
+    mapView.restyle();
+
+    if (selection && selection.length > 0) {
+      $.publish('selectionReady', [selection]);
+    } else {
+      // Nothing is selected anymore, so close and reset the form.
+      formView.closeForm();
+      formView.resetForm();
+    }
+  }
+
+  function deselectAllParcels() {
+    var removal;
+    if (selection && !page.multi) {
+      removal = [selection];
+      selection = undefined;
+    } else if (selection) {
+      removal = selection;
+      selection = [];
+    }
+    deselectParcels(removal);
+  }
+
   function selectParcel(event) {
     // Clear the selection styling of the previous feature.
     if (!page.multi && selection) {
@@ -90,20 +120,7 @@ define(function (require) {
       selection = partitions[1];
 
       if (removal.length > 0) {
-        _.each(removal, function (item) {
-          item.feature.properties.selected = false;
-        });
-
-        mapView.restyle();
-
-        if (selection.length > 0) {
-          $.publish('selectionReady', [selection]);
-        } else {
-          // Nothing is selected anymore, so close and reset the form.
-          formView.closeForm();
-          formView.resetForm();
-        }
-
+        deselectParcels(removal);
         return;
       }
     }
@@ -332,6 +349,14 @@ define(function (require) {
 
     $.subscribe('map:pointSelected', function (__, coords, scroll) {
       selectPoint(coords, scroll);
+    });
+
+    $.subscribe('map:enteringParcelMode', function () {
+      deselectAllParcels();
+    });
+
+    $.subscribe('map:leavingParcelMode', function () {
+      deselectAllParcels();
     });
 
     $.subscribe('submitting', function () {
