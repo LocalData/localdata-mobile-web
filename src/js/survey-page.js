@@ -71,6 +71,36 @@ define(function (require) {
     $.publish('selectionReady', [selection]);
   }
 
+  function deselectParcels(removal) {
+    if (removal) {
+      _.each(removal, function (item) {
+        item.feature.properties.selected = false;
+      });
+    }
+
+    mapView.restyle();
+
+    if (selection && selection.length > 0) {
+      $.publish('selectionReady', [selection]);
+    } else {
+      // Nothing is selected anymore, so close and reset the form.
+      formView.closeForm();
+      formView.resetForm();
+    }
+  }
+
+  function deselectAllParcels() {
+    var removal;
+    if (selection && !page.multi) {
+      removal = [selection];
+      selection = undefined;
+    } else if (selection) {
+      removal = selection;
+      selection = [];
+    }
+    deselectParcels(removal);
+  }
+
   function selectParcel(event) {
     // Clear the selection styling of the previous feature.
     if (!page.multi && selection) {
@@ -90,20 +120,7 @@ define(function (require) {
       selection = partitions[1];
 
       if (removal.length > 0) {
-        _.each(removal, function (item) {
-          item.feature.properties.selected = false;
-        });
-
-        mapView.restyle();
-
-        if (selection.length > 0) {
-          $.publish('selectionReady', [selection]);
-        } else {
-          // Nothing is selected anymore, so close and reset the form.
-          formView.closeForm();
-          formView.resetForm();
-        }
-
+        deselectParcels(removal);
         return;
       }
     }
@@ -334,6 +351,16 @@ define(function (require) {
       selectPoint(coords, scroll);
     });
 
+    $.subscribe('map:enteringParcelMode', function () {
+      deselectAllParcels();
+      $('#multiselect-panel').show();
+    });
+
+    $.subscribe('map:leavingParcelMode', function () {
+      $('#multiselect-panel').hide();
+      deselectAllParcels();
+    });
+
     $.subscribe('submitting', function () {
       // Mark the objects as pending, rather than selected.
       if (page.multi) {
@@ -359,6 +386,7 @@ define(function (require) {
 
     } else if (settings.survey.type === 'pointandparcel') {
       $('#pointparcelswitch').show();
+      $('#multiselect-panel').show();
 
       // Set a custom name for object selection (eg "sidewalk mode")
       if (settings.survey.surveyOptions.objectType) {
@@ -367,18 +395,21 @@ define(function (require) {
 
       $('#radio-choice-point').click(function() {
         mapView.showPointInterface();
-        $('#startpoint h2').html('Welcome, ' + settings.collectorName + '<br>Pan and add a point to begin');
-
+        var $start = $('#startpoint');
+        $start.find('h2').html('Welcome, ' + settings.collectorName + '<br>Pan and add a point to begin');
+        $start.show();
       });
       $('#radio-choice-parcel').click(function() {
         mapView.hidePointInterface();
+        var $start = $('#startpoint');
 
         // Use a custom prompt, if any
         if (settings.survey.surveyOptions && settings.survey.surveyOptions.prompt) {
-          $('#startpoint h2').html('Welcome, ' + settings.collectorName + '<br>' + settings.survey.surveyOptions.prompt);
+          $start.find('h2').html('Welcome, ' + settings.collectorName + '<br>' + settings.survey.surveyOptions.prompt);
         } else {
-          $('#startpoint h2').html('Welcome, ' + settings.collectorName + '<br>Tap a parcel to begin');
+          $start.find('h2').html('Welcome, ' + settings.collectorName + '<br>Tap a parcel to begin');
         }
+        $start.show();
       });
 
     } else if (settings.survey.type === 'address-point') {

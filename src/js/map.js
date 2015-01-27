@@ -244,6 +244,13 @@ define(function (require) {
   // Show the add / remove point interface
   mapView.showPointInterface = function showPointInterface() {
     var point;
+
+    // Hide the base object layer.
+    map.removeLayer(parcelsLayerGroup);
+
+    // Let the rest of the app know that selected parcels should be discarded.
+    $.publish('map:leavingParcelMode');
+
     try {
       point = map.getCenter();
     } catch (e) {
@@ -268,6 +275,12 @@ define(function (require) {
     map.off('dragend', crosshairMoveEnd);
     map.off('click', crosshairMapClick);
     crosshairLayer = null;
+
+    // Let the rest of the app know that selected point should be discarded.
+    $.publish('map:enteringParcelMode');
+
+    // Show the base object layer.
+    map.addLayer(parcelsLayerGroup);
   };
 
   mapView.setupAddressPointSurvey = function setupAddressPointSurvey() {
