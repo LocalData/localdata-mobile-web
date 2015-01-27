@@ -389,7 +389,7 @@ define(function (require) {
       $('#multiselect-panel').show();
 
       // Set a custom name for object selection (eg "sidewalk mode")
-      if (settings.survey.surveyOptions.objectType) {
+      if (settings.survey.surveyOptions && settings.survey.surveyOptions.objectType) {
         $('#parcel-mode-switch').html(settings.survey.surveyOptions.objectType + ' mode');
       }
 
