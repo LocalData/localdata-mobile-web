@@ -392,18 +392,21 @@ define(function (require) {
 
       $('#radio-choice-point').click(function() {
         mapView.showPointInterface();
-        $('#startpoint h2').html('Welcome, ' + settings.collectorName + '<br>Pan and add a point to begin');
-
+        var $start = $('#startpoint');
+        $start.find('h2').html('Welcome, ' + settings.collectorName + '<br>Pan and add a point to begin');
+        $start.show();
       });
       $('#radio-choice-parcel').click(function() {
         mapView.hidePointInterface();
+        var $start = $('#startpoint');
 
         // Use a custom prompt, if any
         if (settings.survey.surveyOptions && settings.survey.surveyOptions.prompt) {
-          $('#startpoint h2').html('Welcome, ' + settings.collectorName + '<br>' + settings.survey.surveyOptions.prompt);
+          $start.find('h2').html('Welcome, ' + settings.collectorName + '<br>' + settings.survey.surveyOptions.prompt);
         } else {
-          $('#startpoint h2').html('Welcome, ' + settings.collectorName + '<br>Tap a parcel to begin');
+          $start.find('h2').html('Welcome, ' + settings.collectorName + '<br>Tap a parcel to begin');
         }
+        $start.show();
       });
 
     } else if (settings.survey.type === 'address-point') {
