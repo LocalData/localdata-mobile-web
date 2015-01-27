@@ -353,9 +353,11 @@ define(function (require) {
 
     $.subscribe('map:enteringParcelMode', function () {
       deselectAllParcels();
+      $('#multiselect-panel').show();
     });
 
     $.subscribe('map:leavingParcelMode', function () {
+      $('#multiselect-panel').hide();
       deselectAllParcels();
     });
 
@@ -384,6 +386,7 @@ define(function (require) {
 
     } else if (settings.survey.type === 'pointandparcel') {
       $('#pointparcelswitch').show();
+      $('#multiselect-panel').show();
 
       // Set a custom name for object selection (eg "sidewalk mode")
       if (settings.survey.surveyOptions.objectType) {
