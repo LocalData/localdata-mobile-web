@@ -43,6 +43,10 @@ define(function (require) {
       var o = {};
       var a = this.serializeArray();
       $.each(a, function() {
+        // Don't store blank values for text fields
+        if (this.value === '') {
+          return;
+        }
         if (o[this.name] !== undefined) {
           if (!o[this.name].push) {
             o[this.name] = [o[this.name]];
@@ -51,9 +55,6 @@ define(function (require) {
         } else {
           o[this.name] = this.value || '';
         }
-
-        // Don't store blank values for text fields
-        if (this.value === '') delete o[this.name];
       });
       return o;
     };
@@ -517,7 +518,7 @@ define(function (require) {
           value = question.value;
         }
         data = {
-          questionName: suffixed_name,
+          questionName: question.name,
           id: _.uniqueId(question.name),
           value: value
         };
@@ -525,7 +526,7 @@ define(function (require) {
         $answer = $(templates.answerText(data));
       } else if (question.type === 'counter') {
           data = {
-            questionName: suffixed_name,
+            questionName: question.name,
             id: _.uniqueId(question.name),
             value: 0
           };
@@ -561,7 +562,7 @@ define(function (require) {
           });
       } else if (question.type === 'address') {
         data = {
-          questionName: suffixed_name,
+          questionName: question.name,
           id: _.uniqueId(question.name),
           value: ''
         };
@@ -579,7 +580,7 @@ define(function (require) {
         }
       } else if (question.type === 'file') {
         $answer = $(templates.answerFile({
-          questionName: suffixed_name,
+          questionName: question.name,
           id: _.uniqueId(question.name)
         }));
       }
@@ -591,6 +592,7 @@ define(function (require) {
     _.each(question.answers, function (answer) {
       // The triggerID is used to hide/show other question groups
       var triggerID = _.uniqueId(question.name);
+      var name = question.name;
 
       if(question.type === 'checkbox') {
         // Slugify the text if there isn't a name
@@ -599,13 +601,14 @@ define(function (require) {
           answer.name = slugify(answer.text);
         }
         suffixed_name = answer.name + suffix(answer.name);
+        name = answer.name;
         triggerID = suffixed_name;
         id = suffixed_name;
       }
 
       // Set the data used to render the answer
       var data = {
-        questionName: suffixed_name,
+        questionName: name,
         id: triggerID,
         theme: (answer.theme || "a"),
         value: answer.value,
