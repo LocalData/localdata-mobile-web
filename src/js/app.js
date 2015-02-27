@@ -110,7 +110,10 @@ define(function (require) {
           $collectorName.val($.cookie('collectorName'));
         }
 
+        // Capture clicks on the "Get started" button as well as Enter-presses
+        // from the input box.
         $collectorNameSubmit.click(app.getStarted);
+        $('#welcome-form').submit(app.getStarted);
       });
     },
 
