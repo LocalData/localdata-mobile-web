@@ -59,7 +59,7 @@ define(function (require) {
       return o;
     };
 
-    form.submit(handleSubmit);
+    form.find('#submitbutton').click(handleSubmit);
   };
 
   function showForm() {
