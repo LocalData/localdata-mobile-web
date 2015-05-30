@@ -10,6 +10,7 @@ define(function (require) {
 
   var $ = require('jquery');
   var api = require('api');
+  var Promise = require('lib/bluebird');
   var surveyPage = require('survey-page');
   var appCacheManager = require('app-cache-manager');
   var settings = require('settings');
@@ -93,7 +94,8 @@ define(function (require) {
      * We got the survey data
      * The survey is now exposed via settings.survey
      */
-    success: function() {
+    setupSurvey: function (survey) {
+      $('#survey-title').html(survey.name);
       api.init(function (error) {
         if (error) {
           $('body').html('Sorry, something went wrong. Please reload the page.');
@@ -118,19 +120,6 @@ define(function (require) {
     },
 
     /*
-     * If we can't get the survey:
-     */
-    fail: function(jqXHR) {
-      if (jqXHR.status === 404) {
-        // Survey was not found
-        $('#startpoint h2').html('Sorry, we couldn\'t find the survey. Please check the URL or contact the survey organizer.');
-      } else {
-        // Unknown error
-        $('#startpoint h2').html('Sorry, something has gone wrong. Please try again in a bit or contact the survey organizer.');
-      }
-    },
-
-    /*
      * Start the app.
      * Show the survey & hide the front page after the sign-in form
      * has been submitted
@@ -140,9 +129,17 @@ define(function (require) {
 
       appCacheManager.init(function () {
         // Get the survey, slug, etv.
-        var surveyPromise = api.getSurveyFromSlug();
-        surveyPromise.done(app.success);
-        surveyPromise.fail(app.fail);
+        Promise.resolve(api.getSurveyFromSlug())
+        .then(app.setupSurvey)
+        .catch(function (error) {
+          if (error.status && error.status === 404) {
+            // Survey was not found
+            $('#loading-msg').html('Sorry, we couldn\'t find the survey. Please check the URL or contact the survey organizer.');
+          } else {
+            // Unknown error
+            $('#loading-msg').html('Sorry, something has gone wrong. Please try again in a bit or contact the survey organizer.');
+          }
+        });
 
       }); // end appcache manager
     }

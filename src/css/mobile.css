@@ -227,6 +227,11 @@ h2 {
   text-transform:uppercase;
 }
 
+#home-container .title {
+  padding: 6px 26px;
+  font-size: 2em;
+}
+
 form input {
   font-size: 18px;
 }
