@@ -212,7 +212,7 @@ define(function (require) {
         var center = map.project(L.latLng(selection.centroid.coordinates[1], selection.centroid.coordinates[0]));
         center.y -= (height/2 - visibleHeight/2);
         map.panTo(map.unproject(center), {
-          animate: true,
+          animate: true
         });
       }
     }
@@ -322,18 +322,26 @@ define(function (require) {
       map.invalidateSize();
     }, 0);
 
-    // Add bing maps
-    var bing = new L.BingLayer(settings.bing_key, {
-      maxZoom: zoomLevels.aerialCutoff,
-      type:'AerialWithLabels'
-    });
+    // Add the base layer
+    var base;
+    if(settings.survey.tilelayer !== undefined) {
+      // Use a custom tilelayer if we have one.
+      base = new L.TileLayer(settings.survey.tilelayer, {
+        maxZoom: zoomLevels.aerialCutoff
+      });
+    } else {
+      base = new L.BingLayer(settings.bing_key, {
+        maxZoom: zoomLevels.aerialCutoff,
+        type:'AerialWithLabels'
+      });
+    }
 
     var streets = new L.TileLayer('http://a.tiles.mapbox.com/v3/matth.map-n9bps30s/{z}/{x}/{y}.png', {
       minZoom: zoomLevels.aerialCutoff + 1,
       maxZoom: zoomLevels.mapMax
     });
     map.addLayer(streets);
-    map.addLayer(bing);
+    map.addLayer(base);
 
     // When we zoom out from the min streetmap level to the max aerial level,
     // Leaflet keeps a scaled set of the old streetmap tiles visible. We set
