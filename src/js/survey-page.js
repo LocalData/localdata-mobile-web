@@ -340,7 +340,7 @@ define(function (require) {
 
 
   page.init = function init(options) {
-    mapView.init(options.mapContainer.prop('id'));
+    var mapInitialization = mapView.init(options.mapContainer.prop('id'));
     formView.init(options.form);
 
     $.subscribe('map:objectSelected', function (__, e) {
@@ -382,7 +382,9 @@ define(function (require) {
       $('#multiselect-panel').show();
 
     } else if (settings.survey.type === 'point') {
-      mapView.showPointInterface();
+      mapInitialization.then(function () {
+        mapView.showPointInterface();
+      });
 
     } else if (settings.survey.type === 'pointandparcel') {
       $('#pointparcelswitch').show();

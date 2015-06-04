@@ -10,6 +10,7 @@ define(function (require) {
   var api = require('api');
   var L = require('lib/leaflet');
   var maptiles = require('maptiles');
+  var Promise = require('lib/bluebird');
 
   // Add a buffer to a bounds object.
   // Makes parcels render faster when the map is moved
@@ -394,7 +395,6 @@ define(function (require) {
     // Mark a location on the map.
     // Primarily used with browser-based geolocation (aka 'where am I?')
     function onLocationFound(e) {
-      initialLocate = false;
       // Remove the old circle if we have one
       if (circle !== null) {
         map.removeLayer(circle);
@@ -438,9 +438,18 @@ define(function (require) {
     function onLocationError(e) {
       // Don't move the user to the default location if they
       // have already moved away from it.
-      // TODO: We should just abstract and call the "goToAddress" code here
-      if (initialLocate) {
-        initialLocate = false;
+      console.error("Unexpected geolocation error", e);
+    }
+
+    var locationPromise = new Promise(function (resolve, reject) {
+      // Initial location handlers.
+      // The map calls these at most once after our initial geolocation.
+      map.once('locationfound', function (e) {
+        onLocationFound(e);
+        resolve();
+      });
+      map.once('locationerror', function (e) {
+        // TODO: We should just abstract and call the "goToAddress" code here
         api.geocodeAddress(settings.survey.location, function (error, data) {
           if (error) {
             if (error.type === 'GeocodingError') {
@@ -449,6 +458,8 @@ define(function (require) {
               console.error('Unexpected error of type ' + error.type);
               console.error(error.message);
             }
+            // We still proceed as normal after handling the geocoding error.
+            resolve();
             return;
           }
 
@@ -464,22 +475,22 @@ define(function (require) {
           });
           map.addLayer(circle);
           map.setView(latlng, 19);
+          resolve();
         });
-      } else {
-        console.error("Unexpected geoloation error", e);
-      }
-    }
-
-    // Location handlers
-    // Used for centering the map when we're using geolocation.
-    map.on('locationfound', onLocationFound);
-    map.on('locationerror', onLocationError);
-
-    var initialLocate = true; // is this our first attempt to locate?
+      });
+    });
+    
     map.locate({
       setView: true,
       maxZoom: 19,
       enableHighAccuracy: true
+    });
+
+    return locationPromise.then(function () {
+      // Location handlers
+      // Used for centering the map when the user initiates geolocation.
+      map.on('locationfound', onLocationFound);
+      map.on('locationerror', onLocationError);
     });
   }; // end init
 
