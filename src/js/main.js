@@ -30,6 +30,10 @@ require.config({
     'lib/leaflet': {
       exports: 'L'
     },
+    'lib/leaflet.tilejson': {
+      deps: ['lib/leaflet'],
+      exports: 'L'
+    },
     'lib/tilelayer.bing.pull': ['lib/leaflet']
   }
 });
