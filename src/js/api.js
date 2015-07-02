@@ -383,6 +383,23 @@ define(function (require) {
       }
     });
   };
+  
+  api.getTileJSON = function getTileJSON() {
+    return $.ajax({
+      url: '/tiles/features/tile.json',
+      type: 'GET',
+      dataType: 'json',
+      cache: false,
+      data: {
+        layerDefinition: JSON.stringify({
+          query: {
+            type: 'parcels'
+          },
+          styles: settings.renderedStyles
+        })
+      }
+    });
+  };
 
 
   // Deal with the formatting of the geodata API.

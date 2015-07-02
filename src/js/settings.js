@@ -155,6 +155,8 @@ define(function (require) {
       }
     }
   };
+  
+  settings.renderedStyles = '#localdata { line-color: white; line-width: 1; line-opacity: 0.6; polygon-fill: white; polygon-opacity: 0.3; }';
 
   return settings;
 });

@@ -8,7 +8,8 @@ define(function (require) {
   var _ = require('lib/underscore');
   var settings = require('settings');
   var api = require('api');
-  var L = require('lib/leaflet');
+  // The TileJSON plugin returns the Leaflet object.
+  var L = require('lib/leaflet.tilejson');
   var maptiles = require('maptiles');
   var Promise = require('lib/bluebird');
 
@@ -354,6 +355,27 @@ define(function (require) {
         streets.setOpacity(0);
       }
     });
+    
+    if (settings.survey.farParcels) {
+      api.getTileJSON().done(function (data) {
+        var renderedFeatures = L.tileLayer(data.tiles[0], {
+          minZoom: zoomLevels.mapMin,
+          maxZoom: zoomLevels.parcelCutoff - 1
+        });
+        map.addLayer(renderedFeatures);
+
+        // Work around the same Leaflet bug affecting the streets layer above.
+        map.on('zoomend', function () {
+          if (map.getZoom() < zoomLevels.parcelCutoff) {
+            renderedFeatures.setOpacity(1);
+          } else {
+            renderedFeatures.setOpacity(0);
+          }
+        });
+      }).fail(function(jqXHR, textStatus, errorThrown) {
+        console.error('Error fetching tilejson', jqXHR, textStatus, errorThrown);
+      });
+    }
 
     // Check for new responses when we submit
     $.subscribe('successfulSubmit', getResponsesInMap);
