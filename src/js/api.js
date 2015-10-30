@@ -278,7 +278,7 @@ define(function (require) {
             width: 800,
             height: 0,
             crop: false,
-            quality: 100,
+            quality: 85,
             callback: function (data, width, height) {
               // Attach the resized image as a data URI.
               var resized = {
