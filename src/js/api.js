@@ -149,7 +149,7 @@ define(function (require) {
     _.each(response.files, function (item) {
       var f = $.canvasResize('dataURLtoBlob', item.data);
       f.name = item.name;
-      fd.append(item.fieldName, f, f.name);
+      fd.append(_.uniqueId('photo_'), f, f.name);
     });
 
     // Remove the file data from the response object, since we will include
